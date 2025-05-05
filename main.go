@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os"
 
 	"github.com/urfave/cli/v3"
 )
@@ -15,9 +13,8 @@ var (
 )
 
 func main() {
-	cmd := getCli()
-
-	cmd.Run(context.Background(), os.Args)
+	fmt.Println("AI Rules Manager - Placeholder")
+	// TODO: Implement CLI using urfave/cli/v3
 }
 
 func getCli() *cli.Command {
