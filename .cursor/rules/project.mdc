@@ -4,3 +4,4 @@ globs:
 alwaysApply: true
 ---
 - Always use English for project artifacts.
+- Always prefer immutable data mutation.
