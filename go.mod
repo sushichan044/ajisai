@@ -5,6 +5,7 @@ go 1.22.2
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/adrg/frontmatter v0.2.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v3 v3.0.0-alpha9
 )

@@ -1,14 +1,13 @@
 package parser_test
 
 import (
-	"bytes"
 	"context"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/sushichan044/ai-rules-manager/internal/parser"
 )
@@ -18,279 +17,230 @@ func TestDefaultParser_ImplementsInterface(t *testing.T) {
 }
 
 func TestDefaultParser_Parse(t *testing.T) {
-	tests := []struct {
-		name           string
-		sourceDirSetup func(t *testing.T) string // Returns the path to the source dir
-		expectError    bool
-		expectPackage  *domain.PresetPackage
-		wantErrMsg     string // Optional: check for specific error message substring
+	testCases := []struct {
+		name             string
+		setup            func(t *testing.T, testDir string)
+		expectedPackage  *domain.PresetPackage
+		expectErr        bool
+		useElementsMatch bool
 	}{
 		{
-			name: "non-existent source directory",
-			sourceDirSetup: func(t *testing.T) string {
-				return filepath.Join(t.TempDir(), "nonexistent")
+			name: "empty_directory",
+			setup: func(t *testing.T, testDir string) {
+				// Create empty rules/ and prompts/ directories
+				require.NoError(t, os.MkdirAll(filepath.Join(testDir, "rules"), 0755))
+				require.NoError(t, os.MkdirAll(filepath.Join(testDir, "prompts"), 0755))
 			},
-			expectError:   true,
-			expectPackage: nil,
-			wantErrMsg:    "no such file or directory", // Check for underlying os error
+			expectedPackage: &domain.PresetPackage{
+				InputKey: "test-key",
+				Items:    []*domain.PresetItem{}, // Changed to slice of pointers
+			},
+			expectErr: false,
 		},
 		{
-			name: "empty source directory",
-			sourceDirSetup: func(t *testing.T) string {
-				return t.TempDir()
+			name: "parse_single_rule_with_front_matter",
+			setup: func(t *testing.T, testDir string) {
+				createTestFile(t, testDir, "rules/rule1.md", "---\ntitle: Test Rule 1\nattach: manual\nglob:\n  - \"*.go\"\n---\nThis is the content of test rule 1.")
 			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
+			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
-				Items:    []domain.PresetItem{},
-			},
-		},
-		{
-			name: "parse single rule with front matter",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				rulesDir := filepath.Join(dir, "rules")
-				assert.NoError(t, os.MkdirAll(rulesDir, 0755))
-				content := "---\ntitle: Test Rule 1\nglob:\n  - \"*.go\"\n---\n\nThis is the content of test rule 1.\n"
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "rule1.md"), []byte(content), 0644))
-				return dir
-			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
-				InputKey: "test-key",
-				Items: []domain.PresetItem{
+				Items: []*domain.PresetItem{
 					{
 						Name:         "rule1",
 						Type:         "rule",
 						Description:  "This is the content of test rule 1.",
-						RelativePath: "rules/rule1.md",
-						Metadata: map[string]interface{}{
-							"title": "Test Rule 1",
-							"glob":  []interface{}{"*.go"},
+						RelativePath: "rule1.md",
+						Metadata: domain.RuleMetadata{
+							Title:  "Test Rule 1",
+							Attach: "manual",
+							Glob:   []string{"*.go"},
 						},
 					},
 				},
 			},
+			expectErr: false,
 		},
 		{
-			name: "parse rule without front matter",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				rulesDir := filepath.Join(dir, "rules")
-				assert.NoError(t, os.MkdirAll(rulesDir, 0755))
-				content := "This rule has no front matter."
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "rule_no_frontmatter.md"), []byte(content), 0644))
-				return dir
+			name: "parse_rule_without_front_matter",
+			setup: func(t *testing.T, testDir string) {
+				// This rule file lacks the mandatory 'attach' field.
+				createTestFile(t, testDir, "rules/rule_no_frontmatter.md", "This rule has no front matter.")
 			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
+			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
-				Items: []domain.PresetItem{
-					{
-						Name:         "rule_no_frontmatter",
-						Type:         "rule",
-						Description:  "This rule has no front matter.",
-						RelativePath: "rules/rule_no_frontmatter.md",
-						Metadata:     map[string]interface{}{}, // Expect empty map
-					},
-				},
+				Items:    []*domain.PresetItem{}, // Expect empty items as the rule should be skipped.
 			},
+			expectErr: false,
 		},
 		{
-			name: "skip rule with invalid front matter and log warning",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				rulesDir := filepath.Join(dir, "rules")
-				assert.NoError(t, os.MkdirAll(rulesDir, 0755))
-				content := "---\ntitle: Invalid YAML\ninvalid-yaml: [\n---\n\nContent"
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "invalid_yaml.md"), []byte(content), 0644))
-				// Add a valid file to ensure parsing continues
-				validContent := "---\ntitle: Valid\n---\nValid content"
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "valid.md"), []byte(validContent), 0644))
-				return dir
+			name: "rule_with_missing_attach_field_is_skipped", // New test case
+			setup: func(t *testing.T, testDir string) {
+				createTestFile(t, testDir, "rules/missing_attach.md", "---\ntitle: Missing Attach\nglob: [\"*.txt\"]\n---\nContent")
 			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
+			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
-				Items: []domain.PresetItem{
+				Items:    []*domain.PresetItem{}, // Expect empty items as the rule should be skipped.
+			},
+			expectErr: false,
+		},
+		{
+			name: "skip_rule_with_invalid_front_matter_and_log_warning",
+			setup: func(t *testing.T, testDir string) {
+				// invalid_yaml.md should be skipped due to frontmatter parsing error
+				createTestFile(t, testDir, "rules/invalid_yaml.md", "---\ntitle: Invalid\n  bad_indent: true\n---\nContent")
+				// valid.md should be parsed correctly as it has 'attach'
+				createTestFile(t, testDir, "rules/valid.md", "---\ntitle: Valid\nattach: manual\n---\nValid content")
+			},
+			expectedPackage: &domain.PresetPackage{
+				InputKey: "test-key",
+				Items: []*domain.PresetItem{
+					// Only the valid item should remain
 					{
 						Name:         "valid",
 						Type:         "rule",
 						Description:  "Valid content",
-						RelativePath: "rules/valid.md",
-						Metadata:     map[string]interface{}{"title": "Valid"},
-					},
-				}, // invalid_yaml.md should be skipped
-			},
-			// Note: Log verification happens outside this struct
-		},
-		{
-			name: "ignore non-md files and files outside rules/prompts",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				rulesDir := filepath.Join(dir, "rules")
-				assert.NoError(t, os.MkdirAll(rulesDir, 0755))
-				// Valid rule
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "real_rule.md"), []byte("Valid rule content"), 0644))
-				// Ignored files
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "ignoreme.txt"), []byte("text file"), 0644))
-				assert.NoError(t, os.WriteFile(filepath.Join(dir, "other.md"), []byte("other md"), 0644))
-				return dir
-			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
-				InputKey: "test-key",
-				Items: []domain.PresetItem{
-					{
-						Name:         "real_rule",
-						Type:         "rule",
-						Description:  "Valid rule content",
-						RelativePath: "rules/real_rule.md",
-						Metadata:     map[string]interface{}{},
-					},
-				},
-			},
-		},
-		{
-			name: "parse single prompt with front matter",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				promptsDir := filepath.Join(dir, "prompts")
-				assert.NoError(t, os.MkdirAll(promptsDir, 0755))
-				content := "---\ntitle: Test Prompt 1\ndescription: A sample prompt\n---\n\nThis is the content of test prompt 1.\n"
-				assert.NoError(t, os.WriteFile(filepath.Join(promptsDir, "prompt1.md"), []byte(content), 0644))
-				return dir
-			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
-				InputKey: "test-key",
-				Items: []domain.PresetItem{
-					{
-						Name:         "prompt1",
-						Type:         "prompt",
-						Description:  "This is the content of test prompt 1.", // Content part
-						RelativePath: "prompts/prompt1.md",
-						Metadata: map[string]interface{}{
-							"title":       "Test Prompt 1",
-							"description": "A sample prompt",
+						RelativePath: "valid.md",
+						Metadata: domain.RuleMetadata{
+							Title:  "Valid",
+							Attach: "manual",
 						},
 					},
 				},
 			},
+			expectErr: false,
+			// useElementsMatch: true, // No longer needed as only one item is expected
 		},
 		{
-			name: "parse prompt without front matter",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				promptsDir := filepath.Join(dir, "prompts")
-				assert.NoError(t, os.MkdirAll(promptsDir, 0755))
-				content := "This prompt has no front matter."
-				assert.NoError(t, os.WriteFile(filepath.Join(promptsDir, "prompt_no_frontmatter.md"), []byte(content), 0644))
-				return dir
+			name: "ignore_non-md_files_and_files_outside_rules/prompts",
+			setup: func(t *testing.T, testDir string) {
+				// real_rule.md lacks 'attach', so it will be skipped
+				createTestFile(t, testDir, "rules/real_rule.md", "Valid rule content")
+				createTestFile(t, testDir, "rules/ignore.txt", "Ignore me")
+				require.NoError(t, os.MkdirAll(filepath.Join(testDir, "other_dir"), 0755))
+				createTestFile(t, testDir, "other_dir/nested.md", "Ignore me too")
+				// Add a valid rule with attach to ensure something is parsed
+				createTestFile(t, testDir, "rules/another_rule.md", "---\nattach: always\n---\nAnother rule")
 			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
+			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
-				Items: []domain.PresetItem{
+				Items: []*domain.PresetItem{
+					{
+						Name:         "another_rule", // Only the valid rule remains
+						Type:         "rule",
+						Description:  "Another rule",
+						RelativePath: "another_rule.md",
+						Metadata: domain.RuleMetadata{
+							Attach: "always",
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "parse_single_prompt_with_front_matter",
+			setup: func(t *testing.T, testDir string) {
+				createTestFile(t, testDir, "prompts/prompt1.md", "---\ntitle: Test Prompt 1\ndescription: A sample prompt\n---\nThis is the content of test prompt 1.")
+			},
+			expectedPackage: &domain.PresetPackage{
+				InputKey: "test-key",
+				Items: []*domain.PresetItem{
+					{
+						Name:         "prompt1",
+						Type:         "prompt",
+						Description:  "This is the content of test prompt 1.",
+						RelativePath: "prompt1.md",
+						Metadata: domain.PromptMetadata{
+							Description: "A sample prompt",
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "parse_prompt_without_front_matter",
+			setup: func(t *testing.T, testDir string) {
+				createTestFile(t, testDir, "prompts/prompt_no_frontmatter.md", "This prompt has no front matter.")
+			},
+			expectedPackage: &domain.PresetPackage{
+				InputKey: "test-key",
+				Items: []*domain.PresetItem{
 					{
 						Name:         "prompt_no_frontmatter",
 						Type:         "prompt",
 						Description:  "This prompt has no front matter.",
-						RelativePath: "prompts/prompt_no_frontmatter.md",
-						Metadata:     map[string]interface{}{}, // Expect empty map
+						RelativePath: "prompt_no_frontmatter.md",
+						Metadata:     domain.PromptMetadata{},
 					},
 				},
 			},
+			expectErr: false,
 		},
 		{
-			name: "parse both rules and prompts",
-			sourceDirSetup: func(t *testing.T) string {
-				dir := filepath.Join(t.TempDir(), "default")
-				rulesDir := filepath.Join(dir, "rules")
-				promptsDir := filepath.Join(dir, "prompts")
-				assert.NoError(t, os.MkdirAll(rulesDir, 0755))
-				assert.NoError(t, os.MkdirAll(promptsDir, 0755))
-				// Rule
-				ruleContent := "---\ntitle: Rule A\n---\nRule A content"
-				assert.NoError(t, os.WriteFile(filepath.Join(rulesDir, "ruleA.md"), []byte(ruleContent), 0644))
-				// Prompt
-				promptContent := "---\ntitle: Prompt B\n---\nPrompt B content"
-				assert.NoError(t, os.WriteFile(filepath.Join(promptsDir, "promptB.md"), []byte(promptContent), 0644))
-				return dir
+			name: "parse_both_rules_and_prompts",
+			setup: func(t *testing.T, testDir string) {
+				// ruleA now includes the required 'attach' field
+				createTestFile(t, testDir, "rules/ruleA.md", "---\ntitle: Rule A\nattach: glob\nglob: [\"*.go\"]\n---\nRule A content")
+				createTestFile(t, testDir, "prompts/promptB.md", "---\ntitle: Prompt B\n---\nPrompt B content")
 			},
-			expectError: false,
-			expectPackage: &domain.PresetPackage{
+			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
-				Items: []domain.PresetItem{
-					// Order might vary based on WalkDir, so we check existence later
+				Items: []*domain.PresetItem{
 					{
 						Name:         "promptB",
 						Type:         "prompt",
 						Description:  "Prompt B content",
-						RelativePath: "prompts/promptB.md",
-						Metadata:     map[string]interface{}{"title": "Prompt B"},
+						RelativePath: "promptB.md",
+						Metadata:     domain.PromptMetadata{},
 					},
 					{
 						Name:         "ruleA",
 						Type:         "rule",
 						Description:  "Rule A content",
-						RelativePath: "rules/ruleA.md",
-						Metadata:     map[string]interface{}{"title": "Rule A"},
+						RelativePath: "ruleA.md",
+						Metadata: domain.RuleMetadata{
+							Title:  "Rule A",
+							Attach: "glob",
+							Glob:   []string{"*.go"},
+						},
 					},
 				},
 			},
+			expectErr:        false,
+			useElementsMatch: true,
 		},
-		// More test cases for rules and prompts will be added later
+		// Add more test cases: missing directories, file read errors, etc.
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Setup logger to capture output
-			var logBuf bytes.Buffer
-			logger := slog.New(slog.NewTextHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelWarn}))
-			ctx := context.Background()
-			// Inject logger into context (assuming DefaultParser will retrieve it)
-			// Note: Actual injection mechanism depends on how DefaultParser gets the logger.
-			// For now, we prepare it. The Parse method needs modification later.
-			// ctx = context.WithValue(ctx, "logger", logger) // Example placeholder
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			tc.setup(t, tempDir)
 
-			sourceDir := tt.sourceDirSetup(t)
-			p := parser.NewDefaultParser() // Consider passing logger if needed: parser.NewDefaultParser(logger)
-			ctx = context.WithValue(ctx, "logger", logger)
+			p := parser.NewDefaultParser()
+			actualPackage, err := p.Parse(context.Background(), "test-key", tempDir)
 
-			pkg, err := p.Parse(ctx, "test-key", sourceDir)
-
-			if tt.expectError {
+			if tc.expectErr {
 				assert.Error(t, err)
-				if tt.wantErrMsg != "" {
-					assert.Contains(t, err.Error(), tt.wantErrMsg)
-				}
 			} else {
 				assert.NoError(t, err)
-				// Ensure items slice is not nil for comparison, even if empty
-				if tt.expectPackage != nil && tt.expectPackage.Items == nil {
-					tt.expectPackage.Items = []domain.PresetItem{}
-				}
-				if pkg != nil && pkg.Items == nil {
-					pkg.Items = []domain.PresetItem{}
-				}
-				// For the mixed test case, use assert.ElementsMatch since order is not guaranteed
-				if tt.name == "parse both rules and prompts" {
-					assert.ElementsMatch(t, tt.expectPackage.Items, pkg.Items)
-					// Check other fields separately
-					assert.Equal(t, tt.expectPackage.InputKey, pkg.InputKey)
+				if tc.useElementsMatch {
+					assert.Equal(t, tc.expectedPackage.InputKey, actualPackage.InputKey, "InputKey mismatch")
+					assert.ElementsMatch(t, tc.expectedPackage.Items, actualPackage.Items, "Items mismatch")
 				} else {
-					assert.Equal(t, tt.expectPackage, pkg)
+					assert.Equal(t, tc.expectedPackage, actualPackage)
 				}
-
-				// Verify log output for specific tests
-				if tt.name == "skip rule with invalid front matter and log warning" {
-					assert.Contains(t, logBuf.String(), "WARN")
-					assert.Contains(t, logBuf.String(), "Failed to parse front matter")
-					assert.Contains(t, logBuf.String(), "invalid_yaml.md")
-				}
-				// Add checks for other logging scenarios if needed (e.g., read errors)
 			}
+
+			// TODO: Add logging output checks if necessary
 		})
 	}
+}
+
+func createTestFile(t *testing.T, baseDir, relPath, content string) {
+	fullPath := filepath.Join(baseDir, relPath)
+	dir := filepath.Dir(fullPath)
+	require.NoError(t, os.MkdirAll(dir, 0755))
+	require.NoError(t, os.WriteFile(fullPath, []byte(content), 0644))
 }

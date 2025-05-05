@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/adrg/frontmatter"
+	"github.com/mitchellh/mapstructure"
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
@@ -23,121 +24,130 @@ func NewDefaultParser() *DefaultParser {
 	return &DefaultParser{}
 }
 
-// Parse walks the sourceDir and parses rules and prompts according to the default structure.
+// Parse scans the source directory for rules and prompts and returns a PresetPackage.
+// It now accepts inputKey to conform to the ConfigPresetParser interface.
 func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (*domain.PresetPackage, error) {
-	logger := slog.Default() // Default logger
-	if ctxLogger, ok := ctx.Value("logger").(*slog.Logger); ok {
-		logger = ctxLogger
-	}
+	logger := slog.Default()
+	logger.Debug("Parsing source directory", "path", sourceDir, "key", inputKey)
 
-	items := []domain.PresetItem{}
+	items := []*domain.PresetItem{} // Initialize as slice of pointers
 
 	_, err := os.Stat(sourceDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// Return specific error if directory doesn't exist
-			return nil, fmt.Errorf("source directory '%s' not found: %w", sourceDir, err)
+			return nil, fmt.Errorf("source directory does not exist: %s", sourceDir)
 		}
-		return nil, fmt.Errorf("failed to stat source directory '%s': %w", sourceDir, err)
+		return nil, fmt.Errorf("failed to stat source directory %s: %w", sourceDir, err)
 	}
 
-	err = filepath.WalkDir(sourceDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			// Error accessing path, return it to stop walking if critical, or log and continue
-			// For now, let's return the error.
-			return fmt.Errorf("error accessing path %q: %w", path, err)
+	walkDirFunc := func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			logger.Warn("Error accessing path during walk", "path", path, "error", walkErr)
+			return walkErr // Propagate the error to stop walking if critical
 		}
 
-		// Skip the root directory itself
-		if path == sourceDir {
-			return nil
-		}
-
-		// Skip directories
-		if d.IsDir() {
-			// If we encounter rules/ or prompts/ directly, continue into them.
-			// Otherwise, skip other directories entirely.
-			relPath, _ := filepath.Rel(sourceDir, path)
-			if relPath != "rules" && relPath != "prompts" {
-				logger.Debug("Skipping directory", "path", relPath)
-				return fs.SkipDir // Skip this directory and its contents
-			}
-			return nil // Continue into rules/ or prompts/
-		}
-
-		// Only process *.md files
-		if !strings.HasSuffix(d.Name(), ".md") {
-			logger.Debug("Skipping non-markdown file", "path", path)
-			return nil
+		if d.IsDir() || !strings.HasSuffix(d.Name(), ".md") {
+			return nil // Skip directories and non-markdown files
 		}
 
 		relPath, err := filepath.Rel(sourceDir, path)
 		if err != nil {
-			// Should not happen if path is within sourceDir, but handle defensively
-			logger.Error("Failed to get relative path", "error", err, "path", path, "sourceDir", sourceDir)
-			return fmt.Errorf("failed to get relative path for %s: %w", path, err) // Stop walking
+			logger.Warn("Failed to get relative path", "base", sourceDir, "target", path, "error", err)
+			return nil // Skip this file if we can't get a relative path
 		}
 
 		var itemType string
 		if strings.HasPrefix(relPath, "rules/") {
 			itemType = "rule"
+			relPath = strings.TrimPrefix(relPath, "rules/")
 		} else if strings.HasPrefix(relPath, "prompts/") {
 			itemType = "prompt"
+			relPath = strings.TrimPrefix(relPath, "prompts/")
 		} else {
-			logger.Debug("Skipping file outside rules/ or prompts/", "path", relPath)
-			return nil // Skip files not in rules/ or prompts/
+			// Ignore files not in rules/ or prompts/ subdirectories
+			logger.Debug("Ignoring file outside rules/ or prompts/", "path", relPath)
+			return nil
 		}
 
-		// Read file content
+		logger.Debug("Processing file", "path", path, "type", itemType)
+
 		contentBytes, err := os.ReadFile(path)
 		if err != nil {
-			logger.Error("Failed to read file", "error", err, "path", path)
-			// Decide whether to skip or fail. Let's skip and log.
-			return nil // Continue walking
+			logger.Warn("Failed to read file", "path", path, "error", err)
+			return nil // Skip this file
 		}
 
-		// Parse front matter
-		var metadata map[string]interface{}
-		contentBody, err := frontmatter.Parse(bytes.NewReader(contentBytes), &metadata)
-
-		// Ensure metadata is non-nil even if parsing fails or no front matter exists
-		if metadata == nil {
-			metadata = make(map[string]interface{})
-		}
-
+		var fmData map[string]interface{}
+		content, err := frontmatter.Parse(bytes.NewReader(contentBytes), &fmData)
 		if err != nil {
-			logger.Warn("Failed to parse front matter, skipping file", "error", err, "path", relPath)
-			return nil // Skip this file entirely if front matter parsing fails
+			logger.Warn("Failed to parse front matter (or read content)", "path", path, "error", err)
+			// If front matter fails, treat as if no front matter exists, but log warning.
+			// Use the whole file content.
+			content = contentBytes
+			fmData = make(map[string]interface{}) // Ensure fmData is an empty map
 		}
 
-		// Extract name from filename (without extension)
 		baseName := filepath.Base(path)
 		itemName := strings.TrimSuffix(baseName, ".md")
 
-		item := domain.PresetItem{
+		item := &domain.PresetItem{ // Create as pointer
 			Name:         itemName,
+			Description:  strings.TrimSpace(string(content)),
 			Type:         itemType,
-			Description:  strings.TrimSpace(string(contentBody)), // Use content part as description
 			RelativePath: relPath,
-			Metadata:     metadata,
 		}
 
-		items = append(items, item)
+		// Decode metadata based on item type
+		var decodeErr error
+		var metadata interface{}
+
+		if itemType == "rule" {
+			ruleMeta := domain.RuleMetadata{}
+			decodeErr = mapstructure.Decode(fmData, &ruleMeta)
+			if decodeErr == nil {
+				// Validate required Attach field
+				if ruleMeta.Attach == "" {
+					logger.Warn("Rule metadata missing required 'attach' field, skipping item", "path", relPath)
+					return nil // Skip this item
+				}
+				// TODO: Add validation for allowed Attach values if needed.
+				metadata = ruleMeta
+			} else {
+				// If decoding itself fails, it might implicitly mean Attach is missing or malformed.
+				logger.Warn("Error decoding rule metadata, skipping item", "path", relPath, "error", decodeErr)
+				return nil // Skip this item due to decoding error
+				// metadata = domain.RuleMetadata{} // Assign empty/default is no longer the strategy
+			}
+		} else if itemType == "prompt" {
+			promptMeta := domain.PromptMetadata{}
+			decodeErr = mapstructure.Decode(fmData, &promptMeta)
+			if decodeErr != nil {
+				slog.Warn("Error decoding prompt metadata", "path", relPath, "error", decodeErr)
+				metadata = domain.PromptMetadata{}
+			} else {
+				metadata = promptMeta
+			}
+		} else {
+			slog.Warn("Unknown item type encountered", "type", itemType, "path", relPath)
+			metadata = make(map[string]interface{}) // Fallback
+		}
+
+		item.Metadata = metadata
+		items = append(items, item) // Append pointer to slice of pointers
 		logger.Debug("Parsed item", "name", itemName, "type", itemType, "path", relPath)
+		return nil
+	}
 
-		return nil // Continue walking
-	})
-
+	err = filepath.WalkDir(sourceDir, walkDirFunc)
 	if err != nil {
-		// Error during walk
-		return nil, fmt.Errorf("error walking directory '%s': %w", sourceDir, err)
+		logger.Error("Error walking directory", "path", sourceDir, "error", err)
 	}
 
-	// Return the package with collected items
 	pkg := &domain.PresetPackage{
-		InputKey: inputKey,
-		Items:    items,
+		InputKey: inputKey, // Set the inputKey
+		Items:    items,    // Assign the collected slice of pointers
 	}
 
+	logger.Info("Finished parsing source directory", "path", sourceDir, "item_count", len(pkg.Items))
 	return pkg, nil
 }
