@@ -56,12 +56,12 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 			return nil // Skip this file if we can't get a relative path
 		}
 
-		var itemType string
+		var itemType domain.PresetType
 		if strings.HasPrefix(relPath, "rules/") {
-			itemType = "rule"
+			itemType = domain.RulePresetType
 			relPath = strings.TrimPrefix(relPath, "rules/")
 		} else if strings.HasPrefix(relPath, "prompts/") {
-			itemType = "prompt"
+			itemType = domain.PromptPresetType
 			relPath = strings.TrimPrefix(relPath, "prompts/")
 		} else {
 			// Ignore files not in rules/ or prompts/ subdirectories
@@ -92,7 +92,7 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 
 		item := &domain.PresetItem{ // Create as pointer
 			Name:         itemName,
-			Description:  strings.TrimSpace(string(content)),
+			Content:      strings.TrimSpace(string(content)),
 			Type:         itemType,
 			RelativePath: relPath,
 		}
@@ -101,7 +101,7 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 		var decodeErr error
 		var metadata interface{}
 
-		if itemType == "rule" {
+		if itemType == domain.RulePresetType {
 			ruleMeta := domain.RuleMetadata{}
 			decodeErr = mapstructure.Decode(fmData, &ruleMeta)
 			if decodeErr == nil {
@@ -118,7 +118,7 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 				return nil // Skip this item due to decoding error
 				// metadata = domain.RuleMetadata{} // Assign empty/default is no longer the strategy
 			}
-		} else if itemType == "prompt" {
+		} else if itemType == domain.PromptPresetType {
 			promptMeta := domain.PromptMetadata{}
 			decodeErr = mapstructure.Decode(fmData, &promptMeta)
 			if decodeErr != nil {

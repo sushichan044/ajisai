@@ -48,7 +48,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "rule1",
 						Type:         "rule",
-						Description:  "This is the content of test rule 1.",
+						Content:      "This is the content of test rule 1.",
 						RelativePath: "rule1.md",
 						Metadata: domain.RuleMetadata{
 							Title:  "Test Rule 1",
@@ -98,7 +98,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "valid",
 						Type:         "rule",
-						Description:  "Valid content",
+						Content:      "Valid content",
 						RelativePath: "valid.md",
 						Metadata: domain.RuleMetadata{
 							Title:  "Valid",
@@ -108,7 +108,6 @@ func TestDefaultParser_Parse(t *testing.T) {
 				},
 			},
 			expectErr: false,
-			// useElementsMatch: true, // No longer needed as only one item is expected
 		},
 		{
 			name: "ignore_non-md_files_and_files_outside_rules/prompts",
@@ -127,7 +126,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "another_rule", // Only the valid rule remains
 						Type:         "rule",
-						Description:  "Another rule",
+						Content:      "Another rule",
 						RelativePath: "another_rule.md",
 						Metadata: domain.RuleMetadata{
 							Attach: "always",
@@ -148,7 +147,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "prompt1",
 						Type:         "prompt",
-						Description:  "This is the content of test prompt 1.",
+						Content:      "This is the content of test prompt 1.",
 						RelativePath: "prompt1.md",
 						Metadata: domain.PromptMetadata{
 							Description: "A sample prompt",
@@ -169,7 +168,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "prompt_no_frontmatter",
 						Type:         "prompt",
-						Description:  "This prompt has no front matter.",
+						Content:      "This prompt has no front matter.",
 						RelativePath: "prompt_no_frontmatter.md",
 						Metadata:     domain.PromptMetadata{},
 					},
@@ -190,14 +189,14 @@ func TestDefaultParser_Parse(t *testing.T) {
 					{
 						Name:         "promptB",
 						Type:         "prompt",
-						Description:  "Prompt B content",
+						Content:      "Prompt B content",
 						RelativePath: "promptB.md",
 						Metadata:     domain.PromptMetadata{},
 					},
 					{
 						Name:         "ruleA",
 						Type:         "rule",
-						Description:  "Rule A content",
+						Content:      "Rule A content",
 						RelativePath: "ruleA.md",
 						Metadata: domain.RuleMetadata{
 							Title:  "Rule A",
@@ -232,8 +231,6 @@ func TestDefaultParser_Parse(t *testing.T) {
 					assert.Equal(t, tc.expectedPackage, actualPackage)
 				}
 			}
-
-			// TODO: Add logging output checks if necessary
 		})
 	}
 }

@@ -1,12 +1,20 @@
 package domain
 
+// PresetType defines the kind of preset (e.g., rule, prompt).
+type PresetType string
+
+const (
+	RulePresetType   PresetType = "rule"
+	PromptPresetType PresetType = "prompt"
+)
+
 // PresetItem represents a single rule or prompt file within a PresetPackage.
 type PresetItem struct {
-	Name         string      `json:"name"`         // Unique name within package (e.g., "my-rule")
-	Description  string      `json:"description"`  // Content (Markdown), excluding front matter
-	Type         string      `json:"type"`         // "rule" or "prompt"
-	RelativePath string      `json:"relativePath"` // Path relative to package root (e.g., "rules/my-rule.md")
-	Metadata     interface{} `json:"metadata"`     // Changed to interface{}
+	Name         string      `mapstructure:"name" json:"name"`                   // Unique name within package (e.g., "my-rule")
+	Content      string      `mapstructure:"content" json:"content"`             // Content (e.g., Markdown), excluding front matter
+	Type         PresetType  `mapstructure:"type" json:"type"`                   // "rule" or "prompt"
+	RelativePath string      `mapstructure:"relativePath" json:"relativePath"`   // Path relative to package root (e.g., "rules/my-rule.md")
+	Metadata     interface{} `mapstructure:"metadata" json:"metadata,omitempty"` // Decoded front matter (e.g., RuleMetadata, PromptMetadata)
 }
 
 // RuleMetadata defines the structure for metadata specific to rules.
