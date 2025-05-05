@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -243,7 +242,7 @@ func TestDefaultParser_Parse(t *testing.T) {
 			tc.setup(t, tempDir)
 
 			p := parser.NewDefaultParser()
-			actualPackage, err := p.Parse(context.Background(), "test-key", tempDir)
+			actualPackage, err := p.Parse(t.Context(), "test-key", tempDir)
 
 			if tc.expectErr {
 				assert.Error(t, err)

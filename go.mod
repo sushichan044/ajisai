@@ -1,6 +1,6 @@
 module github.com/sushichan044/ai-rules-manager
 
-go 1.22.2
+go 1.24.0
 
 require (
 	github.com/BurntSushi/toml v1.3.2

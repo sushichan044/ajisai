@@ -24,7 +24,7 @@ func TestGitFetcher_ImplementsContentFetcher(t *testing.T) {
 }
 
 func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir()
 	require.NoError(t, os.RemoveAll(destDir)) // Ensure destDir does not exist initially
 
@@ -60,7 +60,7 @@ func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
 func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
 	// No need for resetMocks() or global stubs
 
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir()
 	require.NoError(t, os.RemoveAll(destDir))
 
@@ -97,7 +97,7 @@ func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
 }
 
 func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir() // Simulate existing directory
 	revision := "v1.0.0"
 	source := domain.InputSource{
@@ -162,7 +162,7 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 }
 
 func TestGitFetcher_Fetch_CheckoutRevision_Failure(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir()
 	revision := "invalid-revision"
 	source := domain.InputSource{
@@ -222,7 +222,7 @@ func TestGitFetcher_Fetch_CheckoutRevision_Failure(t *testing.T) {
 // Add more tests below
 
 func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir() // Simulate existing directory
 	source := domain.InputSource{
 		Type: "git",
@@ -274,7 +274,7 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 }
 
 func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	destDir := t.TempDir()
 	source := domain.InputSource{
 		Type: "git",

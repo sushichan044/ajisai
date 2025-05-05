@@ -1,7 +1,6 @@
 package fetcher_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +25,7 @@ func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
 	}
 
 	// --- Act
-	err := fetcher.Fetch(context.Background(), source, destPath)
+	err := fetcher.Fetch(t.Context(), source, destPath)
 
 	// --- Assert
 	require.Error(t, err)
@@ -52,7 +51,7 @@ func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
 	}
 
 	// --- Act
-	err := fetcher.Fetch(context.Background(), source, destPath)
+	err := fetcher.Fetch(t.Context(), source, destPath)
 
 	// --- Assert
 	require.Error(t, err)
@@ -72,7 +71,7 @@ func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
 	}
 
 	// --- Act
-	err := fetcher.Fetch(context.Background(), source, destPath)
+	err := fetcher.Fetch(t.Context(), source, destPath)
 
 	// --- Assert
 	require.Error(t, err)
@@ -149,7 +148,7 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 			tc.setupDest(t)
 
 			// --- Act
-			err := fetcher.Fetch(context.Background(), source, destPath)
+			err := fetcher.Fetch(t.Context(), source, destPath)
 
 			// --- Assert
 			if tc.expectError {
@@ -200,7 +199,7 @@ func TestLocalFetcher_Fetch_CopySuccess(t *testing.T) {
 			Path: sourceDir,
 		},
 	}
-	err = fetcher.Fetch(context.Background(), inputSource, destDir)
+	err = fetcher.Fetch(t.Context(), inputSource, destDir)
 
 	// --- Assertions ---
 	require.NoError(t, err)

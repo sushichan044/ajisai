@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,17 +96,7 @@ func setupTestApp() *cli.Command {
 		},
 		Before: func(ctx context.Context, cmd *cli.Command) error {
 			// Simplified logger setup for testing - doesn't set global default
-			logLevel := slog.LevelInfo
-			switch strings.ToLower(cmd.String("log-level")) {
-			case "debug":
-				logLevel = slog.LevelDebug
-			case "warn":
-				logLevel = slog.LevelWarn
-			case "error":
-				logLevel = slog.LevelError
-			}
-			opts := &slog.HandlerOptions{Level: logLevel}
-			handler := slog.NewTextHandler(io.Discard, opts) // Discard output in test
+			handler := slog.DiscardHandler // Discard output in test
 			logger := slog.New(handler)
 			if cmd.Root().Metadata == nil {
 				cmd.Root().Metadata = make(map[string]any)
@@ -140,7 +129,7 @@ func TestMain_BeforeHook_SetsLogger(t *testing.T) {
 
 			// Run the app with the specified log level flag
 			args := []string{"test-app", "--log-level", tc.logLevelFlag}
-			err := app.Run(context.Background(), args)
+			err := app.Run(t.Context(), args)
 			require.NoError(t, err) // Before hook should not return error here
 
 			// Check if the logger is in Metadata and has the correct level
@@ -151,7 +140,7 @@ func TestMain_BeforeHook_SetsLogger(t *testing.T) {
 			require.True(t, ok, "Value in metadata should be *slog.Logger")
 			assert.True(
 				t,
-				logger.Enabled(context.Background(), tc.expectedLevel),
+				logger.Enabled(t.Context(), tc.expectedLevel),
 				"Logger should be enabled for expected level",
 			)
 
@@ -159,7 +148,7 @@ func TestMain_BeforeHook_SetsLogger(t *testing.T) {
 			if tc.expectedLevel > slog.LevelDebug {
 				assert.False(
 					t,
-					logger.Enabled(context.Background(), tc.expectedLevel-1),
+					logger.Enabled(t.Context(), tc.expectedLevel-1),
 					"Logger should be disabled for level below expected",
 				)
 			}
@@ -263,7 +252,7 @@ func TestMain_BeforeHook_LoadsConfig(t *testing.T) {
 			app := setupTestAppWithMockConfig(mockMgr)
 
 			args := []string{"test-app", "--config", tc.configPath}
-			err := app.Run(context.Background(), args)
+			err := app.Run(t.Context(), args)
 
 			if tc.expectError {
 				require.Error(t, err)
