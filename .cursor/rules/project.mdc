@@ -10,8 +10,9 @@ alwaysApply: true
 
 ## Testing
 
-- When you complete each task in an issue, and when you complete all tasks in an issue, you must test the entire project.
-- When refactoring or changing an existing implementation, the test must be changed first.
+- When you complete each task in an issue, and when you complete all tasks in an issue, you must test the entire project with `go test`.
+- **If making changes that alter input/output behavior:** First, update tests to expect the new behavior *before* applying the code changes.
+- **If making changes that do NOT alter input/output behavior:** Do not modify tests. Ensure all existing tests pass after applying the code changes.
 
 ## Go Modules & Vendoring
 
