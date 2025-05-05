@@ -12,7 +12,7 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
-// Helper function from Validation test
+// Helper function from Validation test.
 func absPath(t *testing.T, relative string, baseDir string) string {
 	abs, err := filepath.Abs(filepath.Join(baseDir, relative))
 	require.NoError(t, err)
@@ -223,14 +223,14 @@ enabled = false
 				assert.Equal(t, "override", cfg.Global.Namespace)
 				assert.Equal(t, absPath(t, "../cache/global", configDir), cfg.Global.CacheDir)
 				require.Len(t, cfg.Inputs, 2)
-				inAbs, _ := cfg.Inputs["local_abs"]
+				inAbs := cfg.Inputs["local_abs"]
 				detailsAbs, _ := inAbs.Details.(domain.LocalInputSourceDetails)
 				assert.Equal(t, filepath.Clean("/abs/path/rules"), detailsAbs.Path)
-				inGit, _ := cfg.Inputs["git1"]
+				inGit := cfg.Inputs["git1"]
 				detailsGit, _ := inGit.Details.(domain.GitInputSourceDetails)
 				assert.Equal(t, "http://a.b/c.git", detailsGit.Repository)
 				require.Len(t, cfg.Outputs, 1)
-				out, _ := cfg.Outputs["out1"]
+				out := cfg.Outputs["out1"]
 				assert.Equal(t, "target1", out.Target)
 				assert.False(t, out.Enabled)
 			},

@@ -79,7 +79,12 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 		// Use the exported Runner field
 		output, err := f.Runner(ctx, "git", cmdArgs...)
 		if err != nil {
-			return fmt.Errorf("failed to clone repository %s: %w\nOutput:\n%s", gitSource.Repository, err, string(output))
+			return fmt.Errorf(
+				"failed to clone repository %s: %w\nOutput:\n%s",
+				gitSource.Repository,
+				err,
+				string(output),
+			)
 		}
 		fmt.Printf("Clone successful.\n")
 		// No need to checkout revision or pull after initial clone (git clone handles default branch)
@@ -95,7 +100,12 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 		fetchArgs := []string{"-C", destinationDir, "fetch", "origin"}
 		output, err := f.Runner(ctx, "git", fetchArgs...)
 		if err != nil {
-			return fmt.Errorf("failed to fetch updates for repository in %s: %w\nOutput:\n%s", destinationDir, err, string(output))
+			return fmt.Errorf(
+				"failed to fetch updates for repository in %s: %w\nOutput:\n%s",
+				destinationDir,
+				err,
+				string(output),
+			)
 		}
 
 		fmt.Printf("Checking out revision %s...\n", gitSource.Revision)
@@ -103,7 +113,13 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 		output, err = f.Runner(ctx, "git", checkoutArgs...)
 		if err != nil {
 			// Add specific error context for checkout failure
-			return fmt.Errorf("failed to checkout revision %s in %s: %w\nOutput:\n%s", gitSource.Revision, destinationDir, err, string(output))
+			return fmt.Errorf(
+				"failed to checkout revision %s in %s: %w\nOutput:\n%s",
+				gitSource.Revision,
+				destinationDir,
+				err,
+				string(output),
+			)
 		}
 		fmt.Printf("Successfully checked out revision %s.\n", gitSource.Revision)
 		return nil

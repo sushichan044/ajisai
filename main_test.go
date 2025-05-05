@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -18,7 +19,7 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
-// Test helper to build the binary
+// Test helper to build the binary.
 func buildBinary(t *testing.T) string {
 	t.Helper()
 	binPath := filepath.Join(t.TempDir(), "test-ai-rules-manager")
@@ -73,14 +74,14 @@ func TestMain_Run_Help_ShowsGlobalFlags(t *testing.T) {
 	assert.Contains(t, output, "(default: \"info\")", "Should show log-level default")
 }
 
-// contextKey is a private type copied from main.go for testing
+// contextKey is a private type copied from main.go for testing.
 type contextKey string
 
 const (
 	loggerKey contextKey = "logger"
 )
 
-// Test helper to create the app definition (mirrors main.go setup)
+// Test helper to create the app definition (mirrors main.go setup).
 func setupTestApp() *cli.Command {
 	app := &cli.Command{
 		Name: "test-app",
@@ -148,17 +149,25 @@ func TestMain_BeforeHook_SetsLogger(t *testing.T) {
 			require.True(t, ok, "Logger should be in metadata")
 			logger, ok := loggerVal.(*slog.Logger)
 			require.True(t, ok, "Value in metadata should be *slog.Logger")
-			assert.True(t, logger.Enabled(context.Background(), tc.expectedLevel), "Logger should be enabled for expected level")
+			assert.True(
+				t,
+				logger.Enabled(context.Background(), tc.expectedLevel),
+				"Logger should be enabled for expected level",
+			)
 
 			// Check one level below is disabled (except for debug)
 			if tc.expectedLevel > slog.LevelDebug {
-				assert.False(t, logger.Enabled(context.Background(), tc.expectedLevel-1), "Logger should be disabled for level below expected")
+				assert.False(
+					t,
+					logger.Enabled(context.Background(), tc.expectedLevel-1),
+					"Logger should be disabled for level below expected",
+				)
 			}
 		})
 	}
 }
 
-// --- Mock ConfigManager for testing ---
+// --- Mock ConfigManager for testing ---.
 type mockConfigManager struct {
 	LoadFunc func(configPath string) (*domain.Config, error)
 	SaveFunc func(configPath string, cfg *domain.Config) error
@@ -168,22 +177,22 @@ func (m *mockConfigManager) Load(configPath string) (*domain.Config, error) {
 	if m.LoadFunc != nil {
 		return m.LoadFunc(configPath)
 	}
-	return nil, fmt.Errorf("LoadFunc not implemented in mock")
+	return nil, errors.New("LoadFunc not implemented in mock")
 }
 
 func (m *mockConfigManager) Save(configPath string, cfg *domain.Config) error {
 	if m.SaveFunc != nil {
 		return m.SaveFunc(configPath, cfg)
 	}
-	return fmt.Errorf("SaveFunc not implemented in mock")
+	return errors.New("SaveFunc not implemented in mock")
 }
 
-// Ensure mock implements the interface
+// Ensure mock implements the interface.
 var _ domain.ConfigManager = (*mockConfigManager)(nil)
 
 const configKey contextKey = "config"
 
-// Test helper to create app with mock config manager
+// Test helper to create app with mock config manager.
 func setupTestAppWithMockConfig(mockMgr domain.ConfigManager) *cli.Command {
 	app := &cli.Command{
 		Name: "test-app",
@@ -238,7 +247,7 @@ func TestMain_BeforeHook_LoadsConfig(t *testing.T) {
 		{
 			name:        "load other error",
 			configPath:  "other/error.toml",
-			mockLoadErr: fmt.Errorf("some parsing error"),
+			mockLoadErr: errors.New("some parsing error"),
 			expectError: true,
 		},
 	}

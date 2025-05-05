@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	// version and revision are set by goreleaser during the build process
+	// version and revision are set by goreleaser during the build process.
 	version  = "dev"
 	revision = "dev"
 )
@@ -121,7 +122,11 @@ func main() {
 			// cfgOk will be false if config failed to load
 
 			if cfgOk {
-				logger.Info("AI Rules Manager - Main Action (Placeholder)", "loaded_config_namespace", cfg.Global.Namespace)
+				logger.Info(
+					"AI Rules Manager - Main Action (Placeholder)",
+					"loaded_config_namespace",
+					cfg.Global.Namespace,
+				)
 			} else {
 				logger.Info("AI Rules Manager - Main Action (Placeholder) - No config loaded")
 			}
@@ -140,7 +145,7 @@ func main() {
 					} // Fallback
 					if !cfgOk {
 						logger.Error("Configuration not loaded. Sync requires a valid configuration file.")
-						return fmt.Errorf("config not loaded")
+						return errors.New("config not loaded")
 					}
 					logger.Info("Running sync command (Placeholder)", "namespace", cfg.Global.Namespace)
 					// TODO: Implement sync logic using Core Engine

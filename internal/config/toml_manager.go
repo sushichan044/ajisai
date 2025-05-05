@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -117,7 +118,10 @@ func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string)
 
 // processInputs transforms and validates the input sources.
 // Returns the processed map of domain.InputSource or an error.
-func processInputs(userTomlInputs map[string]UserTomlInputSource, configDir string) (map[string]domain.InputSource, error) {
+func processInputs(
+	userTomlInputs map[string]UserTomlInputSource,
+	configDir string,
+) (map[string]domain.InputSource, error) {
 	if userTomlInputs == nil {
 		return make(map[string]domain.InputSource), nil // Return empty map if none defined
 	}
@@ -157,10 +161,12 @@ func processInputs(userTomlInputs map[string]UserTomlInputSource, configDir stri
 // validateLocalInput validates a local input source and resolves its path.
 func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain.LocalInputSourceDetails, error) {
 	if userInput.Path == nil || *userInput.Path == "" {
-		return domain.LocalInputSourceDetails{}, fmt.Errorf("type 'local' requires 'path' field")
+		return domain.LocalInputSourceDetails{}, errors.New("type 'local' requires 'path' field")
 	}
 	if userInput.Repository != nil || userInput.Revision != nil || userInput.SubDir != nil {
-		return domain.LocalInputSourceDetails{}, fmt.Errorf("type 'local' does not support 'repository', 'revision', or 'subDir' fields")
+		return domain.LocalInputSourceDetails{}, errors.New(
+			"type 'local' does not support 'repository', 'revision', or 'subDir' fields",
+		)
 	}
 
 	localPath := *userInput.Path
@@ -175,10 +181,10 @@ func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain
 // validateGitInput validates a git input source.
 func validateGitInput(userInput UserTomlInputSource) (domain.GitInputSourceDetails, error) {
 	if userInput.Repository == nil || *userInput.Repository == "" {
-		return domain.GitInputSourceDetails{}, fmt.Errorf("type 'git' requires 'repository' field")
+		return domain.GitInputSourceDetails{}, errors.New("type 'git' requires 'repository' field")
 	}
 	if userInput.Path != nil {
-		return domain.GitInputSourceDetails{}, fmt.Errorf("type 'git' does not support 'path' field")
+		return domain.GitInputSourceDetails{}, errors.New("type 'git' does not support 'path' field")
 	}
 
 	details := domain.GitInputSourceDetails{
@@ -327,5 +333,5 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 	return userTomlCfg, nil
 }
 
-// Compile-time check to ensure TomlManager implements ConfigManager
+// Compile-time check to ensure TomlManager implements ConfigManager.
 var _ domain.ConfigManager = (*TomlManager)(nil)

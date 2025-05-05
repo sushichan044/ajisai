@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -31,7 +32,7 @@ func (f *LocalFetcher) Fetch(ctx context.Context, source domain.InputSource, des
 	}
 	sourceDir := details.Path
 	if sourceDir == "" {
-		return fmt.Errorf("source path is empty in LocalInputSourceDetails")
+		return errors.New("source path is empty in LocalInputSourceDetails")
 	}
 
 	// 2. Check if source directory exists and is a directory

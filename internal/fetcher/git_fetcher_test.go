@@ -24,7 +24,6 @@ func TestGitFetcher_ImplementsContentFetcher(t *testing.T) {
 }
 
 func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
-
 	ctx := context.Background()
 	destDir := t.TempDir()
 	require.NoError(t, os.RemoveAll(destDir)) // Ensure destDir does not exist initially
@@ -148,8 +147,18 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 	// Assert
 	assert.NoError(t, err, "Fetch should succeed when checking out revision")
 	require.Len(t, executedCommands, 2, "Expected two git commands")
-	assert.Equal(t, []string{"git", "-C", destDir, "fetch", "origin"}, executedCommands[0], "First command should be git fetch with -C")
-	assert.Equal(t, []string{"git", "-C", destDir, "checkout", revision}, executedCommands[1], "Second command should be git checkout with -C")
+	assert.Equal(
+		t,
+		[]string{"git", "-C", destDir, "fetch", "origin"},
+		executedCommands[0],
+		"First command should be git fetch with -C",
+	)
+	assert.Equal(
+		t,
+		[]string{"git", "-C", destDir, "checkout", revision},
+		executedCommands[1],
+		"Second command should be git checkout with -C",
+	)
 }
 
 func TestGitFetcher_Fetch_CheckoutRevision_Failure(t *testing.T) {
@@ -256,7 +265,12 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 	// Assert
 	assert.NoError(t, err, "Fetch should succeed when pulling latest")
 	require.Len(t, executedCommands, 1, "Expected one git command")
-	assert.Equal(t, []string{"git", "-C", destDir, "pull", "origin"}, executedCommands[0], "Command should be git pull with -C")
+	assert.Equal(
+		t,
+		[]string{"git", "-C", destDir, "pull", "origin"},
+		executedCommands[0],
+		"Command should be git pull with -C",
+	)
 }
 
 func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {

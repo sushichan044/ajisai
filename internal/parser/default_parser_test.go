@@ -40,7 +40,12 @@ func TestDefaultParser_Parse(t *testing.T) {
 		{
 			name: "parse_single_rule_with_front_matter",
 			setup: func(t *testing.T, testDir string) {
-				createTestFile(t, testDir, "rules/rule1.md", "---\ntitle: Test Rule 1\nattach: manual\nglob:\n  - \"*.go\"\n---\nThis is the content of test rule 1.")
+				createTestFile(
+					t,
+					testDir,
+					"rules/rule1.md",
+					"---\ntitle: Test Rule 1\nattach: manual\nglob:\n  - \"*.go\"\n---\nThis is the content of test rule 1.",
+				)
 			},
 			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
@@ -75,7 +80,12 @@ func TestDefaultParser_Parse(t *testing.T) {
 		{
 			name: "rule_with_missing_attach_field_is_skipped", // New test case
 			setup: func(t *testing.T, testDir string) {
-				createTestFile(t, testDir, "rules/missing_attach.md", "---\ntitle: Missing Attach\nglob: [\"*.txt\"]\n---\nContent")
+				createTestFile(
+					t,
+					testDir,
+					"rules/missing_attach.md",
+					"---\ntitle: Missing Attach\nglob: [\"*.txt\"]\n---\nContent",
+				)
 			},
 			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
@@ -87,7 +97,12 @@ func TestDefaultParser_Parse(t *testing.T) {
 			name: "skip_rule_with_invalid_front_matter_and_log_warning",
 			setup: func(t *testing.T, testDir string) {
 				// invalid_yaml.md should be skipped due to frontmatter parsing error
-				createTestFile(t, testDir, "rules/invalid_yaml.md", "---\ntitle: Invalid\n  bad_indent: true\n---\nContent")
+				createTestFile(
+					t,
+					testDir,
+					"rules/invalid_yaml.md",
+					"---\ntitle: Invalid\n  bad_indent: true\n---\nContent",
+				)
 				// valid.md should be parsed correctly as it has 'attach'
 				createTestFile(t, testDir, "rules/valid.md", "---\ntitle: Valid\nattach: manual\n---\nValid content")
 			},
@@ -139,7 +154,12 @@ func TestDefaultParser_Parse(t *testing.T) {
 		{
 			name: "parse_single_prompt_with_front_matter",
 			setup: func(t *testing.T, testDir string) {
-				createTestFile(t, testDir, "prompts/prompt1.md", "---\ntitle: Test Prompt 1\ndescription: A sample prompt\n---\nThis is the content of test prompt 1.")
+				createTestFile(
+					t,
+					testDir,
+					"prompts/prompt1.md",
+					"---\ntitle: Test Prompt 1\ndescription: A sample prompt\n---\nThis is the content of test prompt 1.",
+				)
 			},
 			expectedPackage: &domain.PresetPackage{
 				InputKey: "test-key",
@@ -180,7 +200,12 @@ func TestDefaultParser_Parse(t *testing.T) {
 			name: "parse_both_rules_and_prompts",
 			setup: func(t *testing.T, testDir string) {
 				// ruleA now includes the required 'attach' field
-				createTestFile(t, testDir, "rules/ruleA.md", "---\ntitle: Rule A\nattach: glob\nglob: [\"*.go\"]\n---\nRule A content")
+				createTestFile(
+					t,
+					testDir,
+					"rules/ruleA.md",
+					"---\ntitle: Rule A\nattach: glob\nglob: [\"*.go\"]\n---\nRule A content",
+				)
 				createTestFile(t, testDir, "prompts/promptB.md", "---\ntitle: Prompt B\n---\nPrompt B content")
 			},
 			expectedPackage: &domain.PresetPackage{

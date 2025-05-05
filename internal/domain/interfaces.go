@@ -40,12 +40,12 @@ type AIAgentConfigurationAdapter interface {
 
 // --- Potentially add interfaces for 'import' and 'doctor' command helpers later ---
 
-// DefaultFormatWriter (Conceptual for 'import')
+// DefaultFormatWriter (Conceptual for 'import').
 type DefaultFormatWriter interface {
 	Write(ctx context.Context, items []PresetItem, outputDir string) error
 }
 
-// DefaultFormatValidator (Conceptual for 'doctor')
+// DefaultFormatValidator (Conceptual for 'doctor').
 type ValidationIssue struct {
 	Path     string
 	Severity string // e.g., "error", "warning"

@@ -77,14 +77,14 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 			return nil // Skip this file
 		}
 
-		var fmData map[string]interface{}
+		var fmData map[string]any
 		content, err := frontmatter.Parse(bytes.NewReader(contentBytes), &fmData)
 		if err != nil {
 			logger.Warn("Failed to parse front matter (or read content)", "path", path, "error", err)
 			// If front matter fails, treat as if no front matter exists, but log warning.
 			// Use the whole file content.
 			content = contentBytes
-			fmData = make(map[string]interface{}) // Ensure fmData is an empty map
+			fmData = make(map[string]any) // Ensure fmData is an empty map
 		}
 
 		baseName := filepath.Base(path)
@@ -99,9 +99,10 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 
 		// Decode metadata based on item type
 		var decodeErr error
-		var metadata interface{}
+		var metadata any
 
-		if itemType == domain.RulePresetType {
+		switch itemType {
+		case domain.RulePresetType:
 			ruleMeta := domain.RuleMetadata{}
 			decodeErr = mapstructure.Decode(fmData, &ruleMeta)
 			if decodeErr == nil {
@@ -118,7 +119,7 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 				return nil // Skip this item due to decoding error
 				// metadata = domain.RuleMetadata{} // Assign empty/default is no longer the strategy
 			}
-		} else if itemType == domain.PromptPresetType {
+		case domain.PromptPresetType:
 			promptMeta := domain.PromptMetadata{}
 			decodeErr = mapstructure.Decode(fmData, &promptMeta)
 			if decodeErr != nil {
@@ -127,9 +128,9 @@ func (p *DefaultParser) Parse(ctx context.Context, inputKey, sourceDir string) (
 			} else {
 				metadata = promptMeta
 			}
-		} else {
+		default:
 			slog.Warn("Unknown item type encountered", "type", itemType, "path", relPath)
-			metadata = make(map[string]interface{}) // Fallback
+			metadata = make(map[string]any) // Fallback
 		}
 
 		item.Metadata = metadata
