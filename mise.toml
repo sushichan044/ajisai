@@ -1,0 +1,40 @@
+[tools]
+golangci-lint = "latest"
+
+[env]
+GO111MODULE = "on"
+GOFLAGS = "-mod=vendor"
+
+[tasks.lint]
+description = "Run golangci-lint"
+run = "golangci-lint run ./..."
+
+[tasks.lint-fix]
+description = "Fix golangci-lint issues automatically"
+run = "golangci-lint run --fix ./..."
+
+[tasks.fmt]
+description = "Format code"
+run = """
+gofmt -s -w .
+goimports -w .
+"""
+
+[tasks.test]
+description = "Run tests"
+run = "go test ./..."
+
+[tasks.build-snapshot]
+description = "Build the application with version info"
+run = "goreleaser release --clean --snapshot"
+
+[tasks.dev]
+description = "Run the application in development mode"
+run = "go run main.go"
+
+[tasks.clean]
+description = "Remove generated files"
+run = """
+rm -rf bin/
+go clean
+"""
