@@ -35,25 +35,27 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	eg := new(errgroup.Group)
 
 	eg.Go(func() error {
-		var err error
-		prompts, err = parsePrompts(presetRootDir)
-		if err != nil {
-			return fmt.Errorf("failed to parse prompts: %w", err)
+		parsedPrompts, innerErr := parsePrompts(presetRootDir)
+		if innerErr != nil {
+			return fmt.Errorf("failed to parse prompts: %w", innerErr)
 		}
+
+		prompts = parsedPrompts
 		return nil
 	})
 
 	eg.Go(func() error {
-		var err error
-		rules, err = parseRules(presetRootDir)
-		if err != nil {
-			return fmt.Errorf("failed to parse rules: %w", err)
+		parsedRules, innerErr := parseRules(presetRootDir)
+		if innerErr != nil {
+			return fmt.Errorf("failed to parse rules: %w", innerErr)
 		}
+
+		rules = parsedRules
 		return nil
 	})
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
+	if groupErr := eg.Wait(); groupErr != nil {
+		return nil, groupErr
 	}
 
 	return &domain.PresetPackage{

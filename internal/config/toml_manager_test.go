@@ -142,7 +142,7 @@ func TestTomlManager_Load_FileNotFound(t *testing.T) {
 
 	// --- Assert
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "failed to read config file")
+	require.ErrorContains(t, err, "failed to read config file")
 	assert.ErrorIs(t, err, os.ErrNotExist) // Check underlying error
 }
 
@@ -345,7 +345,7 @@ path="./p"
 			if tc.expectError {
 				require.Error(t, err)
 				if tc.errorContains != "" {
-					assert.ErrorContains(t, err, tc.errorContains)
+					require.ErrorContains(t, err, tc.errorContains)
 				}
 				assert.Nil(t, loadedCfg)
 			} else {

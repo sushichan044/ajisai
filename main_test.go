@@ -64,7 +64,7 @@ func cleanupBinary(binPath string) {
 }
 
 // Test helper function remains the same.
-func runCliCommand(t *testing.T, args []string, env map[string]string) (string, string, error) {
+func runCliCommand(_ *testing.T, args []string, env map[string]string) (string, string, error) {
 	cmd := exec.Command(binaryPath, args...)
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
