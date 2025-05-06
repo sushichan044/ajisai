@@ -18,6 +18,10 @@ issues:
   # Default: 3
   max-same-issues: 50
 
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
 formatters:
   enable:
     - goimports # checks if the code and import statements are formatted according to the 'goimports' command
