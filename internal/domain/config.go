@@ -42,42 +42,14 @@ type GitInputSourceDetails struct {
 
 func (d GitInputSourceDetails) isInputSourceDetails() {}
 
-// --- OutputTarget Definitions ---
-
 // OutputTarget defines a configured destination for the processed presets.
 type OutputTarget struct {
 	Target  string // Type identifier (e.g., "cursor", "vscode-copilot")
 	Enabled bool   // Whether this output target is active (default: true)
-	// Details OutputTargetDetails // Placeholder for future type-specific output settings
 }
-
-/*
-// Example of how OutputTargetDetails might be used later:
-// OutputTargetDetails is an interface for type-specific output target configurations.
-type OutputTargetDetails interface {
-	isOutputTargetDetails()
-}
-
-// CursorOutputTargetDetails holds configuration specific to the Cursor adapter.
-type CursorOutputTargetDetails struct {
-    // Example specific field, e.g., OutputPathOverride string
-}
-func (d CursorOutputTargetDetails) isOutputTargetDetails() {}
-
-// Then OutputTarget would be:
-type OutputTarget struct {
-	Target  string
-	Enabled bool
-	Details OutputTargetDetails
-}
-*/
-
-// --- Helper Functions ---
 
 // GetInputSourceDetails safely performs a type assertion on InputSource.Details.
 func GetInputSourceDetails[T InputSourceDetails](is InputSource) (T, bool) {
 	details, ok := is.Details.(T)
 	return details, ok
 }
-
-// TODO: Add GetOutputTargetDetails if/when OutputTarget.Details is implemented.
