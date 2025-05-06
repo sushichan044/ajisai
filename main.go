@@ -49,9 +49,7 @@ func main() {
 				return ctx, fmt.Errorf("failed to load configuration from %s: %w", cfgPath, err)
 			}
 
-			ctxWithConfig := context.WithValue(ctx, ConfigContextKey, loadedCfg)
-
-			return ctxWithConfig, nil
+			return config.StoreInContext(ctx, loadedCfg), nil
 		},
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			return cli.ShowAppHelp(cmd)
