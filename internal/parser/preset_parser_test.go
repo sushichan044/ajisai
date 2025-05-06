@@ -55,7 +55,6 @@ func TestParsePresetPackage(t *testing.T) {
 						Type:    domain.RulePresetType,
 						Content: "This is the content of test rule 1.\n",
 						Metadata: domain.RuleMetadata{
-							Title:  "Test Rule 1",
 							Attach: "manual",
 							Glob:   []string{"*.go"},
 						},
@@ -111,7 +110,6 @@ func TestParsePresetPackage(t *testing.T) {
 						Type:    domain.RulePresetType,
 						Content: "Content\n",
 						Metadata: domain.RuleMetadata{
-							Title:  "Missing Attach",
 							Attach: "", // Missing 'attach' results in empty string
 							Glob:   []string{"*.txt"},
 						},
@@ -263,7 +261,6 @@ func TestParsePresetPackage(t *testing.T) {
 						Type:    domain.RulePresetType,
 						Content: "This is the content of Bar.\n",
 						Metadata: domain.RuleMetadata{
-							Title:  "Bar",
 							Attach: "glob",
 							Glob:   []string{"*.go"}},
 						RelativePath: "rules/foo/bar.md",
@@ -304,7 +301,6 @@ func TestParsePresetPackage(t *testing.T) {
 						Type:    domain.RulePresetType,
 						Content: "Rule A content\n",
 						Metadata: domain.RuleMetadata{
-							Title:  "Rule A",
 							Attach: "glob",
 							Glob:   []string{"*.go"},
 						},

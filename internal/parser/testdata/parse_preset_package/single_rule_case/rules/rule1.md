@@ -1,5 +1,4 @@
 ---
-title: Test Rule 1
 attach: manual
 glob:
   - "*.go"

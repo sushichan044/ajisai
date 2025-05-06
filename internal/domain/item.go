@@ -19,7 +19,6 @@ type PresetItem struct {
 
 // RuleMetadata defines the structure for metadata specific to rules.
 type RuleMetadata struct {
-	Title       string   `mapstructure:"title,omitempty"`       // Optional: User-facing title from front matter.
 	Description string   `mapstructure:"description,omitempty"` // Optional: Detailed description from front matter.
 	Attach      string   `mapstructure:"attach"`                // Required: How the rule is attached ("always", "glob", "manual", "agent-requested" etc.). No default value.
 	Glob        []string `mapstructure:"glob,omitempty"`        // Optional: Glob patterns, used when Attach is "glob".

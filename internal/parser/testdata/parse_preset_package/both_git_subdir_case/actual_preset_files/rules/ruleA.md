@@ -1,5 +1,4 @@
 ---
-title: Rule A
 attach: glob
 glob: ["*.go"]
 ---

@@ -1,5 +1,4 @@
 ---
-title: Bar
 attach: glob
 glob:
   - "*.go"
