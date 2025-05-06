@@ -20,7 +20,7 @@ type ConfigManager interface {
 // ContentFetcher retrieves content from a source defined by InputSource.
 type ContentFetcher interface {
 	// Fetch retrieves content from the source and stores it in the destinationDir.
-	Fetch(ctx context.Context, source InputSource, destinationDir string) error
+	Fetch(source InputSource, destinationDir string) error
 }
 
 // ConfigPresetParser parses content from a source directory into a PresetPackage.

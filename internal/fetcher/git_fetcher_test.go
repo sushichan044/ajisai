@@ -1,342 +1,284 @@
 package fetcher_test
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"log/slog"
-	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/sushichan044/ai-rules-manager/internal/fetcher"
+	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-func TestGitFetcher_ImplementsContentFetcher(t *testing.T) {
-	// This test primarily checks at compile time if GitFetcher satisfies the interface.
-	// An explicit check can also be added.
-	var _ domain.ContentFetcher = (*fetcher.GitFetcher)(nil)
+type MockCommandRunner struct {
+	mock.Mock
+}
 
-	// Optional: Instantiate and check
-	gf, err := fetcher.NewGitFetcher(nil) // Pass nil logger for interface check
-	require.NoError(t, err)               // Assuming NewGitFetcher handles nil logger
-	assert.NotNil(t, gf, "GitFetcher instance should not be nil")
+func (m *MockCommandRunner) Run(command string, args ...string) error {
+	callArgs := m.Called(command, args)
+	return callArgs.Error(0)
+}
+
+func (m *MockCommandRunner) RunInDir(dir string, command string, args ...string) error {
+	callArgs := m.Called(dir, command, args)
+	return callArgs.Error(0)
+}
+
+func stubIsDirExists(t *testing.T, exists bool, err error) func() {
+	original := utils.IsDirExists
+	utils.IsDirExists = func(_ string) (bool, error) {
+		return exists, err
+	}
+	t.Cleanup(func() {
+		utils.IsDirExists = original
+	})
+	return func() { utils.IsDirExists = original }
 }
 
 func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
-	ctx := t.Context()
-	destDir := t.TempDir()
-	require.NoError(t, os.RemoveAll(destDir)) // Ensure destDir does not exist initially
-
+	destDir := "/tmp/dest"
+	absoluteDestDir, _ := filepath.Abs(destDir) // Assume Abs works
 	repoURL := "https://github.com/example/repo.git"
 	source := domain.InputSource{
 		Type:    "git",
-		Details: &domain.GitInputSourceDetails{Repository: repoURL},
+		Details: domain.GitInputSourceDetails{Repository: repoURL},
 	}
 
-	// Arrange Mocks (os.Stat can still be mocked if needed, but let's focus on runner)
-	// Simulate directory not existing by ensuring it's removed
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
 
-	var executedCommand []string
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		executedCommand = append([]string{name}, args...)
-		// Simulate success
-		return []byte("Cloning into '" + destDir + "'...\ndone."), nil
-	}
+	stubIsDirExists(t, false, nil) // Simulate directory does not exist
 
-	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler), // Use a discard logger for testing
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	expectedArgs := []string{"clone", repoURL, absoluteDestDir}
+	mockRunner.On("Run", "git", expectedArgs).Return(nil)
 
-	// Assert
-	assert.NoError(t, err, "Fetch should succeed for initial clone")
-	expectedCmd := []string{"git", "clone", repoURL, destDir}
-	assert.Equal(t, expectedCmd, executedCommand, "Expected git clone command")
+	err := fetcherInstance.Fetch(source, destDir)
+
+	require.NoError(t, err)
+	mockRunner.AssertExpectations(t)
 }
 
 func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
-	// No need for resetMocks() or global stubs
-
-	ctx := t.Context()
-	destDir := t.TempDir()
-	require.NoError(t, os.RemoveAll(destDir))
-
+	destDir := "/tmp/dest"
+	absoluteDestDir, _ := filepath.Abs(destDir)
 	repoURL := "invalid-url"
 	source := domain.InputSource{
 		Type:    "git",
-		Details: &domain.GitInputSourceDetails{Repository: repoURL},
+		Details: domain.GitInputSourceDetails{Repository: repoURL},
 	}
 
-	// Arrange Mocks
-	var executedCommand []string
-	mockError := errors.New("mock git execution error")
-	mockOutput := []byte("fatal: repository not found")
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		executedCommand = append([]string{name}, args...)
-		// Simulate failure
-		return mockOutput, mockError
-	}
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+
+	stubIsDirExists(t, false, nil)
+
+	cloneErr := errors.New("git clone failed")
+	expectedArgs := []string{"clone", repoURL, absoluteDestDir}
+	mockRunner.On("Run", "git", expectedArgs).Return(cloneErr)
 
 	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler),
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	err := fetcherInstance.Fetch(source, destDir)
 
 	// Assert
-	assert.Error(t, err, "Fetch should fail when git clone fails")
-	assert.Contains(t, err.Error(), "failed to clone repository", "Error message should indicate clone failure")
-	assert.ErrorIs(t, err, mockError, "Error should wrap the runner error")
-	assert.Contains(t, err.Error(), string(mockOutput), "Error message should contain output from command")
-	expectedCmd := []string{"git", "clone", repoURL, destDir}
-	assert.Equal(t, expectedCmd, executedCommand, "Expected git clone command")
+	require.Error(t, err)
+	require.ErrorIs(t, err, cloneErr)
+	mockRunner.AssertExpectations(t)
 }
 
 func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
-	ctx := t.Context()
-	destDir := t.TempDir() // Simulate existing directory
+	destDir := "/tmp/existing-repo"
+	absoluteDestDir, _ := filepath.Abs(destDir)
 	revision := "v1.0.0"
 	source := domain.InputSource{
 		Type: "git",
-		Details: &domain.GitInputSourceDetails{
+		Details: domain.GitInputSourceDetails{
 			Repository: "https://irrelevant.for/this/test",
 			Revision:   revision,
 		},
 	}
 
-	// Arrange Mocks
-	var executedCommands [][]string
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		cmd := append([]string{name}, args...)
-		executedCommands = append(executedCommands, cmd)
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
 
-		// Find the actual git command (fetch or checkout) after -C option
-		var gitCommand string
-		for i, arg := range args {
-			if arg == "-C" && i+1 < len(args) {
-				// Skip the directory path
-				i++
-				continue
-			}
-			if arg == "fetch" || arg == "checkout" {
-				gitCommand = arg
-				break
-			}
-		}
+	stubIsDirExists(t, true, nil) // Simulate directory exists
 
-		// Simulate success/failure based on the found command
-		switch gitCommand {
-		case "fetch":
-			return []byte("Fetched successfully"), nil
-		case "checkout":
-			return []byte("Switched to revision '" + revision + "'"), nil
-		default:
-			return nil, fmt.Errorf("unexpected git command structure: %v", args)
-		}
-	}
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedFetchArgs).Return(nil)
 
-	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler),
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	expectedCheckoutArgs := []string{"checkout", revision}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedCheckoutArgs).Return(nil)
 
-	// Assert
-	assert.NoError(t, err, "Fetch should succeed when checking out revision")
-	require.Len(t, executedCommands, 2, "Expected two git commands")
-	assert.Equal(
-		t,
-		[]string{"git", "-C", destDir, "fetch", "origin"},
-		executedCommands[0],
-		"First command should be git fetch with -C",
-	)
-	assert.Equal(
-		t,
-		[]string{"git", "-C", destDir, "checkout", revision},
-		executedCommands[1],
-		"Second command should be git checkout with -C",
-	)
+	err := fetcherInstance.Fetch(source, destDir)
+
+	require.NoError(t, err)
+	mockRunner.AssertExpectations(t)
 }
 
-func TestGitFetcher_Fetch_CheckoutRevision_Failure(t *testing.T) {
-	ctx := t.Context()
-	destDir := t.TempDir()
+func TestGitFetcher_Fetch_CheckoutRevision_FetchFailure(t *testing.T) {
+	destDir := "/tmp/existing-repo"
+	absoluteDestDir, _ := filepath.Abs(destDir)
+	revision := "v1.0.0"
+	source := domain.InputSource{
+		Type: "git",
+		Details: domain.GitInputSourceDetails{
+			Repository: "https://irrelevant.for/this/test",
+			Revision:   revision,
+		},
+	}
+
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+
+	stubIsDirExists(t, true, nil)
+
+	fetchErr := errors.New("git fetch failed")
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedFetchArgs).Return(fetchErr)
+
+	// Act
+	err := fetcherInstance.Fetch(source, destDir)
+
+	// Assert
+	require.ErrorContains(t, err, "failed to fetch updates")
+	require.ErrorIs(t, err, fetchErr)
+	mockRunner.AssertExpectations(t)
+	mockRunner.AssertNotCalled(
+		t,
+		"RunInDir",
+		absoluteDestDir,
+		"git",
+		[]string{"checkout", revision},
+	) // Ensure checkout wasn't called
+}
+
+func TestGitFetcher_Fetch_CheckoutRevision_CheckoutFailure(t *testing.T) {
+	destDir := "/tmp/existing-repo"
+	absoluteDestDir, _ := filepath.Abs(destDir)
 	revision := "invalid-revision"
 	source := domain.InputSource{
 		Type: "git",
-		Details: &domain.GitInputSourceDetails{
+		Details: domain.GitInputSourceDetails{
 			Repository: "https://irrelevant.for/this/test",
 			Revision:   revision,
 		},
 	}
 
-	// Arrange Mocks
-	var executedCommands [][]string
-	mockError := errors.New("mock git checkout error")
-	mockOutput := []byte("error: pathspec 'invalid-revision' did not match any file(s) known to git")
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		cmd := append([]string{name}, args...)
-		executedCommands = append(executedCommands, cmd)
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
 
-		// Find the actual git command
-		var gitCommand string
-		for i, arg := range args {
-			if arg == "-C" && i+1 < len(args) {
-				i++
-				continue
-			}
-			if arg == "fetch" || arg == "checkout" {
-				gitCommand = arg
-				break
-			}
-		}
+	stubIsDirExists(t, true, nil)
 
-		switch gitCommand {
-		case "fetch":
-			return []byte("Fetched successfully"), nil // Simulate fetch success
-		case "checkout":
-			return mockOutput, mockError // Simulate checkout failure
-		default:
-			return nil, fmt.Errorf("unexpected git command structure: %v", args)
-		}
-	}
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedFetchArgs).Return(nil)
+
+	checkoutErr := errors.New("git checkout failed")
+	expectedCheckoutArgs := []string{"checkout", revision}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedCheckoutArgs).Return(checkoutErr)
 
 	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler),
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	err := fetcherInstance.Fetch(source, destDir)
 
 	// Assert
-	assert.Error(t, err, "Fetch should fail when git checkout fails")
-	assert.Contains(t, err.Error(), "failed to checkout revision", "Error message should indicate checkout failure")
-	assert.ErrorIs(t, err, mockError, "Error should wrap the runner error")
-	assert.Contains(t, err.Error(), string(mockOutput), "Error message should contain output from command")
-	require.Len(t, executedCommands, 2, "Expected two git commands")
-	assert.Equal(t, []string{"git", "-C", destDir, "fetch", "origin"}, executedCommands[0])
-	assert.Equal(t, []string{"git", "-C", destDir, "checkout", revision}, executedCommands[1])
+	require.ErrorIs(t, err, checkoutErr)
+	mockRunner.AssertExpectations(t)
 }
 
-// Add more tests below
-
 func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
-	ctx := t.Context()
-	destDir := t.TempDir() // Simulate existing directory
+	destDir := "/tmp/existing-repo-pull"
+	absoluteDestDir, _ := filepath.Abs(destDir)
 	source := domain.InputSource{
 		Type: "git",
-		Details: &domain.GitInputSourceDetails{
+		Details: domain.GitInputSourceDetails{
 			Repository: "https://irrelevant.for/this/test",
 			// Revision is empty, so pull latest
 		},
 	}
 
-	// Arrange Mocks
-	var executedCommands [][]string
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		cmd := append([]string{name}, args...)
-		executedCommands = append(executedCommands, cmd)
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
 
-		// Find the actual git command (should be pull)
-		var gitCommand string
-		for i, arg := range args {
-			if arg == "-C" && i+1 < len(args) {
-				i++
-				continue
-			}
-			if arg == "pull" {
-				gitCommand = arg
-				break
-			}
-		}
+	stubIsDirExists(t, true, nil) // Simulate directory exists
 
-		if gitCommand == "pull" {
-			return []byte("Already up to date."), nil // Simulate successful pull
-		}
-		return nil, fmt.Errorf("unexpected git command structure: %v", args)
-	}
+	expectedPullArgs := []string{"pull", "origin"}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedPullArgs).Return(nil)
 
-	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler),
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	err := fetcherInstance.Fetch(source, destDir)
 
-	// Assert
-	assert.NoError(t, err, "Fetch should succeed when pulling latest")
-	require.Len(t, executedCommands, 1, "Expected one git command")
-	assert.Equal(
-		t,
-		[]string{"git", "-C", destDir, "pull", "origin"},
-		executedCommands[0],
-		"Command should be git pull with -C",
-	)
+	require.NoError(t, err)
+	mockRunner.AssertExpectations(t)
 }
 
 func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
-	ctx := t.Context()
-	destDir := t.TempDir()
+	destDir := "/tmp/existing-repo-pull-fail"
+	absoluteDestDir, _ := filepath.Abs(destDir)
 	source := domain.InputSource{
 		Type: "git",
-		Details: &domain.GitInputSourceDetails{
+		Details: domain.GitInputSourceDetails{
 			Repository: "https://irrelevant.for/this/test",
 		},
 	}
 
-	// Arrange Mocks
-	var executedCommands [][]string
-	mockError := errors.New("mock git pull error")
-	mockOutput := []byte("fatal: Could not read from remote repository.")
-	mockRunner := func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		require.Equal(t, "git", name)
-		cmd := append([]string{name}, args...)
-		executedCommands = append(executedCommands, cmd)
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
 
-		// Find the actual git command
-		var gitCommand string
-		for i, arg := range args {
-			if arg == "-C" && i+1 < len(args) {
-				i++
-				continue
-			}
-			if arg == "pull" {
-				gitCommand = arg
-				break
-			}
-		}
+	stubIsDirExists(t, true, nil)
 
-		if gitCommand == "pull" {
-			return mockOutput, mockError // Simulate pull failure
-		}
-		return nil, fmt.Errorf("unexpected git command structure: %v", args)
+	pullErr := errors.New("git pull failed")
+	expectedPullArgs := []string{"pull", "origin"}
+	mockRunner.On("RunInDir", absoluteDestDir, "git", expectedPullArgs).Return(pullErr)
+
+	err := fetcherInstance.Fetch(source, destDir)
+
+	require.ErrorIs(t, err, pullErr)
+	mockRunner.AssertExpectations(t)
+}
+
+func TestGitFetcher_InvalidSourceType(t *testing.T) {
+	mockRunner := new(MockCommandRunner) // Not actually used, but needed for constructor
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	destPath := "/tmp/dest"
+
+	// Create a local input source (not git)
+	source := domain.InputSource{
+		Type: "local",
+		Details: domain.LocalInputSourceDetails{
+			Path: "/some/path",
+		},
 	}
 
-	// Act
-	fetcherInstance := fetcher.GitFetcher{
-		Runner: mockRunner,
-		Logger: slog.New(slog.DiscardHandler),
-	}
-	err := fetcherInstance.Fetch(ctx, source, destDir)
+	// Execute
+	err := fetcherInstance.Fetch(source, destPath)
 
 	// Assert
-	assert.Error(t, err, "Fetch should fail when git pull fails")
-	assert.Contains(t, err.Error(), "failed to pull latest changes", "Error message should indicate pull failure")
-	assert.ErrorIs(t, err, mockError, "Error should wrap the runner error")
-	assert.Contains(t, err.Error(), string(mockOutput), "Error message should contain output from command")
-	require.Len(t, executedCommands, 1, "Expected one git command")
-	assert.Equal(t, []string{"git", "-C", destDir, "pull", "origin"}, executedCommands[0])
+	require.Error(t, err)
+	var invalidTypeErr *fetcher.InvalidSourceTypeError
+	require.ErrorAs(t, err, &invalidTypeErr)
+	assert.Equal(t, "git", invalidTypeErr.ExpectedType())
+	assert.Equal(t, "local", invalidTypeErr.ActualType())
+	assert.Contains(t, err.Error(), "expected source type: git, got: local")
+}
+
+func TestGitFetcher_EmptyRepository(t *testing.T) {
+	mockRunner := new(MockCommandRunner)
+	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	destPath := "/tmp/dest"
+
+	// Create a git input source with empty repository
+	source := domain.InputSource{
+		Type: "git",
+		Details: domain.GitInputSourceDetails{
+			Repository: "", // Empty repo
+		},
+	}
+
+	// Execute
+	err := fetcherInstance.Fetch(source, destPath)
+
+	// Verify
+	require.Error(t, err)
+	assert.EqualError(t, err, "git repository URL cannot be empty")
 }

@@ -12,8 +12,25 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/fetcher"
 )
 
+func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
+	localFetcher := fetcher.LocalFetcher()
+	tempDir := t.TempDir()
+	destPath := filepath.Join(tempDir, "dest")
+
+	gitSource := domain.InputSource{
+		Type: "git",
+		Details: domain.GitInputSourceDetails{
+			Repository: "some-repo",
+		},
+	}
+
+	err := localFetcher.Fetch(gitSource, destPath)
+
+	assert.EqualError(t, err, "expected source type: local, got: git")
+}
+
 func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
-	fetcher := fetcher.NewLocalFetcher()
+	fetcher := fetcher.LocalFetcher()
 	tempDir := t.TempDir()
 	nonExistentSourcePath := filepath.Join(tempDir, "non-existent-src")
 	destPath := filepath.Join(tempDir, "dest")
@@ -25,23 +42,19 @@ func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
 		},
 	}
 
-	// --- Act
-	err := fetcher.Fetch(t.Context(), source, destPath)
+	err := fetcher.Fetch(source, destPath)
 
-	// --- Assert
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "source directory")
 	assert.ErrorContains(t, err, "does not exist")
-	assert.ErrorIs(t, err, os.ErrNotExist) // Check underlying error
 }
 
 func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
-	fetcher := fetcher.NewLocalFetcher()
+	fetcher := fetcher.LocalFetcher()
 	tempDir := t.TempDir()
 	sourceFilePath := filepath.Join(tempDir, "source.txt")
 	destPath := filepath.Join(tempDir, "dest")
 
-	// Create a source file
 	require.NoError(t, os.WriteFile(sourceFilePath, []byte("hello"), 0644))
 
 	source := domain.InputSource{
@@ -51,36 +64,14 @@ func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
 		},
 	}
 
-	// --- Act
-	err := fetcher.Fetch(t.Context(), source, destPath)
+	err := fetcher.Fetch(source, destPath)
 
-	// --- Assert
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "is not a directory")
-}
-
-func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
-	fetcher := fetcher.NewLocalFetcher()
-	tempDir := t.TempDir()
-	destPath := filepath.Join(tempDir, "dest")
-
-	source := domain.InputSource{
-		Type: "git", // Wrong type for LocalFetcher
-		Details: domain.GitInputSourceDetails{
-			Repository: "some-repo",
-		},
-	}
-
-	// --- Act
-	err := fetcher.Fetch(t.Context(), source, destPath)
-
-	// --- Assert
-	require.Error(t, err)
-	assert.ErrorContains(t, err, "unexpected source details type")
+	assert.ErrorContains(t, err, "exists but is not a directory")
 }
 
 func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
-	fetcher := fetcher.NewLocalFetcher()
+	fetcher := fetcher.LocalFetcher()
 	tempDir := t.TempDir()
 	sourcePath := filepath.Join(tempDir, "src")
 	destPath := filepath.Join(tempDir, "dest")
@@ -144,14 +135,11 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Reset destination state for each test
 			_ = os.RemoveAll(destPath)
 			tc.setupDest(t)
 
-			// --- Act
-			err := fetcher.Fetch(t.Context(), source, destPath)
+			err := fetcher.Fetch(source, destPath)
 
-			// --- Assert
 			if tc.expectError {
 				require.Error(t, err)
 				if tc.name == "destination is a file" {
@@ -173,35 +161,29 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 
 func TestLocalFetcher_Fetch_CopySuccess(t *testing.T) {
 	// --- Setup Source ---
-	sourceDir, err := os.MkdirTemp("", "fetcher_test_source_*")
-	require.NoError(t, err)
+	sourceDir := t.TempDir()
 	defer os.RemoveAll(sourceDir) // Clean up source
 
 	// Create some source files and directories
 	subDir := filepath.Join(sourceDir, "subdir")
-	err = os.Mkdir(subDir, 0755)
-	require.NoError(t, err)
-
-	err = os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("content1"), 0644)
-	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(subDir, "file2.txt"), []byte("content2"), 0644)
-	require.NoError(t, err)
+	require.NoError(t, os.Mkdir(subDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("content1"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file2.txt"), []byte("content2"), 0644))
 
 	// --- Setup Destination ---
-	destDir, err := os.MkdirTemp("", "fetcher_test_dest_*")
-	require.NoError(t, err)
+	destDir := t.TempDir()
 	defer os.RemoveAll(destDir) // Clean up destination
 
 	// --- Execute Fetch ---
-	fetcher := fetcher.NewLocalFetcher()
+	fetcher := fetcher.LocalFetcher()
 	inputSource := domain.InputSource{
 		Type: "local",
 		Details: domain.LocalInputSourceDetails{
 			Path: sourceDir,
 		},
 	}
-	err = fetcher.Fetch(t.Context(), inputSource, destDir)
 
+	err := fetcher.Fetch(inputSource, destDir)
 	// --- Assertions ---
 	require.NoError(t, err)
 
