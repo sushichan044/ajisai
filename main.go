@@ -44,7 +44,7 @@ func main() {
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
 			cfgPath := c.String("config")
 
-			loadedCfg, err := config.Load(cfgPath)
+			loadedCfg, err := config.CreateConfigManager().Load(cfgPath)
 			if err != nil {
 				return ctx, fmt.Errorf("failed to load configuration from %s: %w", cfgPath, err)
 			}

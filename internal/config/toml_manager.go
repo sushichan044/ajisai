@@ -10,6 +10,7 @@ import (
 	"github.com/BurntSushi/toml"
 
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
+	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
 func CreateTomlManager() ConfigManager {
@@ -83,22 +84,21 @@ func (m *TomlManager) Save(configPath string, cfg *domain.Config) error {
 func transformAndValidate(userTomlCfg UserTomlConfig, configFilePath string) (*domain.Config, error) {
 	configDir := filepath.Dir(configFilePath)
 
-	// 1. Process Global Config (Defaults & Path Resolution)
-	globalCfg := processGlobalConfig(userTomlCfg.Global, configDir)
+	globalCfg, err := processGlobalConfig(userTomlCfg.Global, configDir)
+	if err != nil {
+		return nil, fmt.Errorf("error processing global config: %w", err)
+	}
 
-	// 2. Process Inputs (Transformation & Validation)
 	inputsMap, err := processInputs(userTomlCfg.Inputs, configDir)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3. Process Outputs (Transformation & Validation)
 	outputsMap, err := processOutputs(userTomlCfg.Outputs)
 	if err != nil {
 		return nil, err
 	}
 
-	// 4. Assemble the final Config
 	cfg := &domain.Config{
 		Global:  globalCfg,
 		Inputs:  inputsMap,
@@ -110,7 +110,7 @@ func transformAndValidate(userTomlCfg UserTomlConfig, configFilePath string) (*d
 
 // processGlobalConfig sets default values for GlobalConfig and resolves paths.
 // Returns the processed GlobalConfig.
-func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string) domain.GlobalConfig {
+func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string) (domain.GlobalConfig, error) {
 	// Defaults
 	defaultNamespace := "default"
 	defaultCacheDir := "./.cache/ai-rules-manager" // Relative to config file
@@ -127,23 +127,25 @@ func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string)
 		}
 	}
 
-	// Resolve Cache Directory Path
-	// Handle ~ (home directory expansion)
-	if strings.HasPrefix(cacheDir, "~/") {
-		home, err := os.UserHomeDir()
-		if err == nil { // Ignore error if home dir cannot be determined
-			cacheDir = filepath.Join(home, cacheDir[2:])
+	var resolvedCacheDir string
+	var err error
+
+	if filepath.IsAbs(cacheDir) || strings.HasPrefix(cacheDir, "~") {
+		resolvedCacheDir, err = utils.ResolveAbsPath(cacheDir)
+		if err != nil {
+			return domain.GlobalConfig{}, fmt.Errorf("failed to resolve cache directory path: %w", err)
 		}
-	}
-	// Resolve relative path based on config file location
-	if !filepath.IsAbs(cacheDir) {
-		cacheDir = filepath.Join(configDir, cacheDir)
+	} else {
+		resolvedCacheDir, err = utils.ResolveAbsPath(filepath.Join(configDir, cacheDir))
+		if err != nil {
+			return domain.GlobalConfig{}, fmt.Errorf("failed to resolve cache directory path: %w", err)
+		}
 	}
 
 	return domain.GlobalConfig{
 		Namespace: namespace,
-		CacheDir:  filepath.Clean(cacheDir),
-	}
+		CacheDir:  filepath.Clean(resolvedCacheDir),
+	}, nil
 }
 
 // processInputs transforms and validates the input sources.
@@ -200,12 +202,21 @@ func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain
 	}
 
 	localPath := *userInput.Path
-	// Resolve relative path based on config file location
-	if !filepath.IsAbs(localPath) {
-		localPath = filepath.Join(configDir, localPath)
+
+	var resolvedPath string
+	var err error
+
+	if filepath.IsAbs(localPath) || strings.HasPrefix(localPath, "~") {
+		resolvedPath, err = utils.ResolveAbsPath(localPath)
+	} else {
+		resolvedPath, err = utils.ResolveAbsPath(filepath.Join(configDir, localPath))
 	}
 
-	return domain.LocalInputSourceDetails{Path: filepath.Clean(localPath)}, nil
+	if err != nil {
+		return domain.LocalInputSourceDetails{}, fmt.Errorf("failed to resolve path: %w", err)
+	}
+
+	return domain.LocalInputSourceDetails{Path: filepath.Clean(resolvedPath)}, nil
 }
 
 // validateGitInput validates a git input source.

@@ -14,31 +14,29 @@ import (
 
 func TestLoad(t *testing.T) {
 	t.Run("non-existent config returns fallback config", func(t *testing.T) {
-		// テスト用の存在しないパスを指定
 		nonExistentPath := filepath.Join(t.TempDir(), "non-existent.toml")
 
-		cfg, err := config.Load(nonExistentPath)
-		require.NoError(t, err) // 存在しないパスはエラーではなく、フォールバック設定を返す
+		cfg, err := config.CreateConfigManager().Load(nonExistentPath)
 
-		// フォールバック設定の内容を確認
+		// Non-existent path does not return an error, but returns a fallback config
+		require.NoError(t, err)
+
 		assert.Equal(t, "ai-rules-manager", cfg.Global.Namespace)
 		assert.Empty(t, cfg.Inputs)
 		assert.Empty(t, cfg.Outputs)
 	})
 
 	t.Run("unsupported extension returns error", func(t *testing.T) {
-		// テスト用の.txtファイルを作成
 		unsupportedPath := filepath.Join(t.TempDir(), "config.txt")
 		err := os.WriteFile(unsupportedPath, []byte("test content"), 0644)
 		require.NoError(t, err)
 
-		_, err = config.Load(unsupportedPath)
+		_, err = config.CreateConfigManager().Load(unsupportedPath)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported config file extension")
 	})
 
 	t.Run("valid toml file loads successfully", func(t *testing.T) {
-		// テスト用の有効なTOMLファイルを作成
 		validTomlPath := filepath.Join(t.TempDir(), "valid.toml")
 		tomlContent := `
 [global]
@@ -55,10 +53,9 @@ target = "cursor"
 		err := os.WriteFile(validTomlPath, []byte(tomlContent), 0644)
 		require.NoError(t, err)
 
-		cfg, err := config.Load(validTomlPath)
+		cfg, err := config.CreateConfigManager().Load(validTomlPath)
 		require.NoError(t, err)
 
-		// 読み込まれた設定の内容を確認
 		assert.Equal(t, "test-namespace", cfg.Global.Namespace)
 		assert.Contains(t, cfg.Inputs, "test")
 		assert.Equal(t, "local", cfg.Inputs["test"].Type)
@@ -67,22 +64,20 @@ target = "cursor"
 	})
 
 	t.Run("invalid toml file returns error", func(t *testing.T) {
-		// テスト用の不正なTOMLファイルを作成
 		invalidTomlPath := filepath.Join(t.TempDir(), "invalid.toml")
 		invalidContent := `
 [global
-namespace = "test" # 閉じ括弧がない
+namespace = "test" # No closing bracket! Syntax error!
 `
 		err := os.WriteFile(invalidTomlPath, []byte(invalidContent), 0644)
 		require.NoError(t, err)
 
-		_, err = config.Load(invalidTomlPath)
+		_, err = config.CreateConfigManager().Load(invalidTomlPath)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to unmarshal TOML")
 	})
 }
 
-// MockConfigManager はテストのためのConfigManagerモック.
 type MockConfigManager struct {
 	LoadFunc func(configPath string) (*domain.Config, error)
 	SaveFunc func(configPath string, cfg *domain.Config) error
@@ -96,7 +91,6 @@ func (m *MockConfigManager) Save(configPath string, cfg *domain.Config) error {
 	return m.SaveFunc(configPath, cfg)
 }
 
-// テスト用モックマネージャーの検証.
 func TestMockConfigManager(t *testing.T) {
 	mockCfg := &domain.Config{
 		Global: domain.GlobalConfig{
@@ -117,12 +111,12 @@ func TestMockConfigManager(t *testing.T) {
 		},
 	}
 
-	// LoadFuncが期待通り動作するか検証
+	// Verify that LoadFunc behaves as expected
 	loadedCfg, err := mock.Load("test-path")
 	require.NoError(t, err)
 	assert.Equal(t, mockCfg, loadedCfg)
 
-	// SaveFuncが期待通り動作するか検証
+	// Verify that SaveFunc behaves as expected
 	err = mock.Save("test-path", mockCfg)
 	require.NoError(t, err)
 }
