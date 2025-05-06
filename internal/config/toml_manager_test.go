@@ -8,6 +8,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/sushichan044/ai-rules-manager/internal/config"
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )

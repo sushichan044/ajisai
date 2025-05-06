@@ -12,6 +12,7 @@ import (
 
 	"github.com/adrg/frontmatter"
 	"github.com/mitchellh/mapstructure"
+
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 

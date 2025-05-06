@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -62,7 +63,7 @@ func cleanupBinary(binPath string) {
 	}
 }
 
-// Test helper function remains the same
+// Test helper function remains the same.
 func runCliCommand(t *testing.T, args []string, env map[string]string) (string, string, error) {
 	cmd := exec.Command(binaryPath, args...)
 	var stdout, stderr strings.Builder
@@ -79,7 +80,7 @@ func runCliCommand(t *testing.T, args []string, env map[string]string) (string, 
 	return stdout.String(), stderr.String(), err
 }
 
-// createValidConfig helper function remains the same
+// createValidConfig helper function remains the same.
 func createValidConfig(t *testing.T) string {
 	td := t.TempDir()
 	configPath := filepath.Join(td, "ai-rules.toml")
@@ -155,7 +156,11 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 			},
 			expectExitCode: 1,
 			// Expecting error from Before hook, wrapped by main error handler
-			stderrContains: []string{"Error: failed to load configuration", "invalid.toml", "toml:"}, // Check for generic TOML error
+			stderrContains: []string{
+				"Error: failed to load configuration",
+				"invalid.toml",
+				"toml:",
+			}, // Check for generic TOML error
 		},
 		{
 			name: "valid config via env var",
@@ -170,7 +175,7 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 		{
 			name: "flag overrides env var (valid flag)",
 			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
-				envConfigPath := createValidConfig(t) // Env var points to valid
+				envConfigPath := createValidConfig(t)  // Env var points to valid
 				flagConfigPath := createValidConfig(t) // Flag points to another valid
 				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
 				args = []string{"sync", "--config", flagConfigPath}
@@ -200,7 +205,11 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 				return env, args, cleanup
 			},
 			expectExitCode: 1,
-			stderrContains: []string{"Error: failed to load configuration", "invalid-flag.toml", "toml:"}, // Check for generic TOML error
+			stderrContains: []string{
+				"Error: failed to load configuration",
+				"invalid-flag.toml",
+				"toml:",
+			}, // Check for generic TOML error
 		},
 	}
 
@@ -215,7 +224,8 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 				require.NoError(t, err, "stdout: %s\nstderr: %s", stdout, stderr)
 			} else {
 				require.Error(t, err, "stdout: %s\nstderr: %s", stdout, stderr)
-				if exitErr, ok := err.(*exec.ExitError); ok {
+				exitErr := &exec.ExitError{}
+				if errors.As(err, &exitErr) {
 					assert.Equal(t, tc.expectExitCode, exitErr.ExitCode(), "stdout: %s\nstderr: %s", stdout, stderr)
 				} else {
 					t.Fatalf("Expected an *exec.ExitError, got %T: %v", err, err)

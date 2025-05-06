@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/urfave/cli/v3"
+
+	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
 func doSync(c context.Context, cmd *cli.Command) error {

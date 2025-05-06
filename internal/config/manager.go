@@ -8,7 +8,6 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
-
 type ConfigManager interface {
 	Load(configPath string) (*domain.Config, error)
 	Save(configPath string, cfg *domain.Config) error
@@ -43,12 +42,12 @@ func Load(configPath string) (*domain.Config, error) {
 		return nil, fmt.Errorf("failed to resolve config path: %w", err)
 	}
 
-	if _, err := os.Stat(resolvedPath);err != nil {
+	if _, err := os.Stat(resolvedPath); err != nil {
 		// TODO: add warn log: "Failed to load config from %s, using fallback config", configPath
 		return &fallbackConfig, nil
 	}
 
-	switch extension := filepath.Ext(resolvedPath);extension {
+	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".toml":
 		return CreateTomlManager().Load(resolvedPath)
 	default:

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sushichan044/ai-rules-manager/internal/config"
 	"github.com/urfave/cli/v3"
+
+	"github.com/sushichan044/ai-rules-manager/internal/config"
 )
 
 var (
@@ -62,14 +63,14 @@ func main() {
 				Action: doSync,
 			},
 			{
-				Name:   "import",
-				Usage:  "Import presets from an existing agent format into the default format",
+				Name:  "import",
+				Usage: "Import presets from an existing agent format into the default format",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						// Cursor, VSCode GitHub Copilot, etc.
-						Name:    "from",
-						Usage:   "Input source to import from",
-						Aliases: []string{"f"},
+						Name:     "from",
+						Usage:    "Input source to import from",
+						Aliases:  []string{"f"},
 						Required: true,
 					},
 				},

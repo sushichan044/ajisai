@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/sushichan044/ai-rules-manager/internal/fetcher"
 )
