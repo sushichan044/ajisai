@@ -1,9 +1,6 @@
 {
   "go.lintTool": "golangci-lint",
-  "go.lintFlags": [
-    "--config=${workspaceFolder}/.golangci.yml",
-    "--fast-only"
-  ],
+  "go.lintFlags": ["--config=${workspaceFolder}/.golangci.yml"],
   "go.formatTool": "custom",
   "go.alternateTools": {
     "customFormatter": "golangci-lint"
@@ -13,7 +10,8 @@
   "editor.formatOnSave": true,
   "[go]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit"
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
     }
   },
   "github.copilot.chat.codeGeneration.instructions": [
