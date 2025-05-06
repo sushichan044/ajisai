@@ -3,7 +3,6 @@ golangci-lint = "latest"
 
 [env]
 GO111MODULE = "on"
-GOFLAGS = "-mod=vendor"
 
 [tasks.lint]
 description = "Run golangci-lint"
