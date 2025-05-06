@@ -67,3 +67,31 @@ func TestEnsureDir(t *testing.T) {
 		assert.ErrorContains(t, err, "is not a directory", "Error message should mention path is not a directory")
 	})
 }
+
+func TestIsDirExists(t *testing.T) {
+	t.Run("Directory exists", func(t *testing.T) {
+		dir := t.TempDir()
+		defer os.RemoveAll(dir)
+
+		exists, err := utils.IsDirExists(dir)
+		require.NoError(t, err, "IsDirExists should not return an error")
+		assert.True(t, exists, "Directory should exist")
+	})
+
+	t.Run("Directory does not exist", func(t *testing.T) {
+		dir := filepath.Join(t.TempDir(), "non-existent-dir")
+		exists, err := utils.IsDirExists(dir)
+		require.NoError(t, err, "IsDirExists should not return an error")
+		assert.False(t, exists, "Directory should not exist")
+	})
+
+	t.Run("Path is a file", func(t *testing.T) {
+		file := filepath.Join(t.TempDir(), "arm-test-is-dir-exists-file")
+		require.NoError(t, os.WriteFile(file, []byte("test content"), 0640))
+		defer os.Remove(file)
+
+		exists, err := utils.IsDirExists(file)
+		require.ErrorContains(t, err, "is not a directory")
+		assert.False(t, exists, "File should not be considered a directory")
+	})
+}

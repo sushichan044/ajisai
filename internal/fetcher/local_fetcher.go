@@ -3,7 +3,6 @@ package fetcher
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	cp "github.com/otiai10/copy"
 
@@ -39,42 +38,25 @@ func (f *LocalFetcherImpl) Fetch(source domain.InputSource, destinationDir strin
 		return err
 	}
 
-	// --- Destination Check ---
-	destInfo, destStatErr := os.Stat(destAbsDir)
-	if destStatErr != nil && !os.IsNotExist(destStatErr) {
-		return fmt.Errorf("failed to stat destination directory '%s': %w", destAbsDir, destStatErr)
-	}
-	// Check if destination exists and is a file BEFORE checking source
-	if destStatErr == nil && !destInfo.IsDir() {
-		return fmt.Errorf("destination path '%s' exists but is not a directory", destAbsDir)
-	}
-
-	// --- Source Check ---
-	if err := isValidSource(srcAbsDir); err != nil {
+	if err = isValidSource(srcAbsDir); err != nil {
 		return err
 	}
 
-	// --- Prepare Destination ---
-	// Clean destination directory only if it existed as a directory before
-	if destStatErr == nil && destInfo.IsDir() {
-		if err := utils.EmptyDir(destAbsDir); err != nil {
-			return fmt.Errorf("failed to empty destination directory '%s': %w", destAbsDir, err)
-		}
+	// Clean destination directory
+	if err = utils.EmptyDir(destAbsDir); err != nil {
+		return err
 	}
-	// Ensure directory exists (might have been deleted by EmptyDir or never existed)
-	if err := utils.EnsureDir(destAbsDir); err != nil {
-		return fmt.Errorf("failed to ensure destination directory '%s': %w", destAbsDir, err)
+	if err = utils.EnsureDir(destAbsDir); err != nil {
+		return err
 	}
 
-	// --- Copy ---
-	if err := cp.Copy(srcAbsDir, destAbsDir); err != nil {
-		return fmt.Errorf("failed to copy from '%s' to '%s': %w", srcAbsDir, destAbsDir, err)
+	if err = cp.Copy(srcAbsDir, destAbsDir); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// interface satisfaction check
 var _ domain.ContentFetcher = (*LocalFetcherImpl)(nil)
 
 // TODO: add directory structure check

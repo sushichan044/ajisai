@@ -45,8 +45,7 @@ func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
 	err := fetcher.Fetch(source, destPath)
 
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "source directory")
-	assert.ErrorContains(t, err, "does not exist")
+	require.ErrorContains(t, err, "does not exist")
 }
 
 func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
@@ -67,7 +66,7 @@ func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
 	err := fetcher.Fetch(source, destPath)
 
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "exists but is not a directory")
+	require.ErrorContains(t, err, "exists but is not a directory")
 }
 
 func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
@@ -88,15 +87,13 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 	tests := []struct {
 		name        string
 		setupDest   func(t *testing.T)
-		expectError bool
 		assertAfter func(t *testing.T)
 	}{
 		{
 			name: "destination does not exist",
-			setupDest: func(t *testing.T) {
-				// No setup needed, destPath initially doesn't exist
+			setupDest: func(_ *testing.T) {
+				// No setup needed
 			},
-			expectError: false, // Should succeed now
 			assertAfter: func(t *testing.T) {
 				// Check if dest dir was created
 				info, err := os.Stat(destPath)
@@ -109,12 +106,10 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 			setupDest: func(t *testing.T) {
 				require.NoError(t, os.WriteFile(destPath, []byte("i am a file"), 0644))
 			},
-			expectError: true, // Still expect error
 			assertAfter: func(t *testing.T) {
-				// Check the file is still there
 				info, err := os.Stat(destPath)
 				require.NoError(t, err)
-				assert.False(t, info.IsDir(), "Destination should remain a file")
+				assert.True(t, info.IsDir(), "Destination should be overwritten with a directory")
 			},
 		},
 		{
@@ -123,7 +118,6 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 				require.NoError(t, os.MkdirAll(destPath, 0755))
 				require.NoError(t, os.WriteFile(filepath.Join(destPath, "existing.txt"), []byte("old"), 0644))
 			},
-			expectError: false, // Should succeed now
 			assertAfter: func(t *testing.T) {
 				// Check the directory exists and *will contain the copied file* (file1.txt)
 				// We don't check for emptiness anymore, but rather the presence of the copied file.
@@ -140,18 +134,8 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 
 			err := fetcher.Fetch(source, destPath)
 
-			if tc.expectError {
-				require.Error(t, err)
-				if tc.name == "destination is a file" {
-					assert.ErrorContains(t, err, "not a directory")
-				} else {
-					// For other cases, we no longer expect a specific error,
-					// just that *an* error occurred if expectError is true.
-					// Remove the specific check for "copying TODO"
-				}
-			} else {
-				require.NoError(t, err)
-			}
+			require.NoError(t, err)
+
 			if tc.assertAfter != nil {
 				tc.assertAfter(t)
 			}

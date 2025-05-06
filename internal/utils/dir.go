@@ -41,3 +41,20 @@ func EnsureDir(path string) error {
 
 	return nil
 }
+
+// IsDirExists checks if a path exists and is a directory.
+// Returns an error if the path exists but is not a directory, or if os.Stat fails for other reasons.
+func IsDirExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil // Does not exist, not an error for this check
+		}
+		return false, err // Other stat error
+	}
+	// Exists, check if it is a directory
+	if !info.IsDir() {
+		return false, fmt.Errorf("path '%s' exists but is not a directory", path)
+	}
+	return true, nil // Exists and is a directory
+}
