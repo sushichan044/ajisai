@@ -59,6 +59,7 @@ func TestParsePresetPackage(t *testing.T) {
 							Attach: "manual",
 							Glob:   []string{"*.go"},
 						},
+						RelativePath: "rules/rule1.md",
 					},
 				},
 			},
@@ -80,10 +81,11 @@ func TestParsePresetPackage(t *testing.T) {
 				InputKey: "rule_no_frontmatter_case",
 				Items: []*domain.PresetItem{
 					{
-						Name:     "rule_no_frontmatter",
-						Type:     domain.RulePresetType,
-						Content:  "This rule has no front matter.\n",
-						Metadata: domain.RuleMetadata{},
+						Name:         "rule_no_frontmatter",
+						Type:         domain.RulePresetType,
+						Content:      "This rule has no front matter.\n",
+						Metadata:     domain.RuleMetadata{},
+						RelativePath: "rules/rule_no_frontmatter.md",
 					},
 				},
 			},
@@ -113,6 +115,7 @@ func TestParsePresetPackage(t *testing.T) {
 							Attach: "", // Missing 'attach' results in empty string
 							Glob:   []string{"*.txt"},
 						},
+						RelativePath: "rules/missing_attach.md",
 					},
 				},
 			},
@@ -155,12 +158,14 @@ func TestParsePresetPackage(t *testing.T) {
 						Metadata: domain.RuleMetadata{
 							Attach: "always",
 						},
+						RelativePath: "rules/real_rule.md",
 					},
 					{
-						Name:     "empty_prompt",
-						Type:     domain.PromptPresetType,
-						Content:  "", // Empty file content
-						Metadata: domain.PromptMetadata{},
+						Name:         "empty_prompt",
+						Type:         domain.PromptPresetType,
+						Content:      "", // Empty file content
+						Metadata:     domain.PromptMetadata{},
+						RelativePath: "prompts/empty_prompt.md",
 					},
 				},
 			},
@@ -189,12 +194,14 @@ func TestParsePresetPackage(t *testing.T) {
 						Metadata: domain.PromptMetadata{
 							Description: "A sample prompt",
 						},
+						RelativePath: "prompts/prompt1.md",
 					},
 					{
-						Name:     "empty_rule",
-						Type:     domain.RulePresetType,
-						Content:  "",
-						Metadata: domain.RuleMetadata{},
+						Name:         "empty_rule",
+						Type:         domain.RulePresetType,
+						Content:      "",
+						Metadata:     domain.RuleMetadata{},
+						RelativePath: "rules/empty_rule.md",
 					},
 				},
 			},
@@ -217,20 +224,52 @@ func TestParsePresetPackage(t *testing.T) {
 				InputKey: "prompt_no_frontmatter_case",
 				Items: []*domain.PresetItem{
 					{
-						Name:     "prompt_no_frontmatter",
-						Type:     domain.PromptPresetType,
-						Content:  "This prompt has no front matter.\n",
-						Metadata: domain.PromptMetadata{},
+						Name:         "prompt_no_frontmatter",
+						Type:         domain.PromptPresetType,
+						Content:      "This prompt has no front matter.\n",
+						Metadata:     domain.PromptMetadata{},
+						RelativePath: "prompts/prompt_no_frontmatter.md",
 					},
 					{
-						Name:     "empty_rule",
-						Type:     domain.RulePresetType,
-						Content:  "",
-						Metadata: domain.RuleMetadata{},
+						Name:         "empty_rule",
+						Type:         domain.RulePresetType,
+						Content:      "",
+						Metadata:     domain.RuleMetadata{},
+						RelativePath: "rules/empty_rule.md",
 					},
 				},
 			},
 			expectErr:        false,
+			useElementsMatch: true,
+		},
+		{
+			name:       "parse_nested_rules_from_static_file",
+			presetName: "nested_rules_case",
+			config: &domain.Config{
+				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Inputs: map[string]domain.InputSource{
+					"nested_rules_case": {
+						Type:    "local",
+						Details: domain.LocalInputSourceDetails{Path: "nested_rules_case"},
+					},
+				},
+			},
+			expectErr: false,
+			expectedPackage: &domain.PresetPackage{
+				InputKey: "nested_rules_case",
+				Items: []*domain.PresetItem{
+					{
+						Name:    "bar",
+						Type:    domain.RulePresetType,
+						Content: "This is the content of Bar.\n",
+						Metadata: domain.RuleMetadata{
+							Title:  "Bar",
+							Attach: "glob",
+							Glob:   []string{"*.go"}},
+						RelativePath: "rules/foo/bar.md",
+					},
+				},
+			},
 			useElementsMatch: true,
 		},
 		{
@@ -258,6 +297,7 @@ func TestParsePresetPackage(t *testing.T) {
 						Metadata: domain.PromptMetadata{
 							Description: "Prompt B desc",
 						},
+						RelativePath: "prompts/promptB.md",
 					},
 					{
 						Name:    "ruleA",
@@ -268,6 +308,7 @@ func TestParsePresetPackage(t *testing.T) {
 							Attach: "glob",
 							Glob:   []string{"*.go"},
 						},
+						RelativePath: "rules/ruleA.md",
 					},
 				},
 			},
