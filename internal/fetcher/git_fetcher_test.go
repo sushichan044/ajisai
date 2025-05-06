@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -19,7 +20,8 @@ func TestGitFetcher_ImplementsContentFetcher(t *testing.T) {
 	var _ domain.ContentFetcher = (*fetcher.GitFetcher)(nil)
 
 	// Optional: Instantiate and check
-	gf := fetcher.GitFetcher{} // Assuming a simple constructor for now
+	gf, err := fetcher.NewGitFetcher(nil) // Pass nil logger for interface check
+	require.NoError(t, err)               // Assuming NewGitFetcher handles nil logger
 	assert.NotNil(t, gf, "GitFetcher instance should not be nil")
 }
 
@@ -46,10 +48,11 @@ func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{}
-	// Inject the mock runner by setting the exported field
-	fetcher.Runner = mockRunner
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler), // Use a discard logger for testing
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.NoError(t, err, "Fetch should succeed for initial clone")
@@ -82,10 +85,11 @@ func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{}
-	// Inject the mock runner by setting the exported field
-	fetcher.Runner = mockRunner
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler),
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.Error(t, err, "Fetch should fail when git clone fails")
@@ -141,8 +145,11 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{Runner: mockRunner}
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler),
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.NoError(t, err, "Fetch should succeed when checking out revision")
@@ -206,8 +213,11 @@ func TestGitFetcher_Fetch_CheckoutRevision_Failure(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{Runner: mockRunner}
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler),
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.Error(t, err, "Fetch should fail when git checkout fails")
@@ -259,8 +269,11 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{Runner: mockRunner}
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler),
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.NoError(t, err, "Fetch should succeed when pulling latest")
@@ -312,8 +325,11 @@ func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
 	}
 
 	// Act
-	fetcher := fetcher.GitFetcher{Runner: mockRunner}
-	err := fetcher.Fetch(ctx, source, destDir)
+	fetcherInstance := fetcher.GitFetcher{
+		Runner: mockRunner,
+		Logger: slog.New(slog.DiscardHandler),
+	}
+	err := fetcherInstance.Fetch(ctx, source, destDir)
 
 	// Assert
 	assert.Error(t, err, "Fetch should fail when git pull fails")

@@ -101,7 +101,7 @@ enabled = false
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			mgr := config.NewTomlManager()
+			mgr := config.CreateTomlManager()
 
 			// Create a temporary file
 			tempDir := t.TempDir()
@@ -124,7 +124,7 @@ enabled = false
 }
 
 func TestTomlManager_Load_FileNotFound(t *testing.T) {
-	mgr := config.NewTomlManager()
+	mgr := config.CreateTomlManager()
 	configPath := filepath.Join(t.TempDir(), "non_existent_file.toml")
 
 	// --- Act
@@ -132,12 +132,12 @@ func TestTomlManager_Load_FileNotFound(t *testing.T) {
 
 	// --- Assert
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "config file not found")
+	assert.ErrorContains(t, err, "failed to read config file")
 	assert.ErrorIs(t, err, os.ErrNotExist) // Check underlying error
 }
 
 func TestTomlManager_Load_InvalidToml(t *testing.T) {
-	mgr := config.NewTomlManager()
+	mgr := config.CreateTomlManager()
 	invalidToml := `
 [inputs.local
 type = "local" # Missing closing bracket
@@ -310,7 +310,7 @@ path="./p"
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			mgr := config.NewTomlManager()
+			mgr := config.CreateTomlManager()
 			tempDir := t.TempDir()
 			configPath := filepath.Join(tempDir, "test-config.toml")
 			err := os.WriteFile(configPath, []byte(tc.tomlData), 0644)
@@ -338,7 +338,7 @@ path="./p"
 }
 
 func TestTomlManager_Save(t *testing.T) {
-	mgr := config.NewTomlManager()
+	mgr := config.CreateTomlManager()
 	configDir := t.TempDir()
 	configPath := filepath.Join(configDir, "save-test.toml")
 

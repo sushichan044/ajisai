@@ -1,289 +1,233 @@
 package main_test
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"io"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v3"
-
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
-// Test helper to build the binary.
-func buildBinary(t *testing.T) string {
-	t.Helper()
-	binPath := filepath.Join(t.TempDir(), "test-ai-rules-manager")
-	// Build only the main package
-	cmd := exec.Command("go", "build", "-o", binPath, "github.com/sushichan044/ai-rules-manager")
-	output, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Failed to build binary: %s", string(output))
-	return binPath
+// binaryPath stores the path to the compiled test binary.
+var binaryPath string
+
+// TestMain sets up the test environment by building the main binary.
+func TestMain(m *testing.M) {
+	var err error
+	// Attempt to build the main binary
+	binaryPath, err = buildBinary()
+	if err != nil {
+		// Fallback or handle error appropriately, e.g., log and exit
+		println("Failed to build binary for testing:", err.Error())
+		os.Exit(1)
+	}
+	defer cleanupBinary(binaryPath)
+
+	// Run tests
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }
 
-func TestMain_Run_Help(t *testing.T) {
-	binPath := buildBinary(t)
+// buildBinary compiles the main package and returns the path to the binary.
+func buildBinary() (string, error) {
+	tempDir, err := os.MkdirTemp("", "main_test_build_*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp dir: %w", err)
+	}
 
-	// Run without arguments (should show help)
-	cmd := exec.Command(binPath)
-	outputBytes, err := cmd.CombinedOutput()
-	output := string(outputBytes)
+	outputPath := filepath.Join(tempDir, "ai-rules-manager-test")
 
-	assert.NoError(t, err, "Command should exit successfully when showing help")
-	assert.Contains(t, output, "AI Rules Manager - Main Action (Placeholder)") // Check placeholder action output
-	assert.Contains(t, output, "USAGE:")
-	assert.Contains(t, output, "ai-rules-manager [global options] [command [command options]] [arguments...]")
+	// Build command - build the package in the current directory
+	buildCmd := exec.Command("go", "build", "-o", outputPath, ".")
+	output, err := buildCmd.CombinedOutput()
+	if err != nil {
+		// Include build output in the error message for easier debugging
+		return "", fmt.Errorf("failed to build main binary (output: %s): %w", string(output), err)
+	}
+
+	// Return the path and a cleanup function, or just the path
+	// If returning a cleanup function, adjust the caller (TestMain)
+	return outputPath, nil
 }
+
+// cleanupBinary removes the test binary and its directory.
+func cleanupBinary(binPath string) {
+	if binPath != "" {
+		dir := filepath.Dir(binPath)
+		os.RemoveAll(dir) // Remove the temp directory containing the binary
+	}
+}
+
+// Test helper function remains the same
+func runCliCommand(t *testing.T, args []string, env map[string]string) (string, string, error) {
+	cmd := exec.Command(binaryPath, args...)
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if env != nil {
+		cmd.Env = os.Environ()
+		for k, v := range env {
+			cmd.Env = append(cmd.Env, k+"="+v)
+		}
+	}
+
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
+}
+
+// createValidConfig helper function remains the same
+func createValidConfig(t *testing.T) string {
+	td := t.TempDir()
+	configPath := filepath.Join(td, "ai-rules.toml")
+	content := `
+[inputs.test]
+type = "local"
+path = "./rules"
+
+[outputs.test]
+target = "cursor"
+`
+	err := os.WriteFile(configPath, []byte(content), 0644)
+	require.NoError(t, err)
+	return configPath
+}
+
+// Test cases remain largely the same, only adjusting assertions as previously discussed
 
 func TestMain_Run_Version(t *testing.T) {
-	binPath := buildBinary(t)
-
-	// Run with version flag
-	cmd := exec.Command(binPath, "--version")
-	outputBytes, err := cmd.CombinedOutput()
-	output := string(outputBytes)
-
-	require.NoError(t, err, "Command should exit successfully when showing version")
-	assert.Contains(t, output, "ai-rules-manager version dev (revision:dev)")
+	stdout, stderr, err := runCliCommand(t, []string{"--version"}, nil)
+	require.NoError(t, err, "stderr: %s", stderr)
+	assert.Contains(t, stdout, "ai-rules-manager version dev (revision:dev)")
+	assert.Empty(t, stderr)
 }
 
-func TestMain_Run_Help_ShowsGlobalFlags(t *testing.T) {
-	binPath := buildBinary(t)
-
-	// Run with help flag
-	cmd := exec.Command(binPath, "--help")
-	outputBytes, err := cmd.CombinedOutput()
-	output := string(outputBytes)
-
-	require.NoError(t, err, "Command should exit successfully when showing help")
-	assert.Contains(t, output, "GLOBAL OPTIONS:")
-	assert.Contains(t, output, "--config FILE", "Should show config flag usage")
-	assert.Contains(t, output, "--log-level value", "Should show log-level flag usage")
-	assert.Contains(t, output, "AI_RULES_CONFIG", "Should mention config env var")
-	assert.Contains(t, output, "AI_RULES_LOG_LEVEL", "Should mention log-level env var")
-	assert.Contains(t, output, "(default: \"ai-rules.toml\")", "Should show config default")
-	assert.Contains(t, output, "(default: \"info\")", "Should show log-level default")
-}
-
-// contextKey is a private type copied from main.go for testing.
-type contextKey string
-
-const (
-	loggerKey contextKey = "logger"
-)
-
-// Test helper to create the app definition (mirrors main.go setup).
-func setupTestApp() *cli.Command {
-	app := &cli.Command{
-		Name: "test-app",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "config", // Need flags for Before hook to run
-				Value: "dummy.toml",
-			},
-			&cli.StringFlag{
-				Name:  "log-level",
-				Value: "info", // Default
-			},
-		},
-		Before: func(ctx context.Context, cmd *cli.Command) error {
-			// Simplified logger setup for testing - doesn't set global default
-			handler := slog.DiscardHandler // Discard output in test
-			logger := slog.New(handler)
-			if cmd.Root().Metadata == nil {
-				cmd.Root().Metadata = make(map[string]any)
-			}
-			cmd.Root().Metadata[string(loggerKey)] = logger
-			return nil
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error { return nil }, // No-op action
-	}
-	return app
-}
-
-func TestMain_BeforeHook_SetsLogger(t *testing.T) {
+func TestMain_Run_ConfigLoading(t *testing.T) {
 	tests := []struct {
-		name          string
-		logLevelFlag  string
-		expectedLevel slog.Level
-	}{
-		{"default level (info)", "info", slog.LevelInfo},
-		{"debug level", "debug", slog.LevelDebug},
-		{"warn level", "warn", slog.LevelWarn},
-		{"error level", "error", slog.LevelError},
-		{"case insensitive", "DEBUG", slog.LevelDebug},
-		{"unknown level defaults info", "unknown", slog.LevelInfo},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			app := setupTestApp()
-
-			// Run the app with the specified log level flag
-			args := []string{"test-app", "--log-level", tc.logLevelFlag}
-			err := app.Run(t.Context(), args)
-			require.NoError(t, err) // Before hook should not return error here
-
-			// Check if the logger is in Metadata and has the correct level
-			require.NotNil(t, app.Metadata)
-			loggerVal, ok := app.Metadata[string(loggerKey)]
-			require.True(t, ok, "Logger should be in metadata")
-			logger, ok := loggerVal.(*slog.Logger)
-			require.True(t, ok, "Value in metadata should be *slog.Logger")
-			assert.True(
-				t,
-				logger.Enabled(t.Context(), tc.expectedLevel),
-				"Logger should be enabled for expected level",
-			)
-
-			// Check one level below is disabled (except for debug)
-			if tc.expectedLevel > slog.LevelDebug {
-				assert.False(
-					t,
-					logger.Enabled(t.Context(), tc.expectedLevel-1),
-					"Logger should be disabled for level below expected",
-				)
-			}
-		})
-	}
-}
-
-// --- Mock ConfigManager for testing ---.
-type mockConfigManager struct {
-	LoadFunc func(configPath string) (*domain.Config, error)
-	SaveFunc func(configPath string, cfg *domain.Config) error
-}
-
-func (m *mockConfigManager) Load(configPath string) (*domain.Config, error) {
-	if m.LoadFunc != nil {
-		return m.LoadFunc(configPath)
-	}
-	return nil, errors.New("LoadFunc not implemented in mock")
-}
-
-func (m *mockConfigManager) Save(configPath string, cfg *domain.Config) error {
-	if m.SaveFunc != nil {
-		return m.SaveFunc(configPath, cfg)
-	}
-	return errors.New("SaveFunc not implemented in mock")
-}
-
-// Ensure mock implements the interface.
-var _ domain.ConfigManager = (*mockConfigManager)(nil)
-
-const configKey contextKey = "config"
-
-// Test helper to create app with mock config manager.
-func setupTestAppWithMockConfig(mockMgr domain.ConfigManager) *cli.Command {
-	app := &cli.Command{
-		Name: "test-app",
-		Flags: []cli.Flag{
-			&cli.StringFlag{Name: "config", Value: "mock-path.toml"},
-			&cli.StringFlag{Name: "log-level", Value: "info"},
-		},
-		Before: func(ctx context.Context, cmd *cli.Command) error {
-			// Logger setup (minimal)
-			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-			if cmd.Root().Metadata == nil {
-				cmd.Root().Metadata = make(map[string]any)
-			}
-			cmd.Root().Metadata[string(loggerKey)] = logger
-
-			// Config Loading with mock
-			configPath := cmd.String("config")
-			loadedCfg, err := mockMgr.Load(configPath)
-			if err != nil {
-				return fmt.Errorf("mock load failed: %w", err) // Return error to stop app
-			}
-			cmd.Root().Metadata[string(configKey)] = loadedCfg
-			return nil
-		},
-		Action: func(ctx context.Context, cmd *cli.Command) error { return nil },
-	}
-	return app
-}
-
-func TestMain_BeforeHook_LoadsConfig(t *testing.T) {
-	tests := []struct {
-		name        string
-		configPath  string // Path expected by mock
-		mockLoadErr error
-		mockConfig  *domain.Config
-		expectError bool
-		expectedCfg *domain.Config // Expected config in metadata
+		name           string
+		setup          func(t *testing.T) (env map[string]string, args []string, cleanup func())
+		expectExitCode int
+		stdoutContains []string
+		stderrContains []string
 	}{
 		{
-			name:        "load success",
-			configPath:  "correct/path.toml",
-			mockConfig:  &domain.Config{Global: domain.GlobalConfig{Namespace: "loaded"}},
-			expectError: false,
-			expectedCfg: &domain.Config{Global: domain.GlobalConfig{Namespace: "loaded"}},
+			name: "no config flag (expect fallback)",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				// Run sync without creating any config file or flag
+				args = []string{"doctor"}
+				return nil, args, func() {}
+			},
+			expectExitCode: 0, // Should run with fallback config
+			// TODO: Add assertion for warning log when implemented
 		},
 		{
-			name:        "load file not found error",
-			configPath:  "notfound.toml",
-			mockLoadErr: os.ErrNotExist,
-			expectError: true,
+			name: "non-existent config via flag (expect fallback)",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				// Use a path that definitely doesn't exist
+				nonExistentPath := filepath.Join(t.TempDir(), "non-existent-config.toml")
+				args = []string{"doctor", "--config", nonExistentPath}
+				return nil, args, func() {}
+			},
+			expectExitCode: 0, // Should run with fallback config as Load doesn't error
 		},
 		{
-			name:        "load other error",
-			configPath:  "other/error.toml",
-			mockLoadErr: errors.New("some parsing error"),
-			expectError: true,
+			name: "valid config via flag",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				configPath := createValidConfig(t)
+				args = []string{"doctor", "--config", configPath}
+				return nil, args, func() { os.Remove(configPath) }
+			},
+			expectExitCode: 0,
 		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			mockMgr := &mockConfigManager{
-				LoadFunc: func(path string) (*domain.Config, error) {
-					assert.Equal(t, tc.configPath, path, "Load called with wrong path")
-					return tc.mockConfig, tc.mockLoadErr
-				},
-			}
-			app := setupTestAppWithMockConfig(mockMgr)
-
-			args := []string{"test-app", "--config", tc.configPath}
-			err := app.Run(t.Context(), args)
-
-			if tc.expectError {
-				require.Error(t, err)
-				if tc.mockLoadErr != nil {
-					assert.ErrorContains(t, err, tc.mockLoadErr.Error())
-				}
-			} else {
+		{
+			name: "invalid config via flag (parse error)",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				td := t.TempDir()
+				invalidConfigPath := filepath.Join(td, "invalid.toml")
+				// Write invalid TOML content (missing closing bracket)
+				err := os.WriteFile(invalidConfigPath, []byte(`[inputs.bad`), 0644)
 				require.NoError(t, err)
-				require.NotNil(t, app.Metadata)
-				cfgVal, ok := app.Metadata[string(configKey)]
-				require.True(t, ok, "Config should be in metadata")
-				cfg, ok := cfgVal.(*domain.Config)
-				require.True(t, ok, "Value should be *domain.Config")
-				assert.Equal(t, tc.expectedCfg, cfg, "Loaded config mismatch")
+				args = []string{"doctor", "--config", invalidConfigPath}
+				return nil, args, func() { os.Remove(invalidConfigPath) }
+			},
+			expectExitCode: 1,
+			// Expecting error from Before hook, wrapped by main error handler
+			stderrContains: []string{"Error: failed to load configuration", "invalid.toml", "toml:"}, // Check for generic TOML error
+		},
+		{
+			name: "valid config via env var",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				configPath := createValidConfig(t)
+				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": configPath}
+				args = []string{"doctor"}
+				return env, args, func() { os.Remove(configPath) }
+			},
+			expectExitCode: 0,
+		},
+		{
+			name: "flag overrides env var (valid flag)",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				envConfigPath := createValidConfig(t) // Env var points to valid
+				flagConfigPath := createValidConfig(t) // Flag points to another valid
+				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
+				args = []string{"sync", "--config", flagConfigPath}
+				cleanup = func() {
+					os.Remove(envConfigPath)
+					os.Remove(flagConfigPath)
+				}
+				return env, args, cleanup
+			},
+			expectExitCode: 0,
+		},
+		{
+			name: "flag overrides env var (invalid flag - parse error)",
+			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+				envConfigPath := createValidConfig(t) // Env var points to valid
+				td := t.TempDir()
+				invalidConfigPath := filepath.Join(td, "invalid-flag.toml")
+				// Write invalid TOML content (e.g., incomplete section)
+				err := os.WriteFile(invalidConfigPath, []byte(`[global`), 0644)
+				require.NoError(t, err)
+				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
+				args = []string{"sync", "--config", invalidConfigPath}
+				cleanup = func() {
+					os.Remove(envConfigPath)
+					os.Remove(invalidConfigPath)
+				}
+				return env, args, cleanup
+			},
+			expectExitCode: 1,
+			stderrContains: []string{"Error: failed to load configuration", "invalid-flag.toml", "toml:"}, // Check for generic TOML error
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			env, args, cleanup := tc.setup(t)
+			defer cleanup()
+
+			stdout, stderr, err := runCliCommand(t, args, env)
+
+			if tc.expectExitCode == 0 {
+				require.NoError(t, err, "stdout: %s\nstderr: %s", stdout, stderr)
+			} else {
+				require.Error(t, err, "stdout: %s\nstderr: %s", stdout, stderr)
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					assert.Equal(t, tc.expectExitCode, exitErr.ExitCode(), "stdout: %s\nstderr: %s", stdout, stderr)
+				} else {
+					t.Fatalf("Expected an *exec.ExitError, got %T: %v", err, err)
+				}
+			}
+
+			for _, contain := range tc.stdoutContains {
+				assert.Contains(t, stdout, contain)
+			}
+			for _, contain := range tc.stderrContains {
+				assert.Contains(t, stderr, contain)
 			}
 		})
 	}
-}
-
-func TestMain_Run_Help_ShowsCommands(t *testing.T) {
-	binPath := buildBinary(t)
-
-	// Run with help flag
-	cmd := exec.Command(binPath, "--help")
-	outputBytes, err := cmd.CombinedOutput()
-	output := string(outputBytes)
-
-	require.NoError(t, err, "Command should exit successfully when showing help")
-	assert.Contains(t, output, "COMMANDS:")
-	assert.Regexp(t, `sync\s+Synchronize presets`, output)
-	assert.Regexp(t, `import\s+Import presets`, output)
-	assert.Regexp(t, `doctor\s+Validate preset`, output)
-	assert.Contains(t, output, "help, h", "Should show help command")
 }

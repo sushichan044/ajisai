@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 
@@ -17,6 +18,7 @@ type commandRunner func(ctx context.Context, name string, args ...string) ([]byt
 // Ensure 'git' command is available in the system PATH.
 type GitFetcher struct {
 	Runner commandRunner
+	Logger *slog.Logger
 	// lookPathFunc is primarily used during construction, not usually needed during Fetch
 	// lookPathFunc func(file string) (string, error)
 }
@@ -29,16 +31,22 @@ func defaultCommandRunner(ctx context.Context, name string, args ...string) ([]b
 
 // NewGitFetcher creates a new instance of GitFetcher.
 // It checks if the 'git' command is available in the system PATH.
-func NewGitFetcher() (*GitFetcher, error) {
-	_, err := exec.LookPath("git") // Still check for git existence
+func NewGitFetcher(logger *slog.Logger) (*GitFetcher, error) {
+	_, err := exec.LookPath("git")
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			return nil, fmt.Errorf("'git' command not found in PATH: %w", exec.ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to check for 'git' command: %w", err)
 	}
+	// Ensure logger is not nil, provide default if necessary
+	useLogger := logger
+	if useLogger == nil {
+		useLogger = slog.Default() // Or slog.New(slog.DiscardHandler) if preferred
+	}
 	return &GitFetcher{
 		Runner: defaultCommandRunner,
+		Logger: useLogger,
 	}, nil
 }
 
@@ -74,11 +82,21 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 
 	if !dirExists {
 		// Initial clone
-		fmt.Printf("Cloning repository %s into %s...\n", gitSource.Repository, destinationDir)
+		f.Logger.InfoContext(ctx, "Cloning repository", "url", gitSource.Repository, "dest", destinationDir)
 		cmdArgs := []string{"clone", gitSource.Repository, destinationDir}
 		// Use the exported Runner field
 		output, err := f.Runner(ctx, "git", cmdArgs...)
 		if err != nil {
+			f.Logger.ErrorContext(
+				ctx,
+				"Failed to clone repository",
+				"url",
+				gitSource.Repository,
+				"error",
+				err,
+				"output",
+				string(output),
+			)
 			return fmt.Errorf(
 				"failed to clone repository %s: %w\nOutput:\n%s",
 				gitSource.Repository,
@@ -86,20 +104,30 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 				string(output),
 			)
 		}
-		fmt.Printf("Clone successful.\n")
+		f.Logger.InfoContext(ctx, "Clone successful", "dest", destinationDir)
 		// No need to checkout revision or pull after initial clone (git clone handles default branch)
 		return nil
 	}
 
 	// Directory exists, handle update
-	fmt.Printf("Updating repository in %s...\n", destinationDir)
+	f.Logger.InfoContext(ctx, "Updating repository", "dest", destinationDir)
 
 	if gitSource.Revision != "" {
 		// Checkout specific revision
-		fmt.Printf("Fetching latest changes for revision %s...\n", gitSource.Revision)
+		f.Logger.InfoContext(ctx, "Fetching latest changes", "dest", destinationDir, "revision", gitSource.Revision)
 		fetchArgs := []string{"-C", destinationDir, "fetch", "origin"}
 		output, err := f.Runner(ctx, "git", fetchArgs...)
 		if err != nil {
+			f.Logger.ErrorContext(
+				ctx,
+				"Failed to fetch updates",
+				"dest",
+				destinationDir,
+				"error",
+				err,
+				"output",
+				string(output),
+			)
 			return fmt.Errorf(
 				"failed to fetch updates for repository in %s: %w\nOutput:\n%s",
 				destinationDir,
@@ -108,11 +136,22 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 			)
 		}
 
-		fmt.Printf("Checking out revision %s...\n", gitSource.Revision)
+		f.Logger.InfoContext(ctx, "Checking out revision", "dest", destinationDir, "revision", gitSource.Revision)
 		checkoutArgs := []string{"-C", destinationDir, "checkout", gitSource.Revision}
 		output, err = f.Runner(ctx, "git", checkoutArgs...)
 		if err != nil {
-			// Add specific error context for checkout failure
+			f.Logger.ErrorContext(
+				ctx,
+				"Failed to checkout revision",
+				"dest",
+				destinationDir,
+				"revision",
+				gitSource.Revision,
+				"error",
+				err,
+				"output",
+				string(output),
+			)
 			return fmt.Errorf(
 				"failed to checkout revision %s in %s: %w\nOutput:\n%s",
 				gitSource.Revision,
@@ -121,21 +160,25 @@ func (f *GitFetcher) Fetch(ctx context.Context, source domain.InputSource, desti
 				string(output),
 			)
 		}
-		fmt.Printf("Successfully checked out revision %s.\n", gitSource.Revision)
+		f.Logger.InfoContext(
+			ctx,
+			"Successfully checked out revision",
+			"dest",
+			destinationDir,
+			"revision",
+			gitSource.Revision,
+		)
 		return nil
 	} else {
 		// Pull latest changes from default branch
-		fmt.Printf("Pulling latest changes for default branch...\n")
+		f.Logger.InfoContext(ctx, "Pulling latest changes for default branch", "dest", destinationDir)
 		pullArgs := []string{"-C", destinationDir, "pull", "origin"} // Assuming origin is the default remote
 		output, err := f.Runner(ctx, "git", pullArgs...)
 		if err != nil {
-			// If err is not nil, it's a real error
+			f.Logger.ErrorContext(ctx, "Failed to pull latest changes", "dest", destinationDir, "error", err, "output", string(output))
 			return fmt.Errorf("failed to pull latest changes for repository in %s: %w\nOutput:\n%s", destinationDir, err, string(output))
 		}
-		fmt.Printf("Pull successful.\n%s", string(output)) // Include output for info
+		f.Logger.InfoContext(ctx, "Pull successful", "dest", destinationDir)
 		return nil
 	}
-
-	// This part should not be reached
-	// return fmt.Errorf("update logic not fully implemented yet") // This line was likely commented out already
 }

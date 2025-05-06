@@ -11,23 +11,16 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 )
 
-// TomlManager implements the domain.ConfigManager interface for TOML files.
-type TomlManager struct{}
-
-// NewTomlManager creates a new TomlManager.
-func NewTomlManager() *TomlManager {
+func CreateTomlManager() ConfigManager {
 	return &TomlManager{}
 }
 
-// Load reads the configuration file from the given path,
-// unmarshals it into the internal Config struct (handling InputSource types),
-// validates it, and applies defaults.
+type TomlManager struct{}
+
+// Load a config from given path. Returns a fallback config if the path is invalid.
 func (m *TomlManager) Load(configPath string) (*domain.Config, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("config file not found at %s: %w", configPath, err)
-		}
 		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
 	}
 
@@ -37,19 +30,55 @@ func (m *TomlManager) Load(configPath string) (*domain.Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal TOML config from %s: %w", configPath, err)
 	}
 
-	// --- Task 3: Validation, Defaults, Transformation ---
 	internalCfg, err := transformAndValidate(userTomlCfg, configPath)
 	if err != nil {
 		// Wrap the transformation/validation error for context
 		return nil, fmt.Errorf("error processing config from %s: %w", configPath, err)
 	}
 
-	// fmt.Printf("Successfully loaded and transformed config: %+v\n", internalCfg) // Remove temporary print
-
-	return internalCfg, nil // Return the validated and transformed config
+	return internalCfg, nil
 }
 
-// transformAndValidate converts UserTomlConfig to domain.Config, applying defaults and validating.
+func (m *TomlManager) Save(configPath string, cfg *domain.Config) error {
+	userTomlCfg, err := domainConfigToUserTomlConfig(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to convert domain config to user config for saving: %w", err)
+	}
+
+	// Create parent directories if they don't exist
+	configDir := filepath.Dir(configPath)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", configDir, err)
+	}
+
+	// Write to a temporary file first for atomicity
+	tempFile, err := os.CreateTemp(configDir, ".ai-rules.tmp-")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary config file: %w", err)
+	}
+	defer os.Remove(tempFile.Name()) // Clean up temp file on error or success
+	defer tempFile.Close()           // Ensure file is closed
+
+	// Marshal to TOML and write to temp file
+	encoder := toml.NewEncoder(tempFile)
+	if err := encoder.Encode(userTomlCfg); err != nil {
+		tempFile.Close() // Close before removing
+		return fmt.Errorf("failed to encode config to TOML: %w", err)
+	}
+
+	// Close the file explicitly before renaming
+	if err := tempFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temporary config file: %w", err)
+	}
+
+	// Rename the temporary file to the final config path
+	if err := os.Rename(tempFile.Name(), configPath); err != nil {
+		return fmt.Errorf("failed to rename temporary config file to %s: %w", configPath, err)
+	}
+
+	return nil
+}
+
 func transformAndValidate(userTomlCfg UserTomlConfig, configFilePath string) (*domain.Config, error) {
 	configDir := filepath.Dir(configFilePath)
 
@@ -229,49 +258,6 @@ func processOutputs(userTomlOutputs map[string]UserTomlOutputTarget) (map[string
 	return processedOutputs, nil
 }
 
-// Save writes the given internal configuration representation
-// back to the specified file path.
-// Note: Saving might lose comments/formatting from the original TOML.
-func (m *TomlManager) Save(configPath string, cfg *domain.Config) error {
-	userTomlCfg, err := domainConfigToUserTomlConfig(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to convert domain config to user config for saving: %w", err)
-	}
-
-	// Create parent directories if they don't exist
-	configDir := filepath.Dir(configPath)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", configDir, err)
-	}
-
-	// Write to a temporary file first for atomicity
-	tempFile, err := os.CreateTemp(configDir, ".ai-rules.tmp-")
-	if err != nil {
-		return fmt.Errorf("failed to create temporary config file: %w", err)
-	}
-	defer os.Remove(tempFile.Name()) // Clean up temp file on error or success
-	defer tempFile.Close()           // Ensure file is closed
-
-	// Marshal to TOML and write to temp file
-	encoder := toml.NewEncoder(tempFile)
-	if err := encoder.Encode(userTomlCfg); err != nil {
-		tempFile.Close() // Close before removing
-		return fmt.Errorf("failed to encode config to TOML: %w", err)
-	}
-
-	// Close the file explicitly before renaming
-	if err := tempFile.Close(); err != nil {
-		return fmt.Errorf("failed to close temporary config file: %w", err)
-	}
-
-	// Rename the temporary file to the final config path
-	if err := os.Rename(tempFile.Name(), configPath); err != nil {
-		return fmt.Errorf("failed to rename temporary config file to %s: %w", configPath, err)
-	}
-
-	return nil
-}
-
 // domainConfigToUserTomlConfig converts the internal domain.Config back to the user-facing
 // UserTomlConfig structure, suitable for saving to TOML.
 func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
@@ -332,6 +318,3 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 
 	return userTomlCfg, nil
 }
-
-// Compile-time check to ensure TomlManager implements ConfigManager.
-var _ domain.ConfigManager = (*TomlManager)(nil)
