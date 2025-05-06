@@ -29,12 +29,6 @@ go.work.sum
 .cache/
 /.cache/
 
-# VS Code settings
-.vscode/
-
-# Cursor settings
-.cursor/
-
 # IDE settings
 .idea/
 *.iml

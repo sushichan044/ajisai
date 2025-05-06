@@ -10,11 +10,11 @@ const (
 
 // PresetItem represents a single rule or prompt file within a PresetPackage.
 type PresetItem struct {
-	Name         string     `mapstructure:"name"         json:"name"`               // Unique name within package (e.g., "my-rule")
-	Content      string     `mapstructure:"content"      json:"content"`            // Content (e.g., Markdown), excluding front matter
-	Type         PresetType `mapstructure:"type"         json:"type"`               // "rule" or "prompt"
-	RelativePath string     `mapstructure:"relativePath" json:"relativePath"`       // Path relative to package root (e.g., "rules/my-rule.md")
-	Metadata     any        `mapstructure:"metadata"     json:"metadata,omitempty"` // Decoded front matter (e.g., RuleMetadata, PromptMetadata)
+	Name         string     // Unique name within package (e.g., "my-rule")
+	Content      string     // Content (e.g., Markdown), excluding front matter
+	Type         PresetType // "rule" or "prompt"
+	RelativePath string     // Path relative to package root (e.g., "rules/my-rule.md")
+	Metadata     any        // Decoded front matter (e.g., RuleMetadata, PromptMetadata)
 }
 
 // RuleMetadata defines the structure for metadata specific to rules.
