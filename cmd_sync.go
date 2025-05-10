@@ -10,13 +10,16 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/engine"
 )
 
-func doSync(c context.Context, cmd *cli.Command) error {
+func doSync(c context.Context, _ *cli.Command) error {
 	cfg, err := config.RetrieveFromContext(c)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
-	engine := engine.NewEngine(cfg)
+	engine, err := engine.NewEngine(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create engine: %w", err)
+	}
 
 	packageNames, fetchErr := engine.Fetch()
 	if fetchErr != nil {
@@ -28,9 +31,9 @@ func doSync(c context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to parse presets: %w", parseErr)
 	}
 
-	writeErr := engine.Write(presets)
-	if writeErr != nil {
-		return fmt.Errorf("failed to write presets: %w", writeErr)
+	exportErr := engine.Export(presets)
+	if exportErr != nil {
+		return fmt.Errorf("failed to export presets: %w", exportErr)
 	}
 
 	return nil

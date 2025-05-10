@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -16,10 +17,16 @@ type Engine struct {
 	cfg *domain.Config
 }
 
-func NewEngine(cfg *domain.Config) *Engine {
-	return &Engine{cfg: cfg}
+func NewEngine(cfg *domain.Config) (*Engine, error) {
+	if cfg == nil {
+		return nil, errors.New("internal error: config is nil")
+	}
+
+	return &Engine{cfg: cfg}, nil
 }
 
+// Fetch fetches presets from inputs and persist them in the cache directory.
+// Returns the package names of the fetched presets.
 func (engine *Engine) Fetch() ([]string, error) {
 	eg := errgroup.Group{}
 
@@ -45,6 +52,7 @@ func (engine *Engine) Fetch() ([]string, error) {
 	return packageNames, nil
 }
 
+// Parse parses the presets from the package names and returns the preset packages.
 func (engine *Engine) Parse(packageNames []string) ([]domain.PresetPackage, error) {
 	eg := errgroup.Group{}
 
@@ -70,7 +78,8 @@ func (engine *Engine) Parse(packageNames []string) ([]domain.PresetPackage, erro
 	return presets, nil
 }
 
-func (engine *Engine) Write(presets []domain.PresetPackage) error {
+// Export exports the presets for specific agents configured in the outputs.
+func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	eg := errgroup.Group{}
 
 	enabledOutputs := make([]domain.OutputTarget, 0, len(engine.cfg.Outputs))
