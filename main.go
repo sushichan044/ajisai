@@ -12,8 +12,9 @@ import (
 
 var (
 	// version and revision are set by goreleaser during the build process.
-	version     = "dev"
-	cliRevision = "dev"
+	version = "dev"
+	// noglobals error is suppressed by golangci-lint.
+	revision = "dev"
 )
 
 type ContextKey string
@@ -23,9 +24,10 @@ const (
 )
 
 func main() {
+	// reassign error is suppressed by golangci-lint.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
-		fmt.Fprintf(root.Writer, "%s version %s (revision:%s)\n", root.Name, root.Version, cliRevision)
+		fmt.Fprintf(root.Writer, "%s version %s (revision:%s)\n", root.Name, root.Version, revision)
 	}
 
 	app := &cli.Command{
