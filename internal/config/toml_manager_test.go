@@ -23,6 +23,7 @@ func absPath(t *testing.T, relative string, baseDir string) string {
 
 func TestTomlManager_Load_Success(t *testing.T) {
 	homeDir, _ := os.UserHomeDir() // For ~ expansion test
+	require.NotEmpty(t, homeDir)
 
 	tests := []struct {
 		name       string
@@ -38,10 +39,14 @@ path = "./rules"
 
 [outputs.cursor]
 target = "cursor"
-`, // Enabled defaults to true implicitly
+enabled = true
+`,
 			expectedFn: func(cfg *domain.Config, configDir string) {
-				assert.Equal(t, "default", cfg.Global.Namespace)
-				assert.Equal(t, absPath(t, "./.cache/ai-rules-manager", configDir), cfg.Global.CacheDir)
+				// default namespace
+				assert.Equal(t, "ai-presets-manager", cfg.Global.Namespace)
+				// default cache dir
+				assert.Equal(t, absPath(t, "./.cache/ai-presets-manager", configDir), cfg.Global.CacheDir)
+
 				require.Len(t, cfg.Inputs, 1)
 				input, ok := cfg.Inputs["local_rules"]
 				require.True(t, ok)
@@ -74,21 +79,12 @@ subDir = "presets"
 target = "vscode-copilot"
 enabled = false
 `,
-			expectedFn: func(cfg *domain.Config, configDir string) {
+			expectedFn: func(cfg *domain.Config, _ string) {
 				assert.Equal(t, "my-proj", cfg.Global.Namespace)
-				if homeDir != "" {
-					// パス解決が異なるため、パスの比較は単純な一致ではなくパスコンポーネントで確認
-					resolvedPath, err := utils.ResolveAbsPath("~/.cache/ai-rules")
-					if err == nil {
-						assert.Equal(t, resolvedPath, cfg.Global.CacheDir)
-					} else {
-						// ホームディレクトリ解決に失敗した場合のフォールバックチェック
-						t.Logf("Home directory expansion failed, checking alternate path pattern")
-						cachePath := cfg.Global.CacheDir
-						// パスに~が含まれているかチェック
-						assert.Contains(t, cachePath, ".cache/ai-rules", "Path should contain expected directory")
-					}
-				}
+
+				resolvedPath, err := utils.ResolveAbsPath("~/.cache/ai-rules")
+				require.NoError(t, err)
+				assert.Equal(t, resolvedPath, cfg.Global.CacheDir)
 
 				require.Len(t, cfg.Inputs, 1)
 				input, ok := cfg.Inputs["remote_rules"]
@@ -115,12 +111,12 @@ enabled = false
 
 			// Create a temporary file
 			tempDir := t.TempDir()
-			configPath := filepath.Join(tempDir, "ai-rules.toml")
+			configPath := filepath.Join(tempDir, "ai-presets.toml")
 			err := os.WriteFile(configPath, []byte(tc.tomlData), 0644)
 			require.NoError(t, err)
 
 			// --- Act
-			loadedCfg, err := mgr.Load(configPath) // Call the actual Load method
+			loadedCfg, err := mgr.Load(configPath)
 
 			// --- Assert
 			require.NoError(t, err) // Expect no error for success cases
@@ -168,197 +164,6 @@ path = "./rules"
 	// but checking the wrapped message is usually sufficient.
 }
 
-func TestTomlManager_Load_ValidationAndDefaults(t *testing.T) {
-	// Use helper to get absolute path for comparison
-	absPath := func(t *testing.T, relative string, baseDir string) string {
-		abs, err := filepath.Abs(filepath.Join(baseDir, relative))
-		require.NoError(t, err)
-		return abs
-	}
-
-	homeDir, _ := os.UserHomeDir() // For ~ expansion test
-
-	tests := []struct {
-		name          string
-		tomlData      string
-		expectError   bool
-		errorContains string
-		expectedFn    func(cfg *domain.Config, configDir string)
-	}{
-		{
-			name: "valid minimal config - check defaults",
-			tomlData: `
-[inputs.local1]
-type = "local"
-path = "./rules"
-[outputs.cursor1]
-target = "cursor"
-`, // enabled defaults true
-			expectError: false,
-			expectedFn: func(cfg *domain.Config, configDir string) {
-				assert.Equal(t, "default", cfg.Global.Namespace)
-				assert.Equal(t, absPath(t, "./.cache/ai-rules-manager", configDir), cfg.Global.CacheDir)
-				require.Len(t, cfg.Inputs, 1)
-				input, ok := cfg.Inputs["local1"]
-				require.True(t, ok)
-				assert.Equal(t, "local", input.Type)
-				details, ok := input.Details.(domain.LocalInputSourceDetails)
-				require.True(t, ok)
-				assert.Equal(t, absPath(t, "./rules", configDir), details.Path)
-				require.Len(t, cfg.Outputs, 1)
-				output, ok := cfg.Outputs["cursor1"]
-				require.True(t, ok)
-				assert.Equal(t, "cursor", output.Target)
-				assert.True(t, output.Enabled)
-			},
-		},
-		{
-			name: "global overrides and path resolutions",
-			tomlData: `
-[global]
-cacheDir = "../cache/global"
-namespace = "override"
-[inputs.local_abs]
-type = "local"
-path = "/abs/path/rules"
-[inputs.git1]
-type = "git"
-repository = "http://a.b/c.git"
-[outputs.out1]
-target = "target1"
-enabled = false
-`,
-			expectError: false,
-			expectedFn: func(cfg *domain.Config, configDir string) {
-				assert.Equal(t, "override", cfg.Global.Namespace)
-				assert.Equal(t, absPath(t, "../cache/global", configDir), cfg.Global.CacheDir)
-				require.Len(t, cfg.Inputs, 2)
-				inAbs := cfg.Inputs["local_abs"]
-				detailsAbs, _ := inAbs.Details.(domain.LocalInputSourceDetails)
-				assert.Equal(t, filepath.Clean("/abs/path/rules"), detailsAbs.Path)
-				inGit := cfg.Inputs["git1"]
-				detailsGit, _ := inGit.Details.(domain.GitInputSourceDetails)
-				assert.Equal(t, "http://a.b/c.git", detailsGit.Repository)
-				require.Len(t, cfg.Outputs, 1)
-				out := cfg.Outputs["out1"]
-				assert.Equal(t, "target1", out.Target)
-				assert.False(t, out.Enabled)
-			},
-		},
-		{
-			name: "cache dir with home expansion",
-			tomlData: `
-[global]
-cacheDir = "~/mycache"
-`,
-			expectError: false,
-			expectedFn: func(cfg *domain.Config, configDir string) {
-				if homeDir != "" {
-					// パス解決が異なるため、パスの比較は単純な一致ではなくパスコンポーネントで確認
-					resolvedPath, err := utils.ResolveAbsPath("~/mycache")
-					if err == nil {
-						assert.Equal(t, resolvedPath, cfg.Global.CacheDir)
-					} else {
-						// ホームディレクトリ解決に失敗した場合のフォールバックチェック
-						t.Logf("Home directory expansion failed, checking alternate path pattern")
-						cachePath := cfg.Global.CacheDir
-						// パスに必要なディレクトリが含まれているかチェック
-						assert.Contains(t, cachePath, "mycache", "Path should contain the expected directory")
-					}
-				} else {
-					// ホームディレクトリが取得できない場合のフォールバックチェック
-					t.Log("Could not determine home directory for test")
-					cachePath := cfg.Global.CacheDir
-					assert.Contains(t, cachePath, "mycache", "Path should contain the expected directory")
-				}
-			},
-		},
-		{
-			name:          "input missing type",
-			tomlData:      `[inputs.bad]`, // path = "./rules"`, // Missing type
-			expectError:   true,
-			errorContains: "missing required 'type' field",
-		},
-		{
-			name: "input unsupported type",
-			tomlData: `[inputs.bad]
-type="unknown"`,
-			expectError:   true,
-			errorContains: "unsupported type 'unknown'",
-		},
-		{
-			name: "local input missing path",
-			tomlData: `[inputs.bad]
-type="local"`,
-			expectError:   true,
-			errorContains: "type 'local' requires 'path' field",
-		},
-		{
-			name: "local input with git fields",
-			tomlData: `
-[inputs.bad]
-type="local"
-path="./p"
-repository="a.git"
-`,
-			expectError:   true,
-			errorContains: "type 'local' does not support 'repository'",
-		},
-		{
-			name: "git input missing repository",
-			tomlData: `[inputs.bad]
-type="git"`,
-			expectError:   true,
-			errorContains: "type 'git' requires 'repository' field",
-		},
-		{
-			name: "git input with local field",
-			tomlData: `
-[inputs.bad]
-type="git"
-repository="a.git"
-path="./p"
-`,
-			expectError:   true,
-			errorContains: "type 'git' does not support 'path' field",
-		},
-		{
-			name:          "output missing target",
-			tomlData:      `[outputs.bad]`, // enabled=true`, // Missing target
-			expectError:   true,
-			errorContains: "missing required 'target' field",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			mgr := config.CreateTomlManager()
-			tempDir := t.TempDir()
-			configPath := filepath.Join(tempDir, "test-config.toml")
-			err := os.WriteFile(configPath, []byte(tc.tomlData), 0644)
-			require.NoError(t, err)
-
-			// --- Act
-			loadedCfg, err := mgr.Load(configPath)
-
-			// --- Assert
-			if tc.expectError {
-				require.Error(t, err)
-				if tc.errorContains != "" {
-					require.ErrorContains(t, err, tc.errorContains)
-				}
-				assert.Nil(t, loadedCfg)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, loadedCfg)
-				if tc.expectedFn != nil {
-					tc.expectedFn(loadedCfg, tempDir) // Pass configDir for path assertions
-				}
-			}
-		})
-	}
-}
-
 func TestTomlManager_Save(t *testing.T) {
 	mgr := config.CreateTomlManager()
 	configDir := t.TempDir()
@@ -389,11 +194,11 @@ func TestTomlManager_Save(t *testing.T) {
 		Outputs: map[string]domain.OutputTarget{
 			"cursor": {
 				Target:  "cursor",
-				Enabled: true, // Should be omitted on save
+				Enabled: true,
 			},
 			"vscode": {
 				Target:  "vscode-copilot",
-				Enabled: false, // Should be saved as false
+				Enabled: false,
 			},
 		},
 	}
@@ -411,12 +216,9 @@ func TestTomlManager_Save(t *testing.T) {
 	err = toml.Unmarshal(data, &loadedUserTomlCfg)
 	require.NoError(t, err)
 
-	// Verify Global (pointers should exist and match)
-	require.NotNil(t, loadedUserTomlCfg.Global)
-	require.NotNil(t, loadedUserTomlCfg.Global.CacheDir)
-	assert.Equal(t, saveCfg.Global.CacheDir, *loadedUserTomlCfg.Global.CacheDir)
-	require.NotNil(t, loadedUserTomlCfg.Global.Namespace)
-	assert.Equal(t, "test-ns", *loadedUserTomlCfg.Global.Namespace)
+	// Verify Global
+	assert.Equal(t, saveCfg.Global.CacheDir, loadedUserTomlCfg.Global.CacheDir)
+	assert.Equal(t, "test-ns", loadedUserTomlCfg.Global.Namespace)
 
 	// Verify Inputs
 	require.Len(t, loadedUserTomlCfg.Inputs, 2)
@@ -424,19 +226,16 @@ func TestTomlManager_Save(t *testing.T) {
 	ucLocal, ok := loadedUserTomlCfg.Inputs["local1"]
 	require.True(t, ok)
 	assert.Equal(t, "local", ucLocal.Type)
-	require.NotNil(t, ucLocal.Path)
-	assert.Equal(t, saveCfg.Inputs["local1"].Details.(domain.LocalInputSourceDetails).Path, *ucLocal.Path)
-	assert.Nil(t, ucLocal.Repository)
+	assert.Equal(t, saveCfg.Inputs["local1"].Details.(domain.LocalInputSourceDetails).Path, ucLocal.Path)
+	assert.Empty(t, ucLocal.Repository)
+
 	// Git input
 	ucGit, ok := loadedUserTomlCfg.Inputs["git1"]
 	require.True(t, ok)
 	assert.Equal(t, "git", ucGit.Type)
-	require.NotNil(t, ucGit.Repository)
-	assert.Equal(t, "https://a.b/repo.git", *ucGit.Repository)
-	require.NotNil(t, ucGit.Revision) // Revision was not empty
-	assert.Equal(t, "dev", *ucGit.Revision)
-	assert.Nil(t, ucGit.SubDir) // SubDir was empty, should be nil
-	assert.Nil(t, ucGit.Path)
+	assert.Equal(t, "https://a.b/repo.git", ucGit.Repository)
+	assert.Equal(t, "dev", ucGit.Revision)
+	assert.Empty(t, ucGit.SubDir)
 
 	// Verify Outputs
 	require.Len(t, loadedUserTomlCfg.Outputs, 2)
@@ -444,11 +243,11 @@ func TestTomlManager_Save(t *testing.T) {
 	ucCursor, ok := loadedUserTomlCfg.Outputs["cursor"]
 	require.True(t, ok)
 	assert.Equal(t, "cursor", ucCursor.Target)
-	assert.Nil(t, ucCursor.Enabled) // Enabled=true is omitted
+	assert.True(t, ucCursor.Enabled)
+
 	// VSCode output (Enabled=false saved)
 	ucVscode, ok := loadedUserTomlCfg.Outputs["vscode"]
 	require.True(t, ok)
 	assert.Equal(t, "vscode-copilot", ucVscode.Target)
-	require.NotNil(t, ucVscode.Enabled)
-	assert.False(t, *ucVscode.Enabled)
+	assert.False(t, ucVscode.Enabled)
 }

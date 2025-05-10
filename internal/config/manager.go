@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,37 +10,32 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-type ConfigManager interface {
-	Load(configPath string) (*domain.Config, error)
-	Save(configPath string, cfg *domain.Config) error
+func CreateConfigManager() domain.ConfigManager {
+	return &configManagerImpl{}
 }
 
-var (
-	fallbackConfig = domain.Config{
-		Global: domain.GlobalConfig{
-			Namespace: "ai-rules-manager",
-			CacheDir:  "./.cache/ai-rules-manager",
-		},
-		Inputs:  make(map[string]domain.InputSource, 0),
-		Outputs: make(map[string]domain.OutputTarget, 0),
-	}
-)
+type configManagerImpl struct{}
 
-func CreateConfigManager() ConfigManager {
-	return &ConfigManagerImpl{}
-}
-
-type ConfigManagerImpl struct{}
-
-func (m *ConfigManagerImpl) Load(configPath string) (*domain.Config, error) {
+func (m *configManagerImpl) Load(configPath string) (*domain.Config, error) {
 	resolvedPath, err := utils.ResolveAbsPath(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config path: %w", err)
 	}
 
-	if _, err := os.Stat(resolvedPath); err != nil {
-		// TODO: add warn log: "Failed to load config from %s, using fallback config", configPath
-		return &fallbackConfig, nil
+	if _, statErr := os.Stat(resolvedPath); statErr != nil {
+		if errors.Is(statErr, os.ErrNotExist) {
+			// TODO: add warn log: "Failed to load config from %s, using fallback config", configPath
+			return &domain.Config{
+				Global: domain.GlobalConfig{
+					Namespace: "ai-rules-manager",
+					CacheDir:  "./.cache/ai-rules-manager",
+				},
+				Inputs:  make(map[string]domain.InputSource, 0),
+				Outputs: make(map[string]domain.OutputTarget, 0),
+			}, nil
+		}
+
+		return nil, statErr
 	}
 
 	switch extension := filepath.Ext(resolvedPath); extension {
@@ -50,7 +46,7 @@ func (m *ConfigManagerImpl) Load(configPath string) (*domain.Config, error) {
 	}
 }
 
-func (m *ConfigManagerImpl) Save(configPath string, cfg *domain.Config) error {
+func (m *configManagerImpl) Save(configPath string, cfg *domain.Config) error {
 	resolvedPath, err := utils.ResolveAbsPath(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to resolve config path: %w", err)

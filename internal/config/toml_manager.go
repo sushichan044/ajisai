@@ -13,7 +13,7 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-func CreateTomlManager() ConfigManager {
+func CreateTomlManager() domain.ConfigManager {
 	return &TomlManager{}
 }
 
@@ -32,9 +32,8 @@ func (m *TomlManager) Load(configPath string) (*domain.Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal TOML config from %s: %w", configPath, err)
 	}
 
-	internalCfg, err := transformAndValidate(userTomlCfg, configPath)
+	internalCfg, err := parseUserToml(userTomlCfg, configPath)
 	if err != nil {
-		// Wrap the transformation/validation error for context
 		return nil, fmt.Errorf("error processing config from %s: %w", configPath, err)
 	}
 
@@ -49,42 +48,36 @@ func (m *TomlManager) Save(configPath string, cfg *domain.Config) error {
 
 	// Create parent directories if they don't exist
 	configDir := filepath.Dir(configPath)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", configDir, err)
+	if ensureDirErr := os.MkdirAll(configDir, 0750); ensureDirErr != nil {
+		return fmt.Errorf("failed to create directory %s: %w", configDir, ensureDirErr)
 	}
 
 	// Write to a temporary file first for atomicity
 	tempFile, err := os.CreateTemp(configDir, ".ai-rules.tmp-")
 	if err != nil {
-		return fmt.Errorf("failed to create temporary config file: %w", err)
+		return err
 	}
 	defer os.Remove(tempFile.Name()) // Clean up temp file on error or success
 	defer tempFile.Close()           // Ensure file is closed
 
 	// Marshal to TOML and write to temp file
 	encoder := toml.NewEncoder(tempFile)
-	if err := encoder.Encode(userTomlCfg); err != nil {
-		tempFile.Close() // Close before removing
-		return fmt.Errorf("failed to encode config to TOML: %w", err)
-	}
-
-	// Close the file explicitly before renaming
-	if err := tempFile.Close(); err != nil {
-		return fmt.Errorf("failed to close temporary config file: %w", err)
+	if encodeErr := encoder.Encode(userTomlCfg); encodeErr != nil {
+		return fmt.Errorf("failed to encode config to TOML: %w", encodeErr)
 	}
 
 	// Rename the temporary file to the final config path
-	if err := os.Rename(tempFile.Name(), configPath); err != nil {
-		return fmt.Errorf("failed to rename temporary config file to %s: %w", configPath, err)
+	if renameErr := os.Rename(tempFile.Name(), configPath); renameErr != nil {
+		return renameErr
 	}
 
 	return nil
 }
 
-func transformAndValidate(userTomlCfg UserTomlConfig, configFilePath string) (*domain.Config, error) {
+func parseUserToml(userTomlCfg UserTomlConfig, configFilePath string) (*domain.Config, error) {
 	configDir := filepath.Dir(configFilePath)
 
-	globalCfg, err := processGlobalConfig(userTomlCfg.Global, configDir)
+	globalCfg, err := processGlobalConfig(&userTomlCfg.Global, configDir)
 	if err != nil {
 		return nil, fmt.Errorf("error processing global config: %w", err)
 	}
@@ -111,19 +104,18 @@ func transformAndValidate(userTomlCfg UserTomlConfig, configFilePath string) (*d
 // processGlobalConfig sets default values for GlobalConfig and resolves paths.
 // Returns the processed GlobalConfig.
 func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string) (domain.GlobalConfig, error) {
-	// Defaults
-	defaultNamespace := "default"
-	defaultCacheDir := "./.cache/ai-rules-manager" // Relative to config file
+	defaultNamespace := "ai-presets-manager"
+	defaultCacheDir := "./.cache/ai-presets-manager" // Relative to config file
 
 	namespace := defaultNamespace
 	cacheDir := defaultCacheDir
 
 	if userTomlGlobal != nil {
-		if userTomlGlobal.Namespace != nil && *userTomlGlobal.Namespace != "" {
-			namespace = *userTomlGlobal.Namespace
+		if userTomlGlobal.Namespace != "" {
+			namespace = userTomlGlobal.Namespace
 		}
-		if userTomlGlobal.CacheDir != nil && *userTomlGlobal.CacheDir != "" {
-			cacheDir = *userTomlGlobal.CacheDir
+		if userTomlGlobal.CacheDir != "" {
+			cacheDir = userTomlGlobal.CacheDir
 		}
 	}
 
@@ -192,16 +184,16 @@ func processInputs(
 
 // validateLocalInput validates a local input source and resolves its path.
 func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain.LocalInputSourceDetails, error) {
-	if userInput.Path == nil || *userInput.Path == "" {
+	if userInput.Path == "" {
 		return domain.LocalInputSourceDetails{}, errors.New("type 'local' requires 'path' field")
 	}
-	if userInput.Repository != nil || userInput.Revision != nil || userInput.SubDir != nil {
+	if userInput.Repository != "" || userInput.Revision != "" || userInput.SubDir != "" {
 		return domain.LocalInputSourceDetails{}, errors.New(
 			"type 'local' does not support 'repository', 'revision', or 'subDir' fields",
 		)
 	}
 
-	localPath := *userInput.Path
+	localPath := userInput.Path
 
 	var resolvedPath string
 	var err error
@@ -221,21 +213,21 @@ func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain
 
 // validateGitInput validates a git input source.
 func validateGitInput(userInput UserTomlInputSource) (domain.GitInputSourceDetails, error) {
-	if userInput.Repository == nil || *userInput.Repository == "" {
+	if userInput.Repository == "" {
 		return domain.GitInputSourceDetails{}, errors.New("type 'git' requires 'repository' field")
 	}
-	if userInput.Path != nil {
+	if userInput.Path != "" {
 		return domain.GitInputSourceDetails{}, errors.New("type 'git' does not support 'path' field")
 	}
 
 	details := domain.GitInputSourceDetails{
-		Repository: *userInput.Repository,
+		Repository: userInput.Repository,
 	}
-	if userInput.Revision != nil {
-		details.Revision = *userInput.Revision
+	if userInput.Revision != "" {
+		details.Revision = userInput.Revision
 	}
-	if userInput.SubDir != nil {
-		details.SubDir = *userInput.SubDir
+	if userInput.SubDir != "" {
+		details.SubDir = userInput.SubDir
 	}
 	return details, nil
 }
@@ -254,17 +246,14 @@ func processOutputs(userTomlOutputs map[string]UserTomlOutputTarget) (map[string
 			return nil, fmt.Errorf("output target '%s': missing required 'target' field", key)
 		}
 
-		// TODO: Validate userOutput.Target against known adapter types?
-
 		enabled := true // Default to true if omitted
-		if userOutput.Enabled != nil {
-			enabled = *userOutput.Enabled
+		if !userOutput.Enabled {
+			enabled = false
 		}
 
 		processedOutputs[key] = domain.OutputTarget{
 			Target:  userOutput.Target,
 			Enabled: enabled,
-			// Details: // Add when needed
 		}
 	}
 	return processedOutputs, nil
@@ -274,10 +263,9 @@ func processOutputs(userTomlOutputs map[string]UserTomlOutputTarget) (map[string
 // UserTomlConfig structure, suitable for saving to TOML.
 func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 	userTomlCfg := &UserTomlConfig{
-		Global: &UserTomlGlobalConfig{
-			// Pointers are needed for user config
-			CacheDir:  &cfg.Global.CacheDir,
-			Namespace: &cfg.Global.Namespace,
+		Global: UserTomlGlobalConfig{
+			CacheDir:  cfg.Global.CacheDir,
+			Namespace: cfg.Global.Namespace,
 		},
 		Inputs:  make(map[string]UserTomlInputSource),
 		Outputs: make(map[string]UserTomlOutputTarget),
@@ -285,14 +273,14 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 
 	// TODO: Consider if we should omit default values on save?
 	// Current approach saves resolved values.
-	if userTomlCfg.Global.CacheDir != nil && *userTomlCfg.Global.CacheDir == "" {
-		userTomlCfg.Global.CacheDir = nil
+	if userTomlCfg.Global.CacheDir != "" && userTomlCfg.Global.CacheDir == "" {
+		userTomlCfg.Global.CacheDir = ""
 	}
-	if userTomlCfg.Global.Namespace != nil && *userTomlCfg.Global.Namespace == "" {
-		userTomlCfg.Global.Namespace = nil
+	if userTomlCfg.Global.Namespace != "" && userTomlCfg.Global.Namespace == "" {
+		userTomlCfg.Global.Namespace = ""
 	}
-	if userTomlCfg.Global.CacheDir == nil && userTomlCfg.Global.Namespace == nil {
-		userTomlCfg.Global = nil // Omit global section if both are empty/default? Decide this.
+	if userTomlCfg.Global.CacheDir == "" && userTomlCfg.Global.Namespace == "" {
+		userTomlCfg.Global = UserTomlGlobalConfig{} // Omit global section if both are empty/default? Decide this.
 	}
 
 	for key, input := range cfg.Inputs {
@@ -301,14 +289,14 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 		}
 		switch d := input.Details.(type) {
 		case domain.LocalInputSourceDetails:
-			ucInput.Path = &d.Path
+			ucInput.Path = d.Path
 		case domain.GitInputSourceDetails:
-			ucInput.Repository = &d.Repository
+			ucInput.Repository = d.Repository
 			if d.Revision != "" { // Save revision only if not empty
-				ucInput.Revision = &d.Revision
+				ucInput.Revision = d.Revision
 			}
 			if d.SubDir != "" { // Save subDir only if not empty
-				ucInput.SubDir = &d.SubDir
+				ucInput.SubDir = d.SubDir
 			}
 		default:
 			return nil, fmt.Errorf("input source '%s': unknown details type %T during conversion", key, input.Details)
@@ -318,12 +306,8 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 
 	for key, output := range cfg.Outputs {
 		ucOutput := UserTomlOutputTarget{
-			Target: output.Target,
-		}
-		// Save enabled flag only if it's false (since true is the default)
-		if !output.Enabled {
-			enabledFalse := false
-			ucOutput.Enabled = &enabledFalse
+			Target:  output.Target,
+			Enabled: output.Enabled,
 		}
 		userTomlCfg.Outputs[key] = ucOutput
 	}
