@@ -5,8 +5,22 @@ import (
 	"path/filepath"
 )
 
+const (
+	RulesPresetType   PresetType = "rules"
+	PromptsPresetType PresetType = "prompts"
+
+	RuleInternalExtension   = "md"
+	PromptInternalExtension = "md"
+
+	AttachTypeAlways         AttachType = "always"
+	AttachTypeGlob           AttachType = "glob"
+	AttachTypeAgentRequested AttachType = "agent-requested"
+	AttachTypeManual         AttachType = "manual"
+)
+
 type (
 	PresetType string
+	AttachType string
 
 	PresetPackage struct {
 		Name   string        // name of the preset package. This value is used as the directory name in the cache.
@@ -26,9 +40,9 @@ type (
 
 	// RuleMetadata defines the structure for metadata specific to rules.
 	RuleMetadata struct {
-		Description string   // Optional: Detailed description from front matter.
-		Attach      string   // Required: How the rule is attached ("always", "glob", "manual", "agent-requested" etc.). No default value.
-		Glob        []string // Optional: Glob patterns, used when Attach is "glob".
+		Description string     // Optional: Detailed description from front matter.
+		Attach      AttachType // Required: How the rule is attached
+		Glob        []string   // Optional: Glob patterns, used when Attach is "glob".
 	}
 
 	// PromptMetadata defines the structure for metadata specific to prompts.
@@ -43,14 +57,6 @@ type (
 
 		Type PresetType // type of the preset item
 	}
-)
-
-const (
-	RulesPresetType   PresetType = "rules"
-	PromptsPresetType PresetType = "prompts"
-
-	RuleInternalExtension   = "md"
-	PromptInternalExtension = "md"
 )
 
 func NewRuleItem(slug string, content string, metadata RuleMetadata) *RuleItem {
@@ -75,12 +81,17 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 	}
 }
 
-func GetItemInternalPath(item presetItem) (string, error) {
+func (item *presetItem) GetInternalPath(namespace string, packageName string, extension string) (string, error) {
 	switch item.Type {
 	case RulesPresetType:
-		return filepath.Join(string(RulesPresetType), item.Slug+"."+RuleInternalExtension), nil
+		return filepath.Join(string(RulesPresetType), namespace, packageName, item.Slug+"."+extension), nil
 	case PromptsPresetType:
-		return filepath.Join(string(PromptsPresetType), item.Slug+"."+PromptInternalExtension), nil
+		return filepath.Join(
+			string(PromptsPresetType),
+			namespace,
+			packageName,
+			item.Slug+"."+extension,
+		), nil
 	default:
 		return "", fmt.Errorf("unknown preset type: %s", item.Type)
 	}

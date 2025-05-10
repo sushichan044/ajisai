@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/adrg/frontmatter v0.2.0
+	github.com/goccy/go-yaml v1.17.1
 	github.com/otiai10/copy v1.14.1
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.3.2

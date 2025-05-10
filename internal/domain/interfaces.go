@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"context"
-)
-
 // ConfigManager handles loading and saving of application configuration.
 type ConfigManager interface {
 	// Load reads the configuration file from the given path,
@@ -23,34 +19,13 @@ type ContentFetcher interface {
 	Fetch(source InputSource, destinationDir string) error
 }
 
-// ConfigPresetParser parses content from a source directory into a PresetPackage.
-type ConfigPresetParser interface {
-	// Parse reads the content of sourceDir, interprets it based on a specific format,
-	// and returns a structured PresetPackage.
-	Parse(ctx context.Context, inputKey string, sourceDir string) (*PresetPackage, error)
-}
+type AgentAdapter[TRule any, TPrompt any] interface {
+	ToAgentRule(rule RuleItem) (TRule, error)
+	FromAgentRule(rule TRule) (RuleItem, error)
 
-// AIAgentConfigurationAdapter writes the collected presets to a target AI agent's format.
-type AIAgentConfigurationAdapter interface {
-	// Write takes the collected packages (map key is the input source key)
-	// and writes them out in the format required by the specific AI agent,
-	// potentially organizing them under the given namespace.
-	Write(ctx context.Context, namespace string, packages map[string]*PresetPackage) error
-}
+	FromAgentPrompt(prompt TPrompt) (PromptItem, error)
+	ToAgentPrompt(prompt PromptItem) (TPrompt, error)
 
-// --- Potentially add interfaces for 'import' and 'doctor' command helpers later ---
-
-// DefaultFormatWriter (Conceptual for 'import').
-type DefaultFormatWriter interface {
-	Write(ctx context.Context, items []PresetItem, outputDir string) error
-}
-
-type ValidationIssue struct {
-	Path     string
-	Severity string // e.g., "error", "warning"
-	Message  string
-}
-
-type DefaultFormatValidator interface {
-	Validate(ctx context.Context, targetDir string) ([]ValidationIssue, error)
+	WritePackage(namespace string, pkg PresetPackage) error
+	ReadPackage(namespace string, pkg PresetPackage) error
 }
