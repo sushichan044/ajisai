@@ -25,6 +25,7 @@ func (m *configManagerImpl) Load(configPath string) (*domain.Config, error) {
 	if _, statErr := os.Stat(resolvedPath); statErr != nil {
 		if errors.Is(statErr, os.ErrNotExist) {
 			// TODO: add warn log: "Failed to load config from %s, using fallback config", configPath
+			// Return a fallback config.
 			return &domain.Config{
 				Global: domain.GlobalConfig{
 					Namespace: "ai-rules-manager",
