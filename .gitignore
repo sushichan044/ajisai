@@ -40,3 +40,5 @@ Thumbs.db
 docs/
 # Added by goreleaser init:
 dist/
+
+.cursor/
