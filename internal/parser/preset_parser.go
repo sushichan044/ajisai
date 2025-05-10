@@ -167,13 +167,30 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 	return items, nil
 }
 
+var (
+	ruleSlugRegex = regexp.MustCompile(
+		fmt.Sprintf("^%s/(.*)\\.%s$", domain.RulesPresetType, domain.RuleInternalExtension),
+	)
+
+	promptSlugRegex = regexp.MustCompile(
+		fmt.Sprintf("^%s/(.*)\\.%s$", domain.PromptsPresetType, domain.PromptInternalExtension),
+	)
+)
+
 func getRuleSlug(pkgRootDir string, fullPath string) (string, error) {
 	relPath, err := filepath.Rel(pkgRootDir, fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to get relative path: %w", err)
 	}
 
-	return captureRuleSlug(relPath)
+	// e.g. rules/react/my-rule.md -> matches[0] = "rules/react/my-rule.md", matches[1] = "react/my-rule"
+	expectMatches := 2
+	matches := ruleSlugRegex.FindStringSubmatch(relPath)
+	if len(matches) < expectMatches {
+		return "", fmt.Errorf("invalid rule path format: %s", relPath)
+	}
+
+	return matches[1], nil
 }
 
 func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
@@ -182,38 +199,8 @@ func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
 		return "", fmt.Errorf("failed to get relative path: %w", err)
 	}
 
-	return capturePromptSlug(relPath)
-}
-
-func captureRuleSlug(relPath string) (string, error) {
-	// e.g. rules/react/my-rule.md -> captures "react/my-rule"
-	pattern := regexp.MustCompile(fmt.Sprintf("^%s/(.*)\\.%s$", domain.RulesPresetType, domain.RuleInternalExtension))
-	if pattern == nil {
-		return "", errors.New("failed to compile rule path regex")
-	}
-
-	matches := pattern.FindStringSubmatch(relPath)
-	// e.g. rules/react/my-rule.md -> matches[0] = "rules/react/my-rule.md", matches[1] = "react/my-rule"
 	expectMatches := 2
-	if len(matches) < expectMatches {
-		return "", fmt.Errorf("invalid rule path format: %s", relPath)
-	}
-
-	return matches[1], nil
-}
-
-func capturePromptSlug(relPath string) (string, error) {
-	// e.g. prompts/react/my-prompt.md -> captures "react/my-prompt"
-	pattern := regexp.MustCompile(
-		fmt.Sprintf("^%s/(.*)\\.%s$", domain.PromptsPresetType, domain.PromptInternalExtension),
-	)
-	if pattern == nil {
-		return "", errors.New("failed to compile prompt path regex")
-	}
-
-	matches := pattern.FindStringSubmatch(relPath)
-	// e.g. prompts/react/my-prompt.md -> matches[0] = "prompts/react/my-prompt.md", matches[1] = "react/my-prompt"
-	expectMatches := 2
+	matches := promptSlugRegex.FindStringSubmatch(relPath)
 	if len(matches) < expectMatches {
 		return "", fmt.Errorf("invalid prompt path format: %s", relPath)
 	}
