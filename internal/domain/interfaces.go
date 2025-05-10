@@ -19,13 +19,21 @@ type ContentFetcher interface {
 	Fetch(source InputSource, destinationDir string) error
 }
 
-type AgentAdapter[TRule any, TPrompt any] interface {
+// AgentBridge is a bridge between the domain and the agent.
+// It converts between the domain and the agent's format.
+type AgentBridge[TRule any, TPrompt any] interface {
 	ToAgentRule(rule RuleItem) (TRule, error)
 	FromAgentRule(rule TRule) (RuleItem, error)
 
 	FromAgentPrompt(prompt TPrompt) (PromptItem, error)
 	ToAgentPrompt(prompt PromptItem) (TPrompt, error)
+}
 
+// PresetRepository is a repository for read / write PresetPackage into a specific agent format.
+type PresetRepository interface {
+	// ReadPackage reads a preset package from the given namespace.
+	ReadPackage(namespace string) (PresetPackage, error)
+
+	// WritePackage writes a preset package to the given namespace.
 	WritePackage(namespace string, pkg PresetPackage) error
-	ReadPackage(namespace string, pkg PresetPackage) error
 }

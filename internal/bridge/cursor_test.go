@@ -1,4 +1,4 @@
-package adapter_test
+package bridge_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/ai-rules-manager/internal/adapter"
+	"github.com/sushichan044/ai-rules-manager/internal/bridge"
 )
 
 const longDescriptionContent = `This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description `
@@ -14,14 +14,14 @@ const longDescriptionContent = `This is a test rule with description This is a t
 func TestCursorRule_String(t *testing.T) {
 	testCases := []struct {
 		name     string
-		rule     adapter.CursorRule
+		rule     bridge.CursorRule
 		expected string
 	}{
 		{
 			name: "TS Snapshot - AlwaysApply true",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Always Apply Rule\n\nThis rule is always applied.",
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true,
 					Description: "", // Empty, expect 'description:'
 					Globs:       "", // Empty, expect 'globs:'
@@ -39,9 +39,9 @@ This rule is always applied.
 		},
 		{
 			name: "TS Snapshot - GlobRule (no quotes, empty description)",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Glob Rule\n\nThis rule applies to specific file patterns.",
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: false,
 					Description: "", // Empty, expect 'description:'
 					Globs:       "*.ts,src/**/*.{ts,tsx}",
@@ -59,9 +59,9 @@ This rule applies to specific file patterns.
 		},
 		{
 			name: "TS Snapshot - LongDescription (single quotes, trailing space, empty globs)",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Description Rule\n\nThis rule has a description.",
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: false,
 					Description: longDescriptionContent,
 					Globs:       "", // Empty, expect 'globs:'
@@ -79,9 +79,9 @@ This rule has a description.
 		},
 		{
 			name: "Content normalization - no trailing newline",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Test Rule No Newline", // Normalized to end with one \n
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true, Description: "", Globs: "",
 				},
 			},
@@ -95,9 +95,9 @@ globs:
 		},
 		{
 			name: "Content normalization - one trailing newline",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Test Rule One Newline\n", // Normalized to end with one \n
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true, Description: "", Globs: "",
 				},
 			},
@@ -111,9 +111,9 @@ globs:
 		},
 		{
 			name: "Content normalization - multiple trailing newlines",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "# Test Rule Multiple Newlines\n\n\n", // Normalized to end with one \n
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true, Description: "", Globs: "",
 				},
 			},
@@ -127,9 +127,9 @@ globs:
 		},
 		{
 			name: "Content normalization - empty content",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Content: "", // Normalized to end with one \n (becomes just "\n")
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true, Description: "", Globs: "",
 				},
 			},
@@ -142,10 +142,10 @@ globs:
 		},
 		{
 			name: "Slug is not part of the string output (uses alwaysApply case for structure)",
-			rule: adapter.CursorRule{
+			rule: bridge.CursorRule{
 				Slug:    "my-test-rule",
 				Content: "Rule content.",
-				Metadata: adapter.CursorRuleMetadata{
+				Metadata: bridge.CursorRuleMetadata{
 					AlwaysApply: true, Description: "", Globs: "",
 				},
 			},
