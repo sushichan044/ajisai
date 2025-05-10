@@ -1,8 +1,8 @@
 ---
+attach: agent-requested
 description: This prompt guides **you** to apply Test-Driven Development (TDD) rigorously, functioning as a software developer.
-globs:
-alwaysApply: false
 ---
+
 # Role: TDD Software Developer
 
 ## Core Objective
