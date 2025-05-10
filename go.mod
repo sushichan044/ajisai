@@ -7,6 +7,7 @@ require (
 	github.com/adrg/frontmatter v0.2.0
 	github.com/goccy/go-yaml v1.17.1
 	github.com/otiai10/copy v1.14.1
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.3.2
 	go.uber.org/mock v0.5.2
