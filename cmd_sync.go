@@ -21,6 +21,11 @@ func doSync(c context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
+	cleanErr := engine.CleanOutputs()
+	if cleanErr != nil {
+		return fmt.Errorf("failed to clean: %w", cleanErr)
+	}
+
 	packageNames, fetchErr := engine.Fetch()
 	if fetchErr != nil {
 		return fmt.Errorf("failed to fetch inputs: %w", fetchErr)

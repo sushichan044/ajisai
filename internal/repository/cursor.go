@@ -111,3 +111,27 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 func (repository *CursorRepository) ReadPackage(namespace string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
+
+func (repository *CursorRepository) Clean(namespace string) error {
+	cwd, wdErr := os.Getwd()
+	if wdErr != nil {
+		return wdErr
+	}
+
+	cursorRoot := filepath.Join(cwd, ".cursor")
+
+	ruleDir := filepath.Join(cursorRoot, "rules", namespace)
+	promptDir := filepath.Join(cursorRoot, "prompts", namespace)
+
+	eg := errgroup.Group{}
+
+	eg.Go(func() error {
+		return os.RemoveAll(ruleDir)
+	})
+
+	eg.Go(func() error {
+		return os.RemoveAll(promptDir)
+	})
+
+	return eg.Wait()
+}

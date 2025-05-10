@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"golang.org/x/sync/errgroup"
@@ -36,8 +37,8 @@ func (engine *Engine) Fetch() ([]string, error) {
 		eg.Go(func() error {
 			packageNames = append(packageNames, identifier)
 
-			fetcher := getFetcher(input.Type)
-			if fetcher == nil {
+			fetcher, err := getFetcher(input.Type)
+			if err != nil {
 				return fmt.Errorf("unknown input type: %s", input.Type)
 			}
 
@@ -78,6 +79,70 @@ func (engine *Engine) Parse(packageNames []string) ([]domain.PresetPackage, erro
 	return presets, nil
 }
 
+func (engine *Engine) CleanOutputs() error {
+	eg := errgroup.Group{}
+
+	for _, output := range engine.cfg.Outputs {
+		repository, err := getRepository(output.Target)
+		if err != nil {
+			return fmt.Errorf("unknown output type: %s", output.Target)
+		}
+
+		eg.Go(func() error {
+			return repository.Clean(engine.cfg.Global.Namespace)
+		})
+	}
+
+	return eg.Wait()
+}
+
+func (engine *Engine) CleanCache(force bool) error {
+	cacheDir := engine.cfg.Global.CacheDir
+
+	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+		// Nothing to clean.
+		return nil
+	}
+
+	if force {
+		// Remove all cache directories.
+		if err := os.RemoveAll(cacheDir); err != nil {
+			return fmt.Errorf("failed to remove cache directory %s: %w", cacheDir, err)
+		}
+
+		// Create the cache directory again.
+		return os.MkdirAll(cacheDir, 0750)
+	}
+
+	entries, err := os.ReadDir(cacheDir)
+	if err != nil {
+		return fmt.Errorf("failed to read cache directory %s: %w", cacheDir, err)
+	}
+
+	eg := errgroup.Group{}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue // Skip files, only interested in package directories
+		}
+		entryName := entry.Name()
+
+		eg.Go(func() error {
+			if _, isConfigured := engine.cfg.Inputs[entryName]; !isConfigured {
+				// This entry is not configured in inputs, so we don't need it.
+				pathToRemove := filepath.Join(cacheDir, entryName)
+				if removeErr := os.RemoveAll(pathToRemove); removeErr != nil {
+					return fmt.Errorf("failed to remove obsolete cache directory %s: %w", pathToRemove, removeErr)
+				}
+			}
+
+			return nil
+		})
+	}
+
+	return eg.Wait()
+}
+
 // Export exports the presets for specific agents configured in the outputs.
 func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	eg := errgroup.Group{}
@@ -89,12 +154,27 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 		}
 	}
 
+	type validRepositoryEntry struct {
+		repository domain.PresetRepository
+		target     string
+	}
+	validRepositories := make([]validRepositoryEntry, 0, len(enabledOutputs))
+
 	for _, output := range enabledOutputs {
-		repository := getRepository(output.Target)
+		repo, err := getRepository(output.Target)
+		if err != nil {
+			return err
+		}
+		validRepositories = append(validRepositories, validRepositoryEntry{repository: repo, target: output.Target})
+	}
+
+	for _, entry := range validRepositories {
+		currentRepo := entry.repository
 
 		for _, pkg := range presets {
+			currentPkg := pkg // Capture loop variable for goroutine
 			eg.Go(func() error {
-				return repository.WritePackage(engine.cfg.Global.Namespace, pkg)
+				return currentRepo.WritePackage(engine.cfg.Global.Namespace, currentPkg)
 			})
 		}
 	}
@@ -106,22 +186,22 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	return nil
 }
 
-func getFetcher(inputType string) domain.ContentFetcher {
+func getFetcher(inputType string) (domain.ContentFetcher, error) {
 	switch inputType {
 	case "local":
-		return fetcher.LocalFetcher()
+		return fetcher.LocalFetcher(), nil
 	case "git":
-		return fetcher.GitFetcher()
+		return fetcher.GitFetcher(), nil
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown input type: %s", inputType)
 	}
 }
 
-func getRepository(target string) domain.PresetRepository {
+func getRepository(target string) (domain.PresetRepository, error) {
 	switch target {
 	case "cursor":
-		return repository.NewCursorRepository()
+		return repository.NewCursorRepository(), nil
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown output type: %s", target)
 	}
 }

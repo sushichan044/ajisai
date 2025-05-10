@@ -81,6 +81,19 @@ func main() {
 				Usage:  "Validate preset directory structure or config inputs against the default format",
 				Action: doDoctor,
 			},
+			{
+				Name:   "clean",
+				Usage:  "Clean the cache",
+				Action: doClean,
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:    "force",
+						Aliases: []string{"f"},
+						Usage:   "Force clean the cache",
+						Value:   false,
+					},
+				},
+			},
 		},
 	}
 

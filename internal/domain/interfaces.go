@@ -36,4 +36,7 @@ type PresetRepository interface {
 
 	// WritePackage writes a preset package to the given namespace.
 	WritePackage(namespace string, pkg PresetPackage) error
+
+	// Clean removes all presets from the repository.
+	Clean(namespace string) error
 }
