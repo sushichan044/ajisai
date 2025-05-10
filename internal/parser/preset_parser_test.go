@@ -30,8 +30,9 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "empty_case",
-				Items:    []*domain.PresetItem{},
+				Name:   "empty_case",
+				Rule:   []*domain.RuleItem{},
+				Prompt: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -48,19 +49,18 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "single_rule_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "rule1",
-						Type:    domain.RulePresetType,
-						Content: "This is the content of test rule 1.\n",
-						Metadata: domain.RuleMetadata{
+				Name: "single_rule_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"rule1",
+						"This is the content of test rule 1.\n",
+						domain.RuleMetadata{
 							Attach: "manual",
 							Glob:   []string{"*.go"},
 						},
-						RelativePath: "rules/rule1.md",
-					},
+					),
 				},
+				Prompt: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -77,16 +77,15 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "rule_no_frontmatter_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:         "rule_no_frontmatter",
-						Type:         domain.RulePresetType,
-						Content:      "This rule has no front matter.\n",
-						Metadata:     domain.RuleMetadata{},
-						RelativePath: "rules/rule_no_frontmatter.md",
-					},
+				Name: "rule_no_frontmatter_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"rule_no_frontmatter",
+						"This rule has no front matter.\n",
+						domain.RuleMetadata{},
+					),
 				},
+				Prompt: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -103,19 +102,18 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "missing_attach_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "missing_attach",
-						Type:    domain.RulePresetType,
-						Content: "Content\n",
-						Metadata: domain.RuleMetadata{
+				Name: "missing_attach_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"missing_attach",
+						"Content\n",
+						domain.RuleMetadata{
 							Attach: "", // Missing 'attach' results in empty string
 							Glob:   []string{"*.txt"},
 						},
-						RelativePath: "rules/missing_attach.md",
-					},
+					),
 				},
+				Prompt: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -147,24 +145,22 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "ignore_files_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "real_rule",
-						Type:    domain.RulePresetType,
-						Content: "Valid rule content\n",
-						Metadata: domain.RuleMetadata{
+				Name: "ignore_files_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"real_rule",
+						"Valid rule content\n",
+						domain.RuleMetadata{
 							Attach: "always",
 						},
-						RelativePath: "rules/real_rule.md",
-					},
-					{
-						Name:         "empty_prompt",
-						Type:         domain.PromptPresetType,
-						Content:      "", // Empty file content
-						Metadata:     domain.PromptMetadata{},
-						RelativePath: "prompts/empty_prompt.md",
-					},
+					),
+				},
+				Prompt: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"empty_prompt",
+						"", // Empty file content
+						domain.PromptMetadata{},
+					),
 				},
 			},
 			expectErr:        false,
@@ -183,24 +179,22 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "single_prompt_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "prompt1",
-						Type:    domain.PromptPresetType,
-						Content: "This is the content of test prompt 1.\n",
-						Metadata: domain.PromptMetadata{
+				Name: "single_prompt_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"empty_rule",
+						"",
+						domain.RuleMetadata{},
+					),
+				},
+				Prompt: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"prompt1",
+						"This is the content of test prompt 1.\n",
+						domain.PromptMetadata{
 							Description: "A sample prompt",
 						},
-						RelativePath: "prompts/prompt1.md",
-					},
-					{
-						Name:         "empty_rule",
-						Type:         domain.RulePresetType,
-						Content:      "",
-						Metadata:     domain.RuleMetadata{},
-						RelativePath: "rules/empty_rule.md",
-					},
+					),
 				},
 			},
 			expectErr:        false,
@@ -219,22 +213,20 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "prompt_no_frontmatter_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:         "prompt_no_frontmatter",
-						Type:         domain.PromptPresetType,
-						Content:      "This prompt has no front matter.\n",
-						Metadata:     domain.PromptMetadata{},
-						RelativePath: "prompts/prompt_no_frontmatter.md",
-					},
-					{
-						Name:         "empty_rule",
-						Type:         domain.RulePresetType,
-						Content:      "",
-						Metadata:     domain.RuleMetadata{},
-						RelativePath: "rules/empty_rule.md",
-					},
+				Name: "prompt_no_frontmatter_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"empty_rule",
+						"",
+						domain.RuleMetadata{},
+					),
+				},
+				Prompt: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"prompt_no_frontmatter",
+						"This prompt has no front matter.\n",
+						domain.PromptMetadata{},
+					),
 				},
 			},
 			expectErr:        false,
@@ -254,18 +246,18 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectErr: false,
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "nested_rules_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "bar",
-						Type:    domain.RulePresetType,
-						Content: "This is the content of Bar.\n",
-						Metadata: domain.RuleMetadata{
+				Name: "nested_rules_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"foo/bar", // Slug includes subdirectory
+						"This is the content of Bar.\n",
+						domain.RuleMetadata{
 							Attach: "glob",
-							Glob:   []string{"*.go"}},
-						RelativePath: "rules/foo/bar.md",
-					},
+							Glob:   []string{"*.go"},
+						},
+					),
 				},
+				Prompt: []*domain.PromptItem{},
 			},
 			useElementsMatch: true,
 		},
@@ -285,27 +277,25 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				InputKey: "both_git_subdir_case",
-				Items: []*domain.PresetItem{
-					{
-						Name:    "promptB",
-						Type:    domain.PromptPresetType,
-						Content: "Prompt B content\n",
-						Metadata: domain.PromptMetadata{
-							Description: "Prompt B desc",
-						},
-						RelativePath: "prompts/promptB.md",
-					},
-					{
-						Name:    "ruleA",
-						Type:    domain.RulePresetType,
-						Content: "Rule A content\n",
-						Metadata: domain.RuleMetadata{
+				Name: "both_git_subdir_case",
+				Rule: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"ruleA",
+						"Rule A content\n",
+						domain.RuleMetadata{
 							Attach: "glob",
 							Glob:   []string{"*.go"},
 						},
-						RelativePath: "rules/ruleA.md",
-					},
+					),
+				},
+				Prompt: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"promptB",
+						"Prompt B content\n",
+						domain.PromptMetadata{
+							Description: "Prompt B desc",
+						},
+					),
 				},
 			},
 			expectErr:        false,
@@ -364,8 +354,11 @@ func TestParsePresetPackage(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				if tc.useElementsMatch {
-					assert.Equal(t, tc.expectedPackage.InputKey, actualPackage.InputKey, "InputKey mismatch")
-					assert.ElementsMatch(t, tc.expectedPackage.Items, actualPackage.Items, "Items mismatch")
+					assert.Equal(t, tc.expectedPackage.Name, actualPackage.Name, "InputKey mismatch")
+					// Compare Rule items
+					assert.ElementsMatch(t, tc.expectedPackage.Rule, actualPackage.Rule, "Rule items mismatch")
+					// Compare Prompt items
+					assert.ElementsMatch(t, tc.expectedPackage.Prompt, actualPackage.Prompt, "Prompt items mismatch")
 				} else {
 					assert.Equal(t, tc.expectedPackage, actualPackage)
 				}

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/adrg/frontmatter"
@@ -22,14 +23,18 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 		return nil, errors.New("config is nil")
 	}
 
+	if _, ok := config.Inputs[presetName]; !ok {
+		return nil, fmt.Errorf("preset %s not found in config", presetName)
+	}
+
 	presetRootDir, err := resolvePresetRootDir(config, presetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve preset root directory: %w", err)
 	}
 
 	var (
-		prompts []*domain.PresetItem
-		rules   []*domain.PresetItem
+		prompts []*domain.PromptItem
+		rules   []*domain.RuleItem
 	)
 
 	eg := new(errgroup.Group)
@@ -59,14 +64,15 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	}
 
 	return &domain.PresetPackage{
-		InputKey: presetName,
-		Items:    append(prompts, rules...),
+		Name:   presetName,
+		Rule:   rules,
+		Prompt: prompts,
 	}, nil
 }
 
-func parsePrompts(rootDir string) ([]*domain.PresetItem, error) {
-	promptRootDir := filepath.Join(rootDir, "prompts")
-	items := []*domain.PresetItem{}
+func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
+	promptRootDir := filepath.Join(rootDir, string(domain.PromptsPresetType))
+	items := []*domain.PromptItem{}
 
 	if exists, err := utils.IsDirExists(promptRootDir); err != nil {
 		return nil, fmt.Errorf("failed to check if prompt directory exists: %w", err)
@@ -79,22 +85,14 @@ func parsePrompts(rootDir string) ([]*domain.PresetItem, error) {
 			return err
 		}
 
-		if d.IsDir() {
+		if d.IsDir() || !strings.HasSuffix(d.Name(), "."+domain.PromptInternalExtension) {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(rootDir, path)
+		slug, err := getPromptSlug(rootDir, path)
 		if err != nil {
 			return err
 		}
-
-		fileName := d.Name()
-		ext := filepath.Ext(fileName)
-		if ext != ".md" {
-			return nil
-		}
-
-		slug := strings.TrimSuffix(fileName, ext)
 
 		content, err := os.ReadFile(path)
 		if err != nil {
@@ -108,13 +106,9 @@ func parsePrompts(rootDir string) ([]*domain.PresetItem, error) {
 			return err
 		}
 
-		items = append(items, &domain.PresetItem{
-			Name:         slug,
-			Content:      string(rest),
-			Type:         domain.PromptPresetType,
-			Metadata:     metadata,
-			RelativePath: relPath,
-		})
+		ruleItem := domain.NewPromptItem(slug, string(rest), metadata)
+
+		items = append(items, ruleItem)
 		return nil
 	})
 
@@ -125,9 +119,9 @@ func parsePrompts(rootDir string) ([]*domain.PresetItem, error) {
 	return items, nil
 }
 
-func parseRules(rootDir string) ([]*domain.PresetItem, error) {
+func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 	ruleRootDir := filepath.Join(rootDir, "rules")
-	items := []*domain.PresetItem{}
+	items := []*domain.RuleItem{}
 
 	if exists, err := utils.IsDirExists(ruleRootDir); err != nil {
 		return nil, fmt.Errorf("failed to check if rule directory exists: %w", err)
@@ -140,22 +134,14 @@ func parseRules(rootDir string) ([]*domain.PresetItem, error) {
 			return err
 		}
 
-		if d.IsDir() {
+		if d.IsDir() || !strings.HasSuffix(d.Name(), "."+domain.RuleInternalExtension) {
 			return nil
 		}
 
-		relPath, err := filepath.Rel(rootDir, path)
+		slug, err := getRuleSlug(rootDir, path)
 		if err != nil {
 			return err
 		}
-
-		fileName := d.Name()
-		ext := filepath.Ext(fileName)
-		if ext != ".md" {
-			return nil
-		}
-
-		slug := strings.TrimSuffix(fileName, ext)
 
 		content, err := os.ReadFile(path)
 		if err != nil {
@@ -169,13 +155,8 @@ func parseRules(rootDir string) ([]*domain.PresetItem, error) {
 			return err
 		}
 
-		items = append(items, &domain.PresetItem{
-			Name:         slug,
-			Content:      string(rest),
-			Type:         domain.RulePresetType,
-			Metadata:     metadata,
-			RelativePath: relPath,
-		})
+		ruleItem := domain.NewRuleItem(slug, string(rest), metadata)
+		items = append(items, ruleItem)
 		return nil
 	})
 
@@ -184,6 +165,60 @@ func parseRules(rootDir string) ([]*domain.PresetItem, error) {
 	}
 
 	return items, nil
+}
+
+func getRuleSlug(pkgRootDir string, fullPath string) (string, error) {
+	relPath, err := filepath.Rel(pkgRootDir, fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get relative path: %w", err)
+	}
+
+	return captureRuleSlug(relPath)
+}
+
+func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
+	relPath, err := filepath.Rel(pkgRootDir, fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get relative path: %w", err)
+	}
+
+	return capturePromptSlug(relPath)
+}
+
+func captureRuleSlug(relPath string) (string, error) {
+	// e.g. rules/react/my-rule.md -> captures "react/my-rule"
+	pattern := regexp.MustCompile(fmt.Sprintf("^%s/(.*)\\.%s$", domain.RulesPresetType, domain.RuleInternalExtension))
+	if pattern == nil {
+		return "", errors.New("failed to compile rule path regex")
+	}
+
+	matches := pattern.FindStringSubmatch(relPath)
+	// e.g. rules/react/my-rule.md -> matches[0] = "rules/react/my-rule.md", matches[1] = "react/my-rule"
+	expectMatches := 2
+	if len(matches) < expectMatches {
+		return "", fmt.Errorf("invalid rule path format: %s", relPath)
+	}
+
+	return matches[1], nil
+}
+
+func capturePromptSlug(relPath string) (string, error) {
+	// e.g. prompts/react/my-prompt.md -> captures "react/my-prompt"
+	pattern := regexp.MustCompile(
+		fmt.Sprintf("^%s/(.*)\\.%s$", domain.PromptsPresetType, domain.PromptInternalExtension),
+	)
+	if pattern == nil {
+		return "", errors.New("failed to compile prompt path regex")
+	}
+
+	matches := pattern.FindStringSubmatch(relPath)
+	// e.g. prompts/react/my-prompt.md -> matches[0] = "prompts/react/my-prompt.md", matches[1] = "react/my-prompt"
+	expectMatches := 2
+	if len(matches) < expectMatches {
+		return "", fmt.Errorf("invalid prompt path format: %s", relPath)
+	}
+
+	return matches[1], nil
 }
 
 func resolvePresetRootDir(config *domain.Config, presetName string) (string, error) {
