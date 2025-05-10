@@ -178,7 +178,7 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 				envConfigPath := createValidConfig(t)  // Env var points to valid
 				flagConfigPath := createValidConfig(t) // Flag points to another valid
 				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
-				args = []string{"sync", "--config", flagConfigPath}
+				args = []string{"doctor", "--config", flagConfigPath}
 				cleanup = func() {
 					os.Remove(envConfigPath)
 					os.Remove(flagConfigPath)
@@ -197,7 +197,7 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 				err := os.WriteFile(invalidConfigPath, []byte(`[global`), 0644)
 				require.NoError(t, err)
 				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
-				args = []string{"sync", "--config", invalidConfigPath}
+				args = []string{"doctor", "--config", invalidConfigPath}
 				cleanup = func() {
 					os.Remove(envConfigPath)
 					os.Remove(invalidConfigPath)
