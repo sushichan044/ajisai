@@ -4,7 +4,7 @@ attach: always
 
 # Project Conventions & Notes
 
-- Always use English for project artifacts.
+- Always use English for project artifacts, comments, and documentation.
 - Always prefer immutable data mutation.
 
 ## Testing
