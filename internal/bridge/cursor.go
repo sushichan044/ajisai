@@ -196,15 +196,11 @@ func (rule *CursorRule) String() (string, error) {
 	fmStr = strings.Join(resultLines, "\n") + "\n"
 
 	var normalizedContent string
-	if rule.Content == "" {
-		normalizedContent = ""
-	} else {
+	if rule.Content != "" {
 		normalizedContent = strings.TrimRight(rule.Content, "\n") + "\n"
 	}
 
-	finalStr := "---\n" + fmStr + "---\n" + normalizedContent
-
-	return finalStr, nil
+	return fmt.Sprintf("---\n%s---\n%s", fmStr, normalizedContent), nil
 }
 
 func (prompt *CursorPrompt) String() (string, error) {
