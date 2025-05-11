@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"path/filepath"
 )
 
@@ -82,17 +81,5 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 }
 
 func (item *presetItem) GetInternalPath(namespace string, packageName string, extension string) (string, error) {
-	switch item.Type {
-	case RulesPresetType:
-		return filepath.Join(string(RulesPresetType), namespace, packageName, item.Slug+"."+extension), nil
-	case PromptsPresetType:
-		return filepath.Join(
-			string(PromptsPresetType),
-			namespace,
-			packageName,
-			item.Slug+"."+extension,
-		), nil
-	default:
-		return "", fmt.Errorf("unknown preset type: %s", item.Type)
-	}
+	return filepath.Join(namespace, packageName, item.Slug+"."+extension), nil
 }

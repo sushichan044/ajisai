@@ -17,6 +17,9 @@ type CursorRepository struct{}
 const (
 	CursorRuleExtension   = "mdc"
 	CursorPromptExtension = "md"
+
+	CursorRuleDir   = "rules"
+	CursorPromptDir = "prompts"
 )
 
 func NewCursorRepository() domain.PresetRepository {
@@ -39,7 +42,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 			return "", err
 		}
 
-		return filepath.Join(cursorRoot, rulePath), nil
+		return filepath.Join(cursorRoot, CursorRuleDir, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -48,7 +51,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 			return "", err
 		}
 
-		return filepath.Join(cursorRoot, promptPath), nil
+		return filepath.Join(cursorRoot, CursorPromptDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -118,8 +121,8 @@ func (repository *CursorRepository) Clean(namespace string) error {
 
 	cursorRoot := filepath.Join(cwd, ".cursor")
 
-	ruleDir := filepath.Join(cursorRoot, "rules", namespace)
-	promptDir := filepath.Join(cursorRoot, "prompts", namespace)
+	ruleDir := filepath.Join(cursorRoot, CursorRuleDir, namespace)
+	promptDir := filepath.Join(cursorRoot, CursorPromptDir, namespace)
 
 	eg := errgroup.Group{}
 
