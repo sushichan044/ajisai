@@ -142,7 +142,7 @@ Please refactor the following Go code to improve its readability and maintainabi
 ```toml
 [settings]
 # Specifies the directory where `aisync` will store cached data of inputs.
-cacheDir = ".cache/aisync" # Optional: Defaults to `.cache/aisync/`.
+cacheDir = "./.cache/aisync" # Optional: Defaults to `./.cache/aisync`.
 
 # A namespace string that can be used by output targets to organize or prefix the imported presets.
 # For example, aisync might place presets under `~/.cursor/prompts/<namespace>/` or `~/.cursor/rules/<namespace>/`.
