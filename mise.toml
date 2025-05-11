@@ -1,6 +1,5 @@
 [tools]
 golangci-lint = "latest"
-gotestsum = "latest"
 
 [env]
 GO111MODULE = "on"
@@ -24,7 +23,7 @@ run = "golangci-lint fmt"
 
 [tasks.test]
 description = "Run tests"
-run = "gotestsum"
+run = "go tool gotestsum"
 
 [tasks.build-snapshot]
 description = "Build the application with version info"
@@ -36,3 +35,6 @@ run = """
 rm -rf bin/
 go clean
 """
+
+[settings]
+idiomatic_version_file_enable_tools = ["go"]
