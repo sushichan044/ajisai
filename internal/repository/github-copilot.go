@@ -29,6 +29,13 @@ func NewGitHubCopilotRepository() (domain.PresetRepository, error) {
 	}, nil
 }
 
+func NewGitHubCopilotRepositoryWithPaths(instructionsDir, promptsDir string) (*GitHubCopilotRepository, error) {
+	return &GitHubCopilotRepository{
+		instructionsRootDir: instructionsDir,
+		promptsRootDir:      promptsDir,
+	}, nil
+}
+
 const (
 	GitHubCopilotInstructionExtension = "instructions.md"
 	GitHubCopilotPromptExtension      = "prompt.md"
