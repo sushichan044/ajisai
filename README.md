@@ -163,11 +163,8 @@ revision = "main" # Optional: Specify a branch, tag, or commit SHA. Defaults to 
 directory = "my-company-requirements" # Optional: import from subdirectory.
 
 [outputs.cursor]
-# Export presets for the Cursor editor.
-target = "cursor"  # Identifier for the output type
-
-# set false to ignore this output.
-enabled = true     # Optional, default: true
+target = "cursor"  # Export presets for the Cursor editor.
+enabled = true     # Optional, default: true. Set false to disable this output.
 
 [outputs.github_copilot]
 target = "github-copilot"
