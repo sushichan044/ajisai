@@ -355,7 +355,7 @@ linters:
 
       # Forbid the use of the `tool` directives.
       # Default: false
-      tool-forbidden: true
+      tool-forbidden: false
 
       # Forbid the use of the `godebug` directive.
       # Default: false
