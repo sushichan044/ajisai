@@ -271,18 +271,6 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 		Outputs: make(map[string]UserTomlOutputTarget),
 	}
 
-	// TODO: Consider if we should omit default values on save?
-	// Current approach saves resolved values.
-	if userTomlCfg.Global.CacheDir != "" && userTomlCfg.Global.CacheDir == "" {
-		userTomlCfg.Global.CacheDir = ""
-	}
-	if userTomlCfg.Global.Namespace != "" && userTomlCfg.Global.Namespace == "" {
-		userTomlCfg.Global.Namespace = ""
-	}
-	if userTomlCfg.Global.CacheDir == "" && userTomlCfg.Global.Namespace == "" {
-		userTomlCfg.Global = UserTomlGlobalConfig{} // Omit global section if both are empty/default? Decide this.
-	}
-
 	for key, input := range cfg.Inputs {
 		ucInput := UserTomlInputSource{
 			Type: input.Type,
