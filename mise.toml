@@ -6,6 +6,10 @@ gotestsum = "latest"
 GO111MODULE = "on"
 GOFLAGS = "-mod=readonly"
 
+[tasks.dev]
+description = "Run the application in development mode"
+run = "go run ."
+
 [tasks.lint]
 description = "Run golangci-lint"
 run = "golangci-lint run"
