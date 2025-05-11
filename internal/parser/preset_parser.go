@@ -224,8 +224,8 @@ func resolvePresetRootDir(config *domain.Config, presetName string) (string, err
 	}
 
 	if gitInput, isGit := domain.GetInputSourceDetails[domain.GitInputSourceDetails](inputConfig); isGit {
-		if gitInput.SubDir != "" {
-			return filepath.Join(cacheDir, presetName, gitInput.SubDir), nil
+		if gitInput.Directory != "" {
+			return filepath.Join(cacheDir, presetName, gitInput.Directory), nil
 		}
 		return filepath.Join(cacheDir, presetName), nil
 	}

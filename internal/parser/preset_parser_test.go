@@ -271,7 +271,7 @@ func TestParsePresetPackage(t *testing.T) {
 						Type: "git",
 						Details: domain.GitInputSourceDetails{
 							Repository: "dummy_repo_url", // Not used for path resolution in this test, but good to have
-							SubDir:     "actual_preset_files",
+							Directory:     "actual_preset_files",
 						},
 					},
 				},

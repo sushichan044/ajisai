@@ -37,7 +37,7 @@ func (d LocalInputSourceDetails) isInputSourceDetails() {}
 type GitInputSourceDetails struct {
 	Repository string // URL of the Git repository
 	Revision   string // Optional branch, tag, or commit SHA (defaults resolved by Fetcher)
-	SubDir     string // Optional subdirectory within the repo
+	Directory  string // Optional subdirectory within the repo
 }
 
 func (d GitInputSourceDetails) isInputSourceDetails() {}

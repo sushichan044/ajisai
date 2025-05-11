@@ -73,7 +73,7 @@ namespace = "my-proj"
 type = "git"
 repository = "https://example.com/repo.git"
 revision = "main"
-subDir = "presets"
+directory = "presets"
 
 [outputs.vscode]
 target = "vscode-copilot"
@@ -94,7 +94,7 @@ enabled = false
 				require.True(t, ok, "Details should be GitInputSourceDetails")
 				assert.Equal(t, "https://example.com/repo.git", details.Repository)
 				assert.Equal(t, "main", details.Revision)
-				assert.Equal(t, "presets", details.SubDir)
+				assert.Equal(t, "presets", details.Directory)
 
 				require.Len(t, cfg.Outputs, 1)
 				output, ok := cfg.Outputs["vscode"]
@@ -235,7 +235,7 @@ func TestTomlManager_Save(t *testing.T) {
 	assert.Equal(t, "git", ucGit.Type)
 	assert.Equal(t, "https://a.b/repo.git", ucGit.Repository)
 	assert.Equal(t, "dev", ucGit.Revision)
-	assert.Empty(t, ucGit.SubDir)
+	assert.Empty(t, ucGit.Directory)
 
 	// Verify Outputs
 	require.Len(t, loadedUserTomlCfg.Outputs, 2)

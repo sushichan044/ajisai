@@ -187,7 +187,7 @@ func validateLocalInput(userInput UserTomlInputSource, configDir string) (domain
 	if userInput.Path == "" {
 		return domain.LocalInputSourceDetails{}, errors.New("type 'local' requires 'path' field")
 	}
-	if userInput.Repository != "" || userInput.Revision != "" || userInput.SubDir != "" {
+	if userInput.Repository != "" || userInput.Revision != "" || userInput.Directory != "" {
 		return domain.LocalInputSourceDetails{}, errors.New(
 			"type 'local' does not support 'repository', 'revision', or 'subDir' fields",
 		)
@@ -226,8 +226,8 @@ func validateGitInput(userInput UserTomlInputSource) (domain.GitInputSourceDetai
 	if userInput.Revision != "" {
 		details.Revision = userInput.Revision
 	}
-	if userInput.SubDir != "" {
-		details.SubDir = userInput.SubDir
+	if userInput.Directory != "" {
+		details.Directory = userInput.Directory
 	}
 	return details, nil
 }
@@ -295,8 +295,8 @@ func domainConfigToUserTomlConfig(cfg *domain.Config) (*UserTomlConfig, error) {
 			if d.Revision != "" { // Save revision only if not empty
 				ucInput.Revision = d.Revision
 			}
-			if d.SubDir != "" { // Save subDir only if not empty
-				ucInput.SubDir = d.SubDir
+			if d.Directory != "" { // Save subDir only if not empty
+				ucInput.Directory = d.Directory
 			}
 		default:
 			return nil, fmt.Errorf("input source '%s': unknown details type %T during conversion", key, input.Details)

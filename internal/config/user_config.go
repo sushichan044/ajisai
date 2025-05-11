@@ -16,7 +16,7 @@ type UserTomlInputSource struct {
 	Path       string `toml:"path,omitempty"`       // Used if type=local
 	Repository string `toml:"repository,omitempty"` // Used if type=git
 	Revision   string `toml:"revision,omitempty"`   // Used if type=git (Optional ref/branch/tag/commit)
-	SubDir     string `toml:"subDir,omitempty"`     // Used if type=git (Optional)
+	Directory  string `toml:"directory,omitempty"`  // Used if type=git (Optional)
 }
 
 type UserTomlOutputTarget struct {
