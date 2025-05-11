@@ -152,10 +152,10 @@ func (rule *CursorRule) String() (string, error) {
 
 	fmStr := string(frontMatterBytes)
 	var resultLines []string
-	lines := strings.Split(strings.TrimRight(fmStr, "\n"), "\n")
+	lines := strings.SplitSeq(strings.TrimRight(fmStr, "\n"), "\n")
 
 	// Cursor only accepts non-standard YAML formatting, so we need to write special encoding logic.
-	for _, line := range lines {
+	for line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 
 		// Handle empty description: `description: ""` -> `description:`
