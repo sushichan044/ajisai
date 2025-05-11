@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/sushichan044/aisync/internal/config"
+	"github.com/sushichan044/aisync/internal/engine"
 )
 
 var (
@@ -63,6 +64,19 @@ func main() {
 				Action: doApply,
 			},
 			{
+				Name:  "clean",
+				Usage: "Clean the cache",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:    "force",
+						Aliases: []string{"f"},
+						Usage:   "Force clean the cache",
+						Value:   false,
+					},
+				},
+				Action: doClean,
+			},
+			{
 				Name:  "import",
 				Usage: "Import presets from an existing agent format into the default format",
 				Flags: []cli.Flag{
@@ -73,24 +87,15 @@ func main() {
 						Required: true,
 					},
 				},
-				Action: doImport,
+				Action: func(_ context.Context, _ *cli.Command) error {
+					return nil
+				},
 			},
 			{
-				Name:   "doctor",
-				Usage:  "Validate preset directory structure or config inputs against the default format",
-				Action: doDoctor,
-			},
-			{
-				Name:   "clean",
-				Usage:  "Clean the cache",
-				Action: doClean,
-				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:    "force",
-						Aliases: []string{"f"},
-						Usage:   "Force clean the cache",
-						Value:   false,
-					},
+				Name:  "doctor",
+				Usage: "Validate preset directory structure or config inputs against the default format",
+				Action: func(_ context.Context, _ *cli.Command) error {
+					return nil
 				},
 			},
 		},
@@ -100,4 +105,58 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func doApply(c context.Context, _ *cli.Command) error {
+	cfg, err := config.RetrieveFromContext(c)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve config from context: %w", err)
+	}
+
+	engine, err := engine.NewEngine(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create engine: %w", err)
+	}
+
+	cleanErr := engine.CleanOutputs()
+	if cleanErr != nil {
+		return fmt.Errorf("failed to clean: %w", cleanErr)
+	}
+
+	packageNames, fetchErr := engine.Fetch()
+	if fetchErr != nil {
+		return fmt.Errorf("failed to fetch inputs: %w", fetchErr)
+	}
+
+	presets, parseErr := engine.Parse(packageNames)
+	if parseErr != nil {
+		return fmt.Errorf("failed to parse presets: %w", parseErr)
+	}
+
+	exportErr := engine.Export(presets)
+	if exportErr != nil {
+		return fmt.Errorf("failed to export presets: %w", exportErr)
+	}
+
+	return nil
+}
+
+func doClean(c context.Context, cmd *cli.Command) error {
+	cfg, err := config.RetrieveFromContext(c)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve config from context: %w", err)
+	}
+
+	engine, err := engine.NewEngine(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create engine: %w", err)
+	}
+
+	force := cmd.Bool("force")
+	cleanErr := engine.CleanCache(force)
+	if cleanErr != nil {
+		return fmt.Errorf("failed to clean cache: %w", cleanErr)
+	}
+
+	return nil
 }

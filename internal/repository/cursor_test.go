@@ -55,7 +55,7 @@ func TestCursorRepository_WritePackage(t *testing.T) {
 
 				// Directory structure should be created
 				_, err := os.Stat(namespaceRulesDir)
-				assert.ErrorIs(
+				require.ErrorIs(
 					t,
 					err, os.ErrNotExist,
 					"Expected rules directory not to be created for empty package",
@@ -206,7 +206,7 @@ func TestCursorRepository_Clean(t *testing.T) {
 
 	// And the directories should be removed
 	_, err = os.Stat(nsRulesDir)
-	assert.ErrorIs(t, err, os.ErrNotExist, "Rules directory should have been removed")
+	require.ErrorIs(t, err, os.ErrNotExist, "Rules directory should have been removed")
 
 	_, err = os.Stat(nsPromptsDir)
 	assert.ErrorIs(t, err, os.ErrNotExist, "Prompts directory should have been removed")

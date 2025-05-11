@@ -38,7 +38,7 @@ func TestEnsureDir(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		_, err := os.Stat(tempDir)
-		assert.ErrorIs(t, err, os.ErrNotExist, "Directory should not exist before test")
+		require.ErrorIs(t, err, os.ErrNotExist, "Directory should not exist before test")
 
 		err = utils.EnsureDir(tempDir)
 		require.NoError(t, err, "EnsureDir should not return an error for non-existent directory")

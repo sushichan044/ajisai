@@ -39,7 +39,7 @@ func buildBinary() (string, error) {
 	outputPath := filepath.Join(tempDir, "aisync-test")
 
 	// Build command - build the package in the current directory
-	buildCmd := exec.Command("go", "build", "-o", outputPath, ".")
+	buildCmd := exec.Command("go", "build", "-o", outputPath)
 	output, err := buildCmd.CombinedOutput()
 	if err != nil {
 		// Include build output in the error message for easier debugging
