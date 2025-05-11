@@ -156,7 +156,7 @@ func (bridge *GitHubCopilotBridge) FromAgentPrompt(prompt GitHubCopilotPrompt) (
 }
 
 func (instruction *GitHubCopilotInstruction) String() (string, error) {
-	frontMatterBytes, err := yaml.MarshalWithOptions(instruction.Metadata)
+	frontMatterBytes, err := yaml.Marshal(instruction.Metadata)
 	if err != nil {
 		return "", err
 	}
@@ -172,7 +172,7 @@ func (instruction *GitHubCopilotInstruction) String() (string, error) {
 }
 
 func (prompt *GitHubCopilotPrompt) String() (string, error) {
-	frontMatterBytes, err := yaml.MarshalWithOptions(prompt.Metadata)
+	frontMatterBytes, err := yaml.Marshal(prompt.Metadata)
 	if err != nil {
 		return "", err
 	}

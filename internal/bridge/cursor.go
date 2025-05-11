@@ -145,7 +145,7 @@ func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptI
 }
 
 func (rule *CursorRule) String() (string, error) {
-	frontMatterBytes, err := yaml.MarshalWithOptions(rule.Metadata)
+	frontMatterBytes, err := yaml.Marshal(rule.Metadata)
 	if err != nil {
 		return "", err
 	}
