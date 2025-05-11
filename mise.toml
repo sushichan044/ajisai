@@ -1,5 +1,6 @@
 [tools]
 golangci-lint = "latest"
+gotestsum = "latest"
 
 [env]
 GO111MODULE = "on"
@@ -21,7 +22,7 @@ goimports -w .
 
 [tasks.test]
 description = "Run tests"
-run = "go test ./..."
+run = "gotestsum"
 
 [tasks.build-snapshot]
 description = "Build the application with version info"

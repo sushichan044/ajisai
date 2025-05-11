@@ -518,3 +518,6 @@ linters:
       - text: 'revision is a global variable'
         linters:
           - gochecknoglobals
+      - text: 'BinaryPath is a global variable'
+        linters:
+          - gochecknoglobals

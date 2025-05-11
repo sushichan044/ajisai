@@ -106,7 +106,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 	return eg.Wait()
 }
 
-func (repository *CursorRepository) ReadPackage(namespace string) (domain.PresetPackage, error) {
+func (repository *CursorRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
 

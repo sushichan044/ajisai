@@ -6,6 +6,6 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func doImport(c context.Context, cmd *cli.Command) error {
+func doImport(_ context.Context, _ *cli.Command) error {
 	return nil
 }

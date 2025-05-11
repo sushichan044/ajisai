@@ -13,24 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// binaryPath stores the path to the compiled test binary.
-var binaryPath string
+// BinaryPath stores the path to the compiled test binary.
+var BinaryPath string
 
 // TestMain sets up the test environment by building the main binary.
 func TestMain(m *testing.M) {
 	var err error
 	// Attempt to build the main binary
-	binaryPath, err = buildBinary()
+	BinaryPath, err = buildBinary()
 	if err != nil {
-		// Fallback or handle error appropriately, e.g., log and exit
-		println("Failed to build binary for testing:", err.Error())
 		os.Exit(1)
 	}
-	defer cleanupBinary(binaryPath)
+	defer cleanupBinary(BinaryPath)
 
-	// Run tests
-	exitCode := m.Run()
-	os.Exit(exitCode)
+	m.Run()
 }
 
 // buildBinary compiles the main package and returns the path to the binary.
@@ -65,7 +61,7 @@ func cleanupBinary(binPath string) {
 
 // Test helper function remains the same.
 func runCliCommand(_ *testing.T, args []string, env map[string]string) (string, string, error) {
-	cmd := exec.Command(binaryPath, args...)
+	cmd := exec.Command(BinaryPath, args...)
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -109,16 +105,16 @@ func TestMain_Run_Version(t *testing.T) {
 func TestMain_Run_ConfigLoading(t *testing.T) {
 	tests := []struct {
 		name           string
-		setup          func(t *testing.T) (env map[string]string, args []string, cleanup func())
+		setup          func() (env map[string]string, args []string, cleanup func())
 		expectExitCode int
 		stdoutContains []string
 		stderrContains []string
 	}{
 		{
 			name: "no config flag (expect fallback)",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				// Run sync without creating any config file or flag
-				args = []string{"doctor"}
+				args := []string{"doctor"}
 				return nil, args, func() {}
 			},
 			expectExitCode: 0, // Should run with fallback config
@@ -126,32 +122,32 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 		},
 		{
 			name: "non-existent config via flag (expect fallback)",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				// Use a path that definitely doesn't exist
 				nonExistentPath := filepath.Join(t.TempDir(), "non-existent-config.toml")
-				args = []string{"doctor", "--config", nonExistentPath}
+				args := []string{"doctor", "--config", nonExistentPath}
 				return nil, args, func() {}
 			},
 			expectExitCode: 0, // Should run with fallback config as Load doesn't error
 		},
 		{
 			name: "valid config via flag",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				configPath := createValidConfig(t)
-				args = []string{"doctor", "--config", configPath}
+				args := []string{"doctor", "--config", configPath}
 				return nil, args, func() { os.Remove(configPath) }
 			},
 			expectExitCode: 0,
 		},
 		{
 			name: "invalid config via flag (parse error)",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				td := t.TempDir()
 				invalidConfigPath := filepath.Join(td, "invalid.toml")
 				// Write invalid TOML content (missing closing bracket)
 				err := os.WriteFile(invalidConfigPath, []byte(`[inputs.bad`), 0644)
 				require.NoError(t, err)
-				args = []string{"doctor", "--config", invalidConfigPath}
+				args := []string{"doctor", "--config", invalidConfigPath}
 				return nil, args, func() { os.Remove(invalidConfigPath) }
 			},
 			expectExitCode: 1,
@@ -164,22 +160,22 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 		},
 		{
 			name: "valid config via env var",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				configPath := createValidConfig(t)
-				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": configPath}
-				args = []string{"doctor"}
+				env := map[string]string{"AI_PRESETS_CONFIG_LOCATION": configPath}
+				args := []string{"doctor"}
 				return env, args, func() { os.Remove(configPath) }
 			},
 			expectExitCode: 0,
 		},
 		{
 			name: "flag overrides env var (valid flag)",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				envConfigPath := createValidConfig(t)  // Env var points to valid
 				flagConfigPath := createValidConfig(t) // Flag points to another valid
-				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
-				args = []string{"doctor", "--config", flagConfigPath}
-				cleanup = func() {
+				env := map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
+				args := []string{"doctor", "--config", flagConfigPath}
+				cleanup := func() {
 					os.Remove(envConfigPath)
 					os.Remove(flagConfigPath)
 				}
@@ -189,16 +185,16 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 		},
 		{
 			name: "flag overrides env var (invalid flag - parse error)",
-			setup: func(t *testing.T) (env map[string]string, args []string, cleanup func()) {
+			setup: func() (map[string]string, []string, func()) {
 				envConfigPath := createValidConfig(t) // Env var points to valid
 				td := t.TempDir()
 				invalidConfigPath := filepath.Join(td, "invalid-flag.toml")
 				// Write invalid TOML content (e.g., incomplete section)
 				err := os.WriteFile(invalidConfigPath, []byte(`[global`), 0644)
 				require.NoError(t, err)
-				env = map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
-				args = []string{"doctor", "--config", invalidConfigPath}
-				cleanup = func() {
+				env := map[string]string{"AI_PRESETS_CONFIG_LOCATION": envConfigPath}
+				args := []string{"doctor", "--config", invalidConfigPath}
+				cleanup := func() {
 					os.Remove(envConfigPath)
 					os.Remove(invalidConfigPath)
 				}
@@ -215,7 +211,7 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			env, args, cleanup := tc.setup(t)
+			env, args, cleanup := tc.setup()
 			defer cleanup()
 
 			stdout, stderr, err := runCliCommand(t, args, env)
