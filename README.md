@@ -7,7 +7,6 @@
   - [AI Coding Agents support status](#ai-coding-agents-support-status)
   - [Installation](#installation)
   - [Usage](#usage)
-    - [General Synopsis](#general-synopsis)
     - [Commands](#commands)
   - [Defining preset](#defining-preset)
     - [Rule File (`*.md` in `rules/`)](#rule-file-md-in-rules)
@@ -54,12 +53,6 @@ WIP
 `aisync` is controlled via command-line arguments and flags.
 
 The default configuration file is `aisync.toml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
-
-### General Synopsis
-
-```bash
-aisync [global options] command [command options] [arguments...]
-```
 
 ### Commands
 
@@ -147,15 +140,15 @@ Please refactor the following Go code to improve its readability and maintainabi
 `aisync` is configured using a TOML file, by default named `aisync.toml`. Here is an example configuration:
 
 ```toml
-[global]
+[settings]
 # Specifies the directory where `aisync` will store cached data of inputs.
 cacheDir = ".cache/aisync" # Optional: Defaults to `.cache/aisync/`.
+
 # A namespace string that can be used by output targets to organize or prefix the imported presets.
 # For example, aisync might place presets under `~/.cursor/prompts/<namespace>/` or `~/.cursor/rules/<namespace>/`.
 namespace = "aisync"      # Optional: Defaults to `aisync`.
 
-# --- Input Sources ---
-# Define where your AI presets (rules, prompts) come from.
+experimental = false # Optional: Defaults to false. Set to true to enable experimental features.
 
 [inputs.local_rules]
 # Input presets from a local directory.
@@ -169,12 +162,10 @@ repository = "https://github.com/sushichan044/ai-presets.git" # Required: URL of
 revision = "main" # Optional: Specify a branch, tag, or commit SHA. Defaults to the repo's default branch.
 directory = "my-company-requirements" # Optional: import from subdirectory.
 
-# --- Output Targets ---
-# Define where the processed presets should be exported.
-
 [outputs.cursor]
 # Export presets for the Cursor editor.
 target = "cursor"  # Identifier for the output type
+
 # set false to ignore this output.
 enabled = true     # Optional, default: true
 
