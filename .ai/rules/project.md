@@ -17,16 +17,3 @@ attach: always
 
 - During local development where internal packages are imported, ensure a `replace` directive exists in @go.mod pointing to the local path (e.g., `replace github.com/sushichan044/aisync => ./`).
 - This project uses Go Modules with vendoring. After running `go mod tidy` to update dependencies (especially test dependencies), always run `go mod vendor` to keep the `vendor/` directory synchronized.
-
-## CLI Implementation (urfave/cli/v3)
-
-- When passing data (like a loaded configuration or logger) from a `Before` hook to command `Action` functions, store the data in `cmd.Root().Metadata` map. Access it within the `Action` by retrieving it from `cmd.Root().Metadata`. Type assertion is necessary. Standard context passing from `Before` to `Action` isn't straightforward in v3.
-- The `Before` hook in @main.go attempts to load the configuration file specified by `--config` (defaulting to `ai-rules.toml`). This loading is non-fatal in the hook itself (errors are logged); commands that *require* configuration (like `sync`) must check if the configuration exists in the metadata and handle the case where it's missing.
-- Integration tests in @main_test.go build the main binary using `go build -o <output_path> <main_package_path>`. Do not use `./...` as the build target when outputting to a single file.
-
-## Configuration Structure
-
-- Configuration parsing uses a two-step process:
-    1. Parse the TOML file into TOML-specific structs (`UserTomlConfig`, etc.) defined in @internal/config/user_config.go. These structs use pointers and `toml:` tags.
-    2. Transform these `UserToml*` structs into the internal, format-agnostic domain representation (`Config`, etc.) defined in @internal/domain/config.go. This transformation, including validation and default value application, happens in the `TomlManager.Load` method (@internal/config/toml_manager.go).
-- The `UserTomlInputSource` struct contains fields for multiple input types (`path` for local, `repository` for git). While this structure facilitates TOML parsing, be cautious if generating external schemas (e.g., JSON Schema) directly from it. Runtime validation ensures only appropriate fields are used based on the `type` value.
