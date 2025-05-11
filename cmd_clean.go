@@ -6,8 +6,8 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/sushichan044/ai-rules-manager/internal/config"
-	"github.com/sushichan044/ai-rules-manager/internal/engine"
+	"github.com/sushichan044/aisync/internal/config"
+	"github.com/sushichan044/aisync/internal/engine"
 )
 
 func doClean(c context.Context, cmd *cli.Command) error {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
+	"github.com/sushichan044/aisync/internal/domain"
 )
 
 type ContextKey string

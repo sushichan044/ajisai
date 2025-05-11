@@ -51,7 +51,7 @@ changelog:
 release:
   github:
     owner: sushichan044
-    name: ai-rules-manager
+    name: aisync
   footer: >-
 
     ---

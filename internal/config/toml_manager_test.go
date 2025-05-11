@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/ai-rules-manager/internal/config"
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/utils"
+	"github.com/sushichan044/aisync/internal/config"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/utils"
 )
 
 // Helper function from Validation test.
@@ -43,9 +43,9 @@ enabled = true
 `,
 			expectedFn: func(cfg *domain.Config, configDir string) {
 				// default namespace
-				assert.Equal(t, "ai-presets-manager", cfg.Global.Namespace)
+				assert.Equal(t, "aisync", cfg.Global.Namespace)
 				// default cache dir
-				assert.Equal(t, absPath(t, "./.cache/ai-presets-manager", configDir), cfg.Global.CacheDir)
+				assert.Equal(t, absPath(t, "./.cache/aisync", configDir), cfg.Global.CacheDir)
 
 				require.Len(t, cfg.Inputs, 1)
 				input, ok := cfg.Inputs["local_rules"]
@@ -111,7 +111,7 @@ enabled = false
 
 			// Create a temporary file
 			tempDir := t.TempDir()
-			configPath := filepath.Join(tempDir, "ai-presets.toml")
+			configPath := filepath.Join(tempDir, "aisync.toml")
 			err := os.WriteFile(configPath, []byte(tc.tomlData), 0644)
 			require.NoError(t, err)
 

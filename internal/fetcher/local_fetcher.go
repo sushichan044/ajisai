@@ -6,8 +6,8 @@ import (
 
 	cp "github.com/otiai10/copy"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/utils"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/utils"
 )
 
 type LocalFetcher struct{}

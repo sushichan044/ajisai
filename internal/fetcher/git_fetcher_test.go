@@ -11,9 +11,9 @@ import (
 
 	gomock "go.uber.org/mock/gomock"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/fetcher"
-	utils "github.com/sushichan044/ai-rules-manager/internal/utils/mocks"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/fetcher"
+	utils "github.com/sushichan044/aisync/internal/utils/mocks"
 )
 
 func TestGitFetcher_Fetch_InitialClone(t *testing.T) {

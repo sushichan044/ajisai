@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/ai-rules-manager/internal/bridge"
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
+	"github.com/sushichan044/aisync/internal/bridge"
+	"github.com/sushichan044/aisync/internal/domain"
 )
 
 func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {

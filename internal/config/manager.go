@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/utils"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/utils"
 )
 
 func CreateConfigManager() domain.ConfigManager {
@@ -28,8 +28,8 @@ func (m *configManagerImpl) Load(configPath string) (*domain.Config, error) {
 			// Return a fallback config.
 			return &domain.Config{
 				Global: domain.GlobalConfig{
-					Namespace: "ai-rules-manager",
-					CacheDir:  "./.cache/ai-rules-manager",
+					Namespace: "aisync",
+					CacheDir:  "./.cache/aisync",
 				},
 				Inputs:  make(map[string]domain.InputSource, 0),
 				Outputs: make(map[string]domain.OutputTarget, 0),

@@ -7,7 +7,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/sushichan044/ai-rules-manager/internal/config"
+	"github.com/sushichan044/aisync/internal/config"
 )
 
 var (
@@ -31,16 +31,16 @@ func main() {
 	}
 
 	app := &cli.Command{
-		Name:    "ai-rules-manager",
+		Name:    "aisync",
 		Usage:   "Manage AI agent configuration presets (rules)",
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "ai-presets.toml",
+				Value:   "aisync.toml",
 				Usage:   "Load configuration from `FILE`",
-				Sources: cli.EnvVars("AI_PRESETS_CONFIG_LOCATION"),
+				Sources: cli.EnvVars("AI_SYNC_CONFIG_LOCATION"),
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {

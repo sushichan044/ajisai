@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/fetcher"
-	"github.com/sushichan044/ai-rules-manager/internal/parser"
-	"github.com/sushichan044/ai-rules-manager/internal/repository"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/fetcher"
+	"github.com/sushichan044/aisync/internal/parser"
+	"github.com/sushichan044/aisync/internal/repository"
 )
 
 type Engine struct {

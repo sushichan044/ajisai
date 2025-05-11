@@ -41,5 +41,5 @@ docs/
 # Added by goreleaser init:
 dist/
 
-.cursor/**/ai-presets-manager/
-.github/**/ai-presets-manager/
+.cursor/**/aisync/
+.github/**/aisync/

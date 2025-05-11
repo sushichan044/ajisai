@@ -9,8 +9,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
-	"github.com/sushichan044/ai-rules-manager/internal/utils"
+	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/aisync/internal/utils"
 )
 
 func CreateTomlManager() domain.ConfigManager {
@@ -53,7 +53,7 @@ func (m *TomlManager) Save(configPath string, cfg *domain.Config) error {
 	}
 
 	// Write to a temporary file first for atomicity
-	tempFile, err := os.CreateTemp(configDir, ".ai-rules.tmp-")
+	tempFile, err := os.CreateTemp(configDir, ".aisync.tmp-")
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func parseUserToml(userTomlCfg UserTomlConfig, configFilePath string) (*domain.C
 // processGlobalConfig sets default values for GlobalConfig and resolves paths.
 // Returns the processed GlobalConfig.
 func processGlobalConfig(userTomlGlobal *UserTomlGlobalConfig, configDir string) (domain.GlobalConfig, error) {
-	defaultNamespace := "ai-presets-manager"
-	defaultCacheDir := "./.cache/ai-presets-manager" // Relative to config file
+	defaultNamespace := "aisync"
+	defaultCacheDir := "./.cache/aisync" // Relative to config file
 
 	namespace := defaultNamespace
 	cacheDir := defaultCacheDir

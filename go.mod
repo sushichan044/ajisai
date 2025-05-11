@@ -1,4 +1,4 @@
-module github.com/sushichan044/ai-rules-manager
+module github.com/sushichan044/aisync
 
 go 1.24.0
 
@@ -23,4 +23,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/sushichan044/ai-rules-manager => ./
+replace github.com/sushichan044/aisync => ./

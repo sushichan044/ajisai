@@ -15,7 +15,7 @@ attach: always
 
 ## Go Modules & Vendoring
 
-- During local development where internal packages are imported, ensure a `replace` directive exists in @go.mod pointing to the local path (e.g., `replace github.com/sushichan044/ai-rules-manager => ./`).
+- During local development where internal packages are imported, ensure a `replace` directive exists in @go.mod pointing to the local path (e.g., `replace github.com/sushichan044/aisync => ./`).
 - This project uses Go Modules with vendoring. After running `go mod tidy` to update dependencies (especially test dependencies), always run `go mod vendor` to keep the `vendor/` directory synchronized.
 
 ## CLI Implementation (urfave/cli/v3)

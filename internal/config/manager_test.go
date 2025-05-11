@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/ai-rules-manager/internal/config"
-	"github.com/sushichan044/ai-rules-manager/internal/domain"
+	"github.com/sushichan044/aisync/internal/config"
+	"github.com/sushichan044/aisync/internal/domain"
 )
 
 func TestLoad(t *testing.T) {
@@ -21,7 +21,7 @@ func TestLoad(t *testing.T) {
 		// Non-existent path does not return an error, but returns a fallback config
 		require.NoError(t, err)
 
-		assert.Equal(t, "ai-rules-manager", cfg.Global.Namespace)
+		assert.Equal(t, "aisync", cfg.Global.Namespace)
 		assert.Empty(t, cfg.Inputs)
 		assert.Empty(t, cfg.Outputs)
 	})

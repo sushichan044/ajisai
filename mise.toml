@@ -26,10 +26,6 @@ run = "gotestsum"
 description = "Build the application with version info"
 run = "goreleaser release --clean --snapshot"
 
-[tasks.dev]
-description = "Run the application in development mode"
-run = "go run main.go"
-
 [tasks.clean]
 description = "Remove generated files"
 run = """
