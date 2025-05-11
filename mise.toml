@@ -8,11 +8,11 @@ GOFLAGS = "-mod=readonly"
 
 [tasks.lint]
 description = "Run golangci-lint"
-run = "golangci-lint run ./..."
+run = "golangci-lint run"
 
 [tasks.lint-fix]
 description = "Fix golangci-lint issues automatically"
-run = "golangci-lint run --fix ./..."
+run = "golangci-lint run --fix"
 
 [tasks.fmt]
 description = "Format code"

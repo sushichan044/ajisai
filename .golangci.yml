@@ -526,10 +526,10 @@ linters:
         linters:
           - gochecknoglobals
       - path: 'internal/repository/cursor.go'
-        text: 'duplicate of `github-copilot.go'
+        text: 'lines are duplicate of `internal/repository/github-copilot.go'
         linters:
           - dupl
       - path: 'internal/repository/github-copilot.go'
-        text: 'duplicate of `cursor.go'
+        text: 'lines are duplicate of `internal/repository/cursor.go'
         linters:
           - dupl
