@@ -15,10 +15,7 @@ run = "golangci-lint run --fix ./..."
 
 [tasks.fmt]
 description = "Format code"
-run = """
-gofmt -s -w .
-goimports -w .
-"""
+run = "golangci-lint fmt"
 
 [tasks.test]
 description = "Run tests"
