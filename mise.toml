@@ -4,6 +4,7 @@ gotestsum = "latest"
 
 [env]
 GO111MODULE = "on"
+GOFLAGS = "-mod=readonly"
 
 [tasks.lint]
 description = "Run golangci-lint"
