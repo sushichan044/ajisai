@@ -9,14 +9,9 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
 
 ## Features
 
-* **Centralized Configuration**: Manage all your AI preset sources and destinations from a single `aisync.toml` file.
-* **Multiple Input Sources**:
-  * Fetch presets from local directories.
-  * Fetch presets from Git repositories (specific branches, tags, or commits).
-* **Flexible Output Targets**: Export presets to formats and locations suitable for different AI coding agents (e.g., Cursor, GitHub Copilot).
-* **Apply Presets**: Cleans output directories and applies the latest fetched and parsed presets.
-* **Cache Management**: Fetched presets are cached locally, and the cache can be cleaned using the `clean` command.
-* **Cross-Platform**: Builds available for Linux, macOS, and Windows.
+* Manage all your AI preset sources and destinations from a single `aisync.toml` file.
+* Fetch presets from local directories or remote Git repositories (specific branches, tags, or commits).
+* Export presets to formats and locations suitable for different AI coding agents (e.g., Cursor, GitHub Copilot).
 * *(Upcoming)* `import` command to import presets from existing agent formats.
 * *(Upcoming)* `doctor` command to validate preset directory structures and configurations.
 
