@@ -40,7 +40,7 @@ func main() {
 				Aliases: []string{"c"},
 				Value:   "aisync.toml",
 				Usage:   "Load configuration from `FILE`",
-				Sources: cli.EnvVars("AI_SYNC_CONFIG_LOCATION"),
+				Sources: cli.EnvVars("AISYNC_CONFIG_LOCATION"),
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {

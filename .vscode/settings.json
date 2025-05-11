@@ -1,19 +1,13 @@
 {
-  "go.lintTool": "golangci-lint",
-  "go.lintFlags": ["--config=${workspaceFolder}/.golangci.yml"],
-  "go.formatTool": "custom",
-  "go.alternateTools": {
-    "customFormatter": "golangci-lint"
-  },
-  "go.formatFlags": ["fmt", "--stdin"],
-  "go.useLanguageServer": true,
-  "editor.formatOnSave": true,
   "[go]": {
     "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit",
-      "source.fixAll": "explicit"
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
     }
   },
+  "cSpell.words": [
+    "aisync"
+  ],
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
   },
@@ -21,4 +15,18 @@
   "chat.promptFilesLocations": {
     ".github/prompts": true
   },
+  "editor.formatOnSave": true,
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint"
+  },
+  "go.formatFlags": [
+    "fmt",
+    "--stdin"
+  ],
+  "go.formatTool": "custom",
+  "go.lintFlags": [
+    "--config=${workspaceFolder}/.golangci.yml"
+  ],
+  "go.lintTool": "golangci-lint",
+  "go.useLanguageServer": true
 }
