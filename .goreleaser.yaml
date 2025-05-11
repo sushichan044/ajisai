@@ -16,7 +16,7 @@ before:
     - go generate ./...
 
 universal_binaries:
-  - replace: false
+  - replace: true
 
 builds:
   - main: ./cmd/aisync/main.go
@@ -47,6 +47,15 @@ archives:
     format_overrides:
       - goos: windows
         formats: [zip]
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - repository:
+      owner: sushichan044
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
 
 changelog:
   sort: asc
