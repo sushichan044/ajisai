@@ -175,22 +175,22 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	return nil
 }
 
-func getFetcher(inputType string) (domain.ContentFetcher, error) {
+func getFetcher(inputType domain.InputSourceType) (domain.ContentFetcher, error) {
 	switch inputType {
-	case "local":
+	case domain.InputSourceTypeLocal:
 		return fetcher.NewLocalFetcher(), nil
-	case "git":
+	case domain.InputSourceTypeGit:
 		return fetcher.NewGitFetcher(), nil
 	default:
 		return nil, fmt.Errorf("unknown input type: %s", inputType)
 	}
 }
 
-func getRepository(target string) (domain.PresetRepository, error) {
+func getRepository(target domain.OutputTargetType) (domain.PresetRepository, error) {
 	switch target {
-	case "cursor":
+	case domain.OutputTargetTypeCursor:
 		return repository.NewCursorRepository()
-	case "github-copilot":
+	case domain.OutputTargetTypeGitHubCopilot:
 		return repository.NewGitHubCopilotRepository()
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)

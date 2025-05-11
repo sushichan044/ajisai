@@ -23,7 +23,7 @@ func (f *LocalFetcher) Fetch(source domain.InputSource, destinationDir string) e
 	localDetails, ok := domain.GetInputSourceDetails[domain.LocalInputSourceDetails](source)
 	if !ok {
 		return &InvalidSourceTypeError{
-			expectedType: "local",
+			expectedType: domain.InputSourceTypeLocal,
 			actualType:   source.Type,
 			err:          fmt.Errorf("cannot fetch from source type: %s", source.Type),
 		}

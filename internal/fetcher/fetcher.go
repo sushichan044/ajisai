@@ -2,19 +2,21 @@ package fetcher
 
 import (
 	"fmt"
+
+	"github.com/sushichan044/aisync/internal/domain"
 )
 
 type InvalidSourceTypeError struct {
-	expectedType string
-	actualType   string
+	expectedType domain.InputSourceType
+	actualType   domain.InputSourceType
 	err          error
 }
 
-func (e *InvalidSourceTypeError) ExpectedType() string {
+func (e *InvalidSourceTypeError) ExpectedType() domain.InputSourceType {
 	return e.expectedType
 }
 
-func (e *InvalidSourceTypeError) ActualType() string {
+func (e *InvalidSourceTypeError) ActualType() domain.InputSourceType {
 	return e.actualType
 }
 

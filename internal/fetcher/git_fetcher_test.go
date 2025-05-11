@@ -250,8 +250,8 @@ func TestGitFetcher_InvalidSourceType(t *testing.T) {
 	require.Error(t, err)
 	var invalidTypeErr *fetcher.InvalidSourceTypeError
 	require.ErrorAs(t, err, &invalidTypeErr)
-	assert.Equal(t, "git", invalidTypeErr.ExpectedType())
-	assert.Equal(t, "local", invalidTypeErr.ActualType())
+	assert.Equal(t, domain.InputSourceTypeGit, invalidTypeErr.ExpectedType())
+	assert.Equal(t, domain.InputSourceTypeLocal, invalidTypeErr.ActualType())
 	assert.Contains(t, err.Error(), "expected source type: git, got: local")
 }
 

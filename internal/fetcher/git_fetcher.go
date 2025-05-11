@@ -30,7 +30,7 @@ func (f *GitFetcher) Fetch(source domain.InputSource, destinationDir string) err
 	gitSource, ok := domain.GetInputSourceDetails[domain.GitInputSourceDetails](source)
 	if !ok {
 		return &InvalidSourceTypeError{
-			expectedType: "git",
+			expectedType: domain.InputSourceTypeGit,
 			actualType:   source.Type,
 			err:          fmt.Errorf("cannot fetch from source type: %s", source.Type),
 		}
