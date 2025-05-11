@@ -145,36 +145,25 @@ func (engine *Engine) CleanCache(force bool) error {
 
 // Export exports the presets for specific agents configured in the outputs.
 func (engine *Engine) Export(presets []domain.PresetPackage) error {
-	eg := errgroup.Group{}
-
-	enabledOutputs := make([]domain.OutputTarget, 0, len(engine.cfg.Outputs))
+	repos := make([]domain.PresetRepository, 0, len(engine.cfg.Outputs))
 	for _, output := range engine.cfg.Outputs {
-		if output.Enabled {
-			enabledOutputs = append(enabledOutputs, output)
+		if !output.Enabled {
+			continue
 		}
-	}
 
-	type validRepositoryEntry struct {
-		repository domain.PresetRepository
-		target     string
-	}
-	validRepositories := make([]validRepositoryEntry, 0, len(enabledOutputs))
-
-	for _, output := range enabledOutputs {
 		repo, err := getRepository(output.Target)
 		if err != nil {
 			return err
 		}
-		validRepositories = append(validRepositories, validRepositoryEntry{repository: repo, target: output.Target})
+		repos = append(repos, repo)
 	}
 
-	for _, entry := range validRepositories {
-		currentRepo := entry.repository
+	eg := errgroup.Group{}
 
+	for _, currentRepo := range repos {
 		for _, pkg := range presets {
-			currentPkg := pkg // Capture loop variable for goroutine
 			eg.Go(func() error {
-				return currentRepo.WritePackage(engine.cfg.Global.Namespace, currentPkg)
+				return currentRepo.WritePackage(engine.cfg.Global.Namespace, pkg)
 			})
 		}
 	}
