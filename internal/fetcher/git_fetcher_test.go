@@ -13,7 +13,7 @@ import (
 
 	"github.com/sushichan044/aisync/internal/domain"
 	"github.com/sushichan044/aisync/internal/fetcher"
-	utils "github.com/sushichan044/aisync/internal/utils/mocks"
+	utils "github.com/sushichan044/aisync/utils/mocks"
 )
 
 func TestGitFetcher_Fetch_InitialClone(t *testing.T) {

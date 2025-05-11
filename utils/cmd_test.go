@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/aisync/internal/utils"
+	"github.com/sushichan044/aisync/utils"
 )
 
 func TestDefaultCommandRunner_Run(t *testing.T) {

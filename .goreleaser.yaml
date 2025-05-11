@@ -15,17 +15,24 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 
+universal_binaries:
+  - replace: false
+
 builds:
-  - env:
+  - main: ./cmd/aisync/main.go
+    id: aisync
+    binary: aisync
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
       - windows
       - darwin
-    # Set the version variable during build
     ldflags:
+      - -s -w
       - -X main.version={{.Version}}
       - -X main.revision={{.ShortCommit}}
+
 archives:
   - formats: [tar.gz]
     # this name template makes the OS and Arch compatible with the results of `uname`.

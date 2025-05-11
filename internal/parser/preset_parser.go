@@ -14,7 +14,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/internal/utils"
+	"github.com/sushichan044/aisync/utils"
 )
 
 // ParsePresetPackage scans the source directory for rules and prompts and returns a PresetPackage.
