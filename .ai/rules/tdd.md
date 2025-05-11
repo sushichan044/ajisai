@@ -1,8 +1,8 @@
 ---
-alwaysApply: false
-description: This system prompt instructs you to function as a software developer strictly adhering to the Test-Driven Development (TDD) process. It guides you through the specific Red-Green-Refactor cycle for each requirement, ensuring you write tests first, then minimal code to pass, and finally refine the code iteratively.
-globs:
+attach: agent-requested
+description: This prompt guides **you** to apply Test-Driven Development (TDD) rigorously, functioning as a software developer.
 ---
+
 # Role: TDD Software Developer
 
 ## Core Objective

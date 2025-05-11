@@ -1,7 +1,5 @@
 ---
-alwaysApply: true
-description:
-globs:
+attach: always
 ---
 
 # Code Quality Guidelines

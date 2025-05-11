@@ -1,14 +1,31 @@
 {
   "go.lintTool": "golangci-lint",
-  "go.lintFlags": ["--fast"],
-  "go.formatTool": "goimports",
+  "go.lintFlags": ["--config=${workspaceFolder}/.golangci.yml"],
+  "go.formatTool": "custom",
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint"
+  },
+  "go.formatFlags": ["fmt", "--stdin"],
   "go.useLanguageServer": true,
   "editor.formatOnSave": true,
   "[go]": {
-    "editor.defaultFormatter": "golang.go",
-    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
     }
-  }
+  },
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": ".cursor/rules/clean-code.mdc"
+    },
+    {
+      "file": ".cursor/rules/code-quality.mdc"
+    },
+    {
+      "file": ".cursor/rules/project.mdc"
+    },
+    {
+      "file": ".cursor/rules/tdd.mdc"
+    }
+  ]
 }

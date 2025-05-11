@@ -18,13 +18,17 @@ issues:
   # Default: 3
   max-same-issues: 50
 
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
 formatters:
   enable:
     - goimports # checks if the code and import statements are formatted according to the 'goimports' command
     - golines # checks if code is formatted, and fixes long lines
 
     ## you may want to enable
-    #- gci # checks if code and import statements are formatted, with additional rules
+    - gci # checks if code and import statements are formatted, with additional rules
     #- gofmt # checks if the code is formatted according to 'gofmt' command
 
     ## disabled
@@ -32,6 +36,34 @@ formatters:
 
   # All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
   settings:
+    gci:
+      # Section configuration to compare against.
+      # Section names are case-insensitive and may contain parameters in ().
+      # The default order of sections is `standard > default > custom > blank > dot > alias > localmodule`.
+      # If `custom-order` is `true`, it follows the order of `sections` option.
+      # Default: ["standard", "default"]
+      sections:
+        - standard # Standard section: captures all standard packages.
+        - default # Default section: contains all imports that could not be matched to another section type.
+        - prefix(github.com/org/project) # Custom section: groups all imports with the specified Prefix.
+        - blank # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
+        - dot # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
+        - alias # Alias section: contains all alias imports. This section is not present unless explicitly enabled.
+        - localmodule # Local module section: contains all local packages. This section is not present unless explicitly enabled.
+      # Checks that no inline comments are present.
+      # Default: false
+      no-inline-comments: true
+      # Checks that no prefix comments (comment lines above an import) are present.
+      # Default: false
+      no-prefix-comments: true
+      # Enable custom order of sections.
+      # If `true`, make the section order the same as the order of `sections`.
+      # Default: false
+      custom-order: true
+      # Drops lexical ordering for custom sections.
+      # Default: false
+      no-lex-order: true
+
     goimports:
       # A list of prefixes, which, if set, checks import paths
       # with the given prefixes are grouped after 3rd-party packages.
@@ -295,6 +327,44 @@ linters:
           # Default: true
           skipRecvDeref: false
 
+    gomoddirectives:
+      # Allow local `replace` directives.
+      # Default: false
+      replace-local: true
+
+      # List of allowed `replace` directives.
+      # Default: []
+      replace-allow-list:
+        - launchpad.net/gocheck
+
+      # Allow to not explain why the version has been retracted in the `retract` directives.
+      # Default: false
+      retract-allow-no-explanation: true
+
+      # Forbid the use of the `exclude` directives.
+      # Default: false
+      exclude-forbidden: true
+
+      # Forbid the use of the `toolchain` directive.
+      # Default: false
+      toolchain-forbidden: true
+
+      # Defines a pattern to validate `toolchain` directive.
+      # Default: '' (no match)
+      toolchain-pattern: 'go1\.22\.\d+$'
+
+      # Forbid the use of the `tool` directives.
+      # Default: false
+      tool-forbidden: true
+
+      # Forbid the use of the `godebug` directive.
+      # Default: false
+      go-debug-forbidden: true
+
+      # Defines a pattern to validate `go` minimum version directive.
+      # Default: '' (no match)
+      go-version-pattern: '1\.\d+(\.0)?$'
+
     govet:
       # Enable all analyzers.
       # Default: false
@@ -442,3 +512,12 @@ linters:
           - gosec
           - noctx
           - wrapcheck
+      - text: 'reassigning variable VersionPrinter'
+        linters:
+          - reassign
+      - text: 'revision is a global variable'
+        linters:
+          - gochecknoglobals
+      - text: 'BinaryPath is a global variable'
+        linters:
+          - gochecknoglobals
