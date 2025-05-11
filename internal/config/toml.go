@@ -24,8 +24,9 @@ type (
 	}
 
 	UserTomlSettings struct {
-		CacheDir  string `toml:"cacheDir,omitempty"`
-		Namespace string `toml:"namespace,omitempty"`
+		CacheDir     string `toml:"cacheDir,omitempty"`
+		Namespace    string `toml:"namespace,omitempty"`
+		Experimental bool   `toml:"experimental,omitempty"`
 	}
 
 	UserTomlInputSource struct {
@@ -117,8 +118,9 @@ func (loader *TomlLoader) ToFormat(cfg *domain.Config) UserTomlConfig {
 	}
 	return UserTomlConfig{
 		Settings: UserTomlSettings{
-			CacheDir:  cfg.Settings.CacheDir,
-			Namespace: cfg.Settings.Namespace,
+			CacheDir:     cfg.Settings.CacheDir,
+			Namespace:    cfg.Settings.Namespace,
+			Experimental: cfg.Settings.Experimental,
 		},
 		Inputs:  inputs,
 		Outputs: outputs,
@@ -158,8 +160,9 @@ func (loader *TomlLoader) FromFormat(userTomlCfg UserTomlConfig) *domain.Config 
 
 	return &domain.Config{
 		Settings: domain.Settings{
-			Namespace: userTomlCfg.Settings.Namespace,
-			CacheDir:  userTomlCfg.Settings.CacheDir,
+			Namespace:    userTomlCfg.Settings.Namespace,
+			CacheDir:     userTomlCfg.Settings.CacheDir,
+			Experimental: userTomlCfg.Settings.Experimental,
 		},
 		Inputs:  inputs,
 		Outputs: outputs,

@@ -21,8 +21,9 @@ type (
 
 	// Settings holds application-wide settings with defaults applied.
 	Settings struct {
-		CacheDir  string // Resolved cache directory path
-		Namespace string // Resolved namespace
+		CacheDir     string // Resolved cache directory path
+		Namespace    string // Resolved namespace
+		Experimental bool   // Experimental features enabled
 	}
 
 	// InputSource defines a configured source for presets.

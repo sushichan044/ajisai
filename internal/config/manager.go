@@ -85,6 +85,7 @@ func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
 		if cfg.Settings.CacheDir == "" {
 			cfg.Settings.CacheDir = defaultCfg.Settings.CacheDir
 		}
+		// Experimental is bool, so it defaults to false if not set. We don't need to set it.
 	}
 
 	if cfg.Inputs == nil {
@@ -99,8 +100,9 @@ func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
 func (m *Manager) GetDefaultConfig() *domain.Config {
 	return &domain.Config{
 		Settings: domain.Settings{
-			Namespace: "aisync",
-			CacheDir:  "./.cache/aisync",
+			Namespace:    "aisync",
+			CacheDir:     "./.cache/aisync",
+			Experimental: false,
 		},
 		Inputs:  make(map[string]domain.InputSource),
 		Outputs: make(map[string]domain.OutputTarget),

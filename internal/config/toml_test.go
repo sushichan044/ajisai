@@ -57,6 +57,7 @@ enabled = true
 [settings]
 cacheDir = "~/.cache/ai-rules"
 namespace = "my-proj"
+experimental = true
 
 [inputs.remote_rules]
 type = "git"
@@ -70,8 +71,9 @@ enabled = false
 `,
 			expectedConfig: &domain.Config{
 				Settings: domain.Settings{
-					CacheDir:  "~/.cache/ai-rules",
-					Namespace: "my-proj",
+					CacheDir:     "~/.cache/ai-rules",
+					Namespace:    "my-proj",
+					Experimental: true,
 				},
 				Inputs: map[string]domain.InputSource{
 					"remote_rules": {
@@ -158,8 +160,9 @@ func TestTomlManager_Save(t *testing.T) {
 	// Create a domain.Config to save
 	saveCfg := &domain.Config{
 		Settings: domain.Settings{
-			CacheDir:  filepath.Join(configDir, ".cache"), // Use resolved paths for testing
-			Namespace: "test-ns",
+			CacheDir:     filepath.Join(configDir, ".cache"), // Use resolved paths for testing
+			Namespace:    "test-ns",
+			Experimental: true,
 		},
 		Inputs: map[string]domain.InputSource{
 			"local1": {

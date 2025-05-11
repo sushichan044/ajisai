@@ -306,7 +306,7 @@ func TestParsePresetPackage(t *testing.T) {
 			presetName: "non_existent_preset",
 			config: &domain.Config{
 				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
-				Inputs: map[string]domain.InputSource{},
+				Inputs:   map[string]domain.InputSource{},
 			},
 			expectErr:        true,
 			expectedErrorMsg: "preset non_existent_preset not found",
