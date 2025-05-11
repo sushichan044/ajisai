@@ -26,11 +26,9 @@ type CursorPrompt struct {
 	Content string
 }
 
-var _ domain.AgentBridge[CursorRule, CursorPrompt] = &CursorBridge{}
-
 type CursorBridge struct{}
 
-func NewCursorBridge() *CursorBridge {
+func NewCursorBridge() domain.AgentBridge[CursorRule, CursorPrompt] {
 	return &CursorBridge{}
 }
 

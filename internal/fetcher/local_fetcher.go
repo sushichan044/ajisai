@@ -10,16 +10,16 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-type LocalFetcherImpl struct{}
+type LocalFetcher struct{}
 
-func LocalFetcher() *LocalFetcherImpl {
-	return &LocalFetcherImpl{}
+func NewLocalFetcher() domain.ContentFetcher {
+	return &LocalFetcher{}
 }
 
 // Fetch copies content from the source local directory (defined in source.Details)
 // to the destinationDir.
 // It expects source.Details to be of type domain.LocalInputSourceDetails.
-func (f *LocalFetcherImpl) Fetch(source domain.InputSource, destinationDir string) error {
+func (f *LocalFetcher) Fetch(source domain.InputSource, destinationDir string) error {
 	localDetails, ok := domain.GetInputSourceDetails[domain.LocalInputSourceDetails](source)
 	if !ok {
 		return &InvalidSourceTypeError{
@@ -56,8 +56,6 @@ func (f *LocalFetcherImpl) Fetch(source domain.InputSource, destinationDir strin
 
 	return nil
 }
-
-var _ domain.ContentFetcher = (*LocalFetcherImpl)(nil)
 
 // TODO: add directory structure check
 func isValidSource(sourceDir string) error {

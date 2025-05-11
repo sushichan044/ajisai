@@ -35,7 +35,7 @@ func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
 	expectedArgs := []any{"git", []string{"clone", repoURL, absoluteDestDir}}
 	mockRunner.EXPECT().Run("git", gomock.Eq(expectedArgs[1])).Return(nil)
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -62,7 +62,7 @@ func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
 	expectedArgs := []any{"git", []string{"clone", repoURL, absoluteDestDir}}
 	mockRunner.EXPECT().Run("git", gomock.Eq(expectedArgs[1])).Return(cloneErr)
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 	err = fetcherInstance.Fetch(source, destDir)
 
 	require.Error(t, err)
@@ -90,7 +90,7 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 		},
 	}
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedFetchArgs[1])).Return(nil)
@@ -124,7 +124,7 @@ func TestGitFetcher_Fetch_CheckoutRevision_FetchFailure(t *testing.T) {
 		},
 	}
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	fetchErr := errors.New("git fetch failed")
 	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
@@ -157,7 +157,7 @@ func TestGitFetcher_Fetch_CheckoutRevision_CheckoutFailure(t *testing.T) {
 		},
 	}
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedFetchArgs[1])).Return(nil)
@@ -190,7 +190,7 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 		},
 	}
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	expectedPullArgs := []any{"git", []string{"pull", "origin"}}
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedPullArgs[1])).Return(nil)
@@ -219,7 +219,7 @@ func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
 		},
 	}
 
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
 	pullErr := errors.New("git pull failed")
 	expectedPullArgs := []any{"git", []string{"pull", "origin"}}
@@ -235,7 +235,7 @@ func TestGitFetcher_InvalidSourceType(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRunner := utils.NewMockCommandRunner(ctrl)
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 	destPath := "/tmp/dest"
 
 	source := domain.InputSource{
@@ -260,7 +260,7 @@ func TestGitFetcher_EmptyRepository(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRunner := utils.NewMockCommandRunner(ctrl)
-	fetcherInstance := fetcher.GitFetcherWithRunner(mockRunner)
+	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 	destPath := "/tmp/dest"
 
 	source := domain.InputSource{

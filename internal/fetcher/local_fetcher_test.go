@@ -13,7 +13,7 @@ import (
 )
 
 func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
-	localFetcher := fetcher.LocalFetcher()
+	localFetcher := fetcher.NewLocalFetcher()
 	tempDir := t.TempDir()
 	destPath := filepath.Join(tempDir, "dest")
 
@@ -30,7 +30,7 @@ func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
 }
 
 func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
-	fetcher := fetcher.LocalFetcher()
+	fetcher := fetcher.NewLocalFetcher()
 	tempDir := t.TempDir()
 	nonExistentSourcePath := filepath.Join(tempDir, "non-existent-src")
 	destPath := filepath.Join(tempDir, "dest")
@@ -49,7 +49,7 @@ func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
 }
 
 func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
-	fetcher := fetcher.LocalFetcher()
+	fetcher := fetcher.NewLocalFetcher()
 	tempDir := t.TempDir()
 	sourceFilePath := filepath.Join(tempDir, "source.txt")
 	destPath := filepath.Join(tempDir, "dest")
@@ -70,7 +70,7 @@ func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
 }
 
 func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
-	fetcher := fetcher.LocalFetcher()
+	fetcher := fetcher.NewLocalFetcher()
 	tempDir := t.TempDir()
 	sourcePath := filepath.Join(tempDir, "src")
 	destPath := filepath.Join(tempDir, "dest")
@@ -159,7 +159,7 @@ func TestLocalFetcher_Fetch_CopySuccess(t *testing.T) {
 	defer os.RemoveAll(destDir) // Clean up destination
 
 	// --- Execute Fetch ---
-	fetcher := fetcher.LocalFetcher()
+	fetcher := fetcher.NewLocalFetcher()
 	inputSource := domain.InputSource{
 		Type: "local",
 		Details: domain.LocalInputSourceDetails{

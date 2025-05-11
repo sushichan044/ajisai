@@ -189,9 +189,9 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 func getFetcher(inputType string) (domain.ContentFetcher, error) {
 	switch inputType {
 	case "local":
-		return fetcher.LocalFetcher(), nil
+		return fetcher.NewLocalFetcher(), nil
 	case "git":
-		return fetcher.GitFetcher(), nil
+		return fetcher.NewGitFetcher(), nil
 	default:
 		return nil, fmt.Errorf("unknown input type: %s", inputType)
 	}

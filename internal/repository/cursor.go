@@ -14,14 +14,12 @@ import (
 
 type CursorRepository struct{}
 
-var _ domain.PresetRepository = &CursorRepository{}
-
 const (
 	CursorRuleExtension   = "mdc"
 	CursorPromptExtension = "md"
 )
 
-func NewCursorRepository() *CursorRepository {
+func NewCursorRepository() domain.PresetRepository {
 	return &CursorRepository{}
 }
 
