@@ -521,3 +521,7 @@ linters:
       - text: 'BinaryPath is a global variable'
         linters:
           - gochecknoglobals
+      - path: 'internal/bridge/github-copilot.go'
+        text: 'GitHubCopilotInstructionApplyToAll is a global variable'
+        linters:
+          - gochecknoglobals

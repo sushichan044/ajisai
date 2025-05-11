@@ -10,3 +10,7 @@ directory = "example1"
 [outputs.cursor]
 target = "cursor"
 enabled = true
+
+[outputs.github-copilot]
+target = "github-copilot"
+enabled = true

@@ -14,18 +14,11 @@
       "source.fixAll": "explicit"
     }
   },
-  "github.copilot.chat.codeGeneration.instructions": [
-    {
-      "file": ".cursor/rules/clean-code.mdc"
-    },
-    {
-      "file": ".cursor/rules/code-quality.mdc"
-    },
-    {
-      "file": ".cursor/rules/project.mdc"
-    },
-    {
-      "file": ".cursor/rules/tdd.mdc"
-    }
-  ]
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true
+  },
+  "chat.promptFiles": true,
+  "chat.promptFilesLocations": {
+    ".github/prompts": true
+  },
 }

@@ -1,0 +1,151 @@
+package repository
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"golang.org/x/sync/errgroup"
+
+	"github.com/sushichan044/ai-rules-manager/internal/bridge"
+	"github.com/sushichan044/ai-rules-manager/internal/domain"
+	"github.com/sushichan044/ai-rules-manager/internal/utils"
+)
+
+type GitHubCopilotRepository struct{}
+
+func NewGitHubCopilotRepository() domain.PresetRepository {
+	return &GitHubCopilotRepository{}
+}
+
+const (
+	GitHubCopilotInstructionExtension = "instructions.md"
+	GitHubCopilotPromptExtension      = "prompt.md"
+
+	GitHubCopilotInstructionDir = "instructions"
+	GitHubCopilotPromptDir      = "prompts"
+)
+
+//gocognit:ignore
+func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
+	githubCopilotRoot, err := getGitHubCopilotRoot()
+	if err != nil {
+		return err
+	}
+
+	bridge := bridge.NewGitHubCopilotBridge()
+
+	resolveInstructionPath := func(instruction *domain.RuleItem) (string, error) {
+		instructionPath, innerErr := instruction.GetInternalPath(
+			namespace,
+			pkg.Name,
+			GitHubCopilotInstructionExtension,
+		)
+		if innerErr != nil {
+			return "", innerErr
+		}
+
+		return filepath.Join(githubCopilotRoot, GitHubCopilotInstructionDir, instructionPath), nil
+	}
+
+	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
+		promptPath, innerErr := prompt.GetInternalPath(
+			namespace,
+			pkg.Name,
+			GitHubCopilotPromptExtension,
+		)
+		if innerErr != nil {
+			return "", innerErr
+		}
+
+		return filepath.Join(githubCopilotRoot, GitHubCopilotPromptDir, promptPath), nil
+	}
+
+	eg := errgroup.Group{}
+
+	for _, rule := range pkg.Rule {
+		eg.Go(func() error {
+			instructionPath, pathErr := resolveInstructionPath(rule)
+			if pathErr != nil {
+				return pathErr
+			}
+
+			instruction, bridgeErr := bridge.ToAgentRule(*rule)
+			if bridgeErr != nil {
+				return bridgeErr
+			}
+
+			instructionStr, serializeErr := instruction.String()
+			if serializeErr != nil {
+				return serializeErr
+			}
+
+			if dirErr := utils.EnsureDir(filepath.Dir(instructionPath)); dirErr != nil {
+				return fmt.Errorf("failed to create directory for instruction %s: %w", instructionPath, dirErr)
+			}
+
+			return os.WriteFile(instructionPath, []byte(instructionStr), 0600)
+		})
+	}
+
+	for _, prompt := range pkg.Prompt {
+		eg.Go(func() error {
+			promptPath, pathErr := resolvePromptPath(prompt)
+			if pathErr != nil {
+				return pathErr
+			}
+
+			prompt, bridgeErr := bridge.ToAgentPrompt(*prompt)
+			if bridgeErr != nil {
+				return bridgeErr
+			}
+
+			promptStr, serializeErr := prompt.String()
+			if serializeErr != nil {
+				return serializeErr
+			}
+
+			if dirErr := utils.EnsureDir(filepath.Dir(promptPath)); dirErr != nil {
+				return fmt.Errorf("failed to create directory for prompt %s: %w", promptPath, dirErr)
+			}
+
+			return os.WriteFile(promptPath, []byte(promptStr), 0600)
+		})
+	}
+
+	return eg.Wait()
+}
+
+func (repository *GitHubCopilotRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
+	return domain.PresetPackage{}, nil
+}
+
+func (repository *GitHubCopilotRepository) Clean(namespace string) error {
+	githubCopilotRoot, err := getGitHubCopilotRoot()
+	if err != nil {
+		return err
+	}
+
+	instructionDir := filepath.Join(githubCopilotRoot, GitHubCopilotInstructionDir, namespace)
+	promptDir := filepath.Join(githubCopilotRoot, GitHubCopilotPromptDir, namespace)
+
+	eg := errgroup.Group{}
+
+	eg.Go(func() error {
+		return os.RemoveAll(instructionDir)
+	})
+
+	eg.Go(func() error {
+		return os.RemoveAll(promptDir)
+	})
+
+	return eg.Wait()
+}
+
+func getGitHubCopilotRoot() (string, error) {
+	cwd, wdErr := os.Getwd()
+	if wdErr != nil {
+		return "", wdErr
+	}
+	return filepath.Join(cwd, ".github"), nil
+}

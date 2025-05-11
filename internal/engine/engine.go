@@ -190,6 +190,8 @@ func getRepository(target string) (domain.PresetRepository, error) {
 	switch target {
 	case "cursor":
 		return repository.NewCursorRepository(), nil
+	case "github-copilot":
+		return repository.NewGitHubCopilotRepository(), nil
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)
 	}
