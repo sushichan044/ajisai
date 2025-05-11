@@ -11,7 +11,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.3.3
 	go.uber.org/mock v0.5.2
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.14.0
 )
 
 require (
