@@ -34,6 +34,15 @@ func NewCursorRepository() (domain.PresetRepository, error) {
 	}, nil
 }
 
+// NewCursorRepositoryWithPaths creates a new CursorRepository with custom paths.
+// This is mainly used for testing.
+func NewCursorRepositoryWithPaths(rulesDir, promptsDir string) (*CursorRepository, error) {
+	return &CursorRepository{
+		rulesRootDir:   rulesDir,
+		promptsRootDir: promptsDir,
+	}, nil
+}
+
 //gocognit:ignore
 func (repository *CursorRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 	bridge := bridge.NewCursorBridge()
