@@ -70,7 +70,6 @@ func main() {
 						// Cursor, VSCode GitHub Copilot, etc.
 						Name:     "from",
 						Usage:    "Input source to import from",
-						Aliases:  []string{"f"},
 						Required: true,
 					},
 				},
