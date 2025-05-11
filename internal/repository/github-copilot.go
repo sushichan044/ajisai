@@ -7,7 +7,6 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/sushichan044/ai-rules-manager/internal"
 	"github.com/sushichan044/ai-rules-manager/internal/bridge"
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
@@ -38,15 +37,6 @@ const (
 //gocognit:ignore
 func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 	bridge := bridge.NewGitHubCopilotBridge()
-
-	vscodeHelper, err := internal.NewVSCodeHelper()
-	if err != nil {
-		return err
-	}
-
-	if vscodeConfigErr := vscodeHelper.EnsureChatCustomizationEnabled(); vscodeConfigErr != nil {
-		return fmt.Errorf("failed to ensure chat customization is enabled: %w", vscodeConfigErr)
-	}
 
 	resolveInstructionPath := func(instruction *domain.RuleItem) (string, error) {
 		instructionPath, innerErr := instruction.GetInternalPath(
