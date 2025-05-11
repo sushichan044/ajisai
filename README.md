@@ -6,6 +6,7 @@
   - [Features](#features)
   - [AI Coding Agents support status](#ai-coding-agents-support-status)
   - [Installation](#installation)
+    - [Shell completion](#shell-completion)
   - [Usage](#usage)
     - [Commands](#commands)
   - [Defining preset](#defining-preset)
@@ -70,6 +71,10 @@ go install github.com/sushichan044/aisync@latest
 Download the latest release from the [GitHub releases page](https://github.com/sushichan044/aisync/releases).
 
 </details>
+
+### Shell completion
+
+See <https://cli.urfave.org/v3/examples/completions/shell-completions/> for how to enable shell completion.
 
 ## Usage
 
