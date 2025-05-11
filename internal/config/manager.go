@@ -10,13 +10,23 @@ import (
 	"github.com/sushichan044/aisync/internal/utils"
 )
 
-func CreateConfigManager() domain.ConfigManager {
-	return &configManagerImpl{}
+// Format-specific config loaders must implement this interface.
+type formatLoader[TFormat any] interface {
+	Load(configPath string) (*domain.Config, error)
+
+	Save(configPath string, cfg *domain.Config) error
+
+	ToFormat(cfg *domain.Config) TFormat
+	FromFormat(format TFormat) *domain.Config
 }
 
-type configManagerImpl struct{}
+type Manager struct{}
 
-func (m *configManagerImpl) Load(configPath string) (*domain.Config, error) {
+func NewManager() *Manager {
+	return &Manager{}
+}
+
+func (m *Manager) Load(configPath string) (*domain.Config, error) {
 	resolvedPath, err := utils.ResolveAbsPath(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config path: %w", err)
@@ -24,30 +34,28 @@ func (m *configManagerImpl) Load(configPath string) (*domain.Config, error) {
 
 	if _, statErr := os.Stat(resolvedPath); statErr != nil {
 		if errors.Is(statErr, os.ErrNotExist) {
-			// TODO: add warn log: "Failed to load config from %s, using fallback config", configPath
-			// Return a fallback config.
-			return &domain.Config{
-				Global: domain.GlobalConfig{
-					Namespace: "aisync",
-					CacheDir:  "./.cache/aisync",
-				},
-				Inputs:  make(map[string]domain.InputSource, 0),
-				Outputs: make(map[string]domain.OutputTarget, 0),
-			}, nil
+			// If the config file does not exist, return a default config
+			return m.ApplyDefaults(nil)
 		}
-
-		return nil, statErr
+		return nil, fmt.Errorf("failed to stat config file %s: %w", resolvedPath, statErr)
 	}
 
+	var loadCfg *domain.Config
 	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".toml":
-		return CreateTomlManager().Load(resolvedPath)
+		tomlCfg, tomlErr := NewTomlLoader().Load(resolvedPath)
+		if tomlErr != nil {
+			return nil, fmt.Errorf("failed to load config from %s: %w", resolvedPath, tomlErr)
+		}
+		loadCfg = tomlCfg
 	default:
 		return nil, fmt.Errorf("unsupported config file extension: %s", extension)
 	}
+
+	return m.ApplyDefaults(loadCfg)
 }
 
-func (m *configManagerImpl) Save(configPath string, cfg *domain.Config) error {
+func (m *Manager) Save(configPath string, cfg *domain.Config) error {
 	resolvedPath, err := utils.ResolveAbsPath(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to resolve config path: %w", err)
@@ -55,8 +63,46 @@ func (m *configManagerImpl) Save(configPath string, cfg *domain.Config) error {
 
 	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".toml":
-		return CreateTomlManager().Save(resolvedPath, cfg)
+		return NewTomlLoader().Save(resolvedPath, cfg)
 	default:
 		return fmt.Errorf("unsupported config file extension: %s", extension)
+	}
+}
+
+func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
+	defaultCfg := m.GetDefaultConfig()
+
+	if cfg == nil {
+		return defaultCfg, nil
+	}
+
+	if cfg.Global == (domain.GlobalConfig{}) {
+		cfg.Global = defaultCfg.Global
+	} else {
+		if cfg.Global.Namespace == "" {
+			cfg.Global.Namespace = defaultCfg.Global.Namespace
+		}
+		if cfg.Global.CacheDir == "" {
+			cfg.Global.CacheDir = defaultCfg.Global.CacheDir
+		}
+	}
+
+	if cfg.Inputs == nil {
+		cfg.Inputs = defaultCfg.Inputs
+	}
+	if cfg.Outputs == nil {
+		cfg.Outputs = defaultCfg.Outputs
+	}
+	return cfg, nil
+}
+
+func (m *Manager) GetDefaultConfig() *domain.Config {
+	return &domain.Config{
+		Global: domain.GlobalConfig{
+			Namespace: "aisync",
+			CacheDir:  "./.cache/aisync",
+		},
+		Inputs:  make(map[string]domain.InputSource),
+		Outputs: make(map[string]domain.OutputTarget),
 	}
 }

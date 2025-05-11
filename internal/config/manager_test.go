@@ -16,7 +16,7 @@ func TestLoad(t *testing.T) {
 	t.Run("non-existent config returns fallback config", func(t *testing.T) {
 		nonExistentPath := filepath.Join(t.TempDir(), "non-existent.toml")
 
-		cfg, err := config.CreateConfigManager().Load(nonExistentPath)
+		cfg, err := config.NewManager().Load(nonExistentPath)
 
 		// Non-existent path does not return an error, but returns a fallback config
 		require.NoError(t, err)
@@ -31,7 +31,7 @@ func TestLoad(t *testing.T) {
 		err := os.WriteFile(unsupportedPath, []byte("test content"), 0644)
 		require.NoError(t, err)
 
-		_, err = config.CreateConfigManager().Load(unsupportedPath)
+		_, err = config.NewManager().Load(unsupportedPath)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported config file extension")
 	})
@@ -53,14 +53,14 @@ target = "cursor"
 		err := os.WriteFile(validTomlPath, []byte(tomlContent), 0644)
 		require.NoError(t, err)
 
-		cfg, err := config.CreateConfigManager().Load(validTomlPath)
+		cfg, err := config.NewManager().Load(validTomlPath)
 		require.NoError(t, err)
 
 		assert.Equal(t, "test-namespace", cfg.Global.Namespace)
 		assert.Contains(t, cfg.Inputs, "test")
-		assert.Equal(t, "local", cfg.Inputs["test"].Type)
+		assert.Equal(t, domain.InputSourceTypeLocal, cfg.Inputs["test"].Type)
 		assert.Contains(t, cfg.Outputs, "test")
-		assert.Equal(t, "cursor", cfg.Outputs["test"].Target)
+		assert.Equal(t, domain.OutputTargetTypeCursor, cfg.Outputs["test"].Target)
 	})
 
 	t.Run("invalid toml file returns error", func(t *testing.T) {
@@ -72,7 +72,7 @@ namespace = "test" # No closing bracket! Syntax error!
 		err := os.WriteFile(invalidTomlPath, []byte(invalidContent), 0644)
 		require.NoError(t, err)
 
-		_, err = config.CreateConfigManager().Load(invalidTomlPath)
+		_, err = config.NewManager().Load(invalidTomlPath)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to unmarshal TOML")
 	})
