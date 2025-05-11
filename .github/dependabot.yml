@@ -5,6 +5,7 @@ updates:
     schedule:
       interval: "daily"
       time: "08:00"
+      timezone: "Asia/Tokyo"
     labels:
       - "dependencies"
 
@@ -13,5 +14,6 @@ updates:
     schedule:
       interval: "daily"
       time: "08:00"
+      timezone: "Asia/Tokyo"
     labels:
       - "dependencies"
