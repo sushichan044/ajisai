@@ -22,8 +22,11 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
 
 ## AI Coding Agents support status
 
-* [x] GitHub Copilot
-  * Make sure you set `chat.promptFiles` to true.
+* [x] GitHub Copilot in VSCode
+  * Update VSCode to 1.100 or later
+  * Use latest GitHub Copilot extension
+  * **Make sure you set `chat.promptFiles` to true in project or user settings.**
+  * Currently no support for using GitHub Copilot in other editors, IDEs.
 * [x] Cursor
 * [ ] Windsurf
 * [ ] Cline
