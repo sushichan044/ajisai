@@ -99,7 +99,7 @@ func (engine *Engine) CleanOutputs() error {
 func (engine *Engine) CleanCache(force bool) error {
 	cacheDir := engine.cfg.Settings.CacheDir
 
-	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+	if _, err := os.Stat(cacheDir); errors.Is(err, os.ErrNotExist) {
 		// Nothing to clean.
 		return nil
 	}

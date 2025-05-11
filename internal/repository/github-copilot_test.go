@@ -58,14 +58,18 @@ func TestGitHubCopilotRepository_WritePackage(t *testing.T) {
 
 				// Directory structure should not be created for empty packages
 				_, err := os.Stat(namespaceInstructionsDir)
-				assert.True(
+				assert.ErrorIs(
 					t,
-					os.IsNotExist(err),
+					err, os.ErrNotExist,
 					"Expected instructions directory not to be created for empty package",
 				)
 
 				_, err = os.Stat(namespacePromptsDir)
-				assert.True(t, os.IsNotExist(err), "Expected prompts directory not to be created for empty package")
+				assert.ErrorIs(
+					t,
+					err, os.ErrNotExist,
+					"Expected prompts directory not to be created for empty package",
+				)
 			},
 		},
 		{
@@ -222,8 +226,8 @@ func TestGitHubCopilotRepository_Clean(t *testing.T) {
 
 	// And the directories should be removed
 	_, err = os.Stat(nsInstructionsDir)
-	assert.True(t, os.IsNotExist(err), "Instructions directory should have been removed")
+	assert.ErrorIs(t, err, os.ErrNotExist, "Instructions directory should have been removed")
 
 	_, err = os.Stat(nsPromptsDir)
-	assert.True(t, os.IsNotExist(err), "Prompts directory should have been removed")
+	assert.ErrorIs(t, err, os.ErrNotExist, "Prompts directory should have been removed")
 }

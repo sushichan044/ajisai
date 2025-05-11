@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -29,7 +30,7 @@ func EnsureDir(path string) error {
 	stat, err := os.Stat(absPath)
 
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return os.MkdirAll(absPath, 0750)
 		}
 		return err
@@ -47,7 +48,7 @@ func EnsureDir(path string) error {
 func IsDirExists(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return false, nil // Does not exist, not an error for this check
 		}
 		return false, err // Other stat error

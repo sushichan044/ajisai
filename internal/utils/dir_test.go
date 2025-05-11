@@ -29,7 +29,7 @@ func TestEmptyDir(t *testing.T) {
 
 	// removeAll removes tempDir and all its contents
 	_, err = os.Stat(tempDir)
-	assert.True(t, os.IsNotExist(err), "Directory should be removed")
+	assert.ErrorIs(t, err, os.ErrNotExist, "Directory should be removed")
 }
 
 func TestEnsureDir(t *testing.T) {
@@ -38,7 +38,7 @@ func TestEnsureDir(t *testing.T) {
 		defer os.RemoveAll(tempDir)
 
 		_, err := os.Stat(tempDir)
-		assert.True(t, os.IsNotExist(err), "Directory should not exist before test")
+		assert.ErrorIs(t, err, os.ErrNotExist, "Directory should not exist before test")
 
 		err = utils.EnsureDir(tempDir)
 		require.NoError(t, err, "EnsureDir should not return an error for non-existent directory")
