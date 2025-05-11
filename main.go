@@ -58,9 +58,9 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:   "sync",
-				Usage:  "Synchronize presets from inputs to outputs based on config",
-				Action: doSync,
+				Name:   "apply",
+				Usage:  "Apply presets to the agent according to the config",
+				Action: doApply,
 			},
 			{
 				Name:  "import",

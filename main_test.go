@@ -113,7 +113,6 @@ func TestMain_Run_ConfigLoading(t *testing.T) {
 		{
 			name: "no config flag (expect fallback)",
 			setup: func() (map[string]string, []string, func()) {
-				// Run sync without creating any config file or flag
 				args := []string{"doctor"}
 				return nil, args, func() {}
 			},

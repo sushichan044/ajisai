@@ -10,7 +10,7 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/engine"
 )
 
-func doSync(c context.Context, _ *cli.Command) error {
+func doApply(c context.Context, _ *cli.Command) error {
 	cfg, err := config.RetrieveFromContext(c)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
