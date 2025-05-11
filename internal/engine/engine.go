@@ -42,7 +42,7 @@ func (engine *Engine) Fetch() ([]string, error) {
 				return fmt.Errorf("unknown input type: %s", input.Type)
 			}
 
-			return fetcher.Fetch(input, filepath.Join(engine.cfg.Global.CacheDir, identifier))
+			return fetcher.Fetch(input, filepath.Join(engine.cfg.Settings.CacheDir, identifier))
 		})
 	}
 
@@ -89,7 +89,7 @@ func (engine *Engine) CleanOutputs() error {
 		}
 
 		eg.Go(func() error {
-			return repository.Clean(engine.cfg.Global.Namespace)
+			return repository.Clean(engine.cfg.Settings.Namespace)
 		})
 	}
 
@@ -97,7 +97,7 @@ func (engine *Engine) CleanOutputs() error {
 }
 
 func (engine *Engine) CleanCache(force bool) error {
-	cacheDir := engine.cfg.Global.CacheDir
+	cacheDir := engine.cfg.Settings.CacheDir
 
 	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
 		// Nothing to clean.
@@ -163,7 +163,7 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	for _, currentRepo := range repos {
 		for _, pkg := range presets {
 			eg.Go(func() error {
-				return currentRepo.WritePackage(engine.cfg.Global.Namespace, pkg)
+				return currentRepo.WritePackage(engine.cfg.Settings.Namespace, pkg)
 			})
 		}
 	}

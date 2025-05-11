@@ -209,7 +209,7 @@ func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
 }
 
 func resolvePresetRootDir(config *domain.Config, presetName string) (string, error) {
-	cacheDir, err := utils.ResolveAbsPath(config.Global.CacheDir)
+	cacheDir, err := utils.ResolveAbsPath(config.Settings.CacheDir)
 	if err != nil {
 		return "", err
 	}

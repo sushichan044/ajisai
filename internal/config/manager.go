@@ -76,14 +76,14 @@ func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
 		return defaultCfg, nil
 	}
 
-	if cfg.Global == (domain.GlobalConfig{}) {
-		cfg.Global = defaultCfg.Global
+	if cfg.Settings == (domain.Settings{}) {
+		cfg.Settings = defaultCfg.Settings
 	} else {
-		if cfg.Global.Namespace == "" {
-			cfg.Global.Namespace = defaultCfg.Global.Namespace
+		if cfg.Settings.Namespace == "" {
+			cfg.Settings.Namespace = defaultCfg.Settings.Namespace
 		}
-		if cfg.Global.CacheDir == "" {
-			cfg.Global.CacheDir = defaultCfg.Global.CacheDir
+		if cfg.Settings.CacheDir == "" {
+			cfg.Settings.CacheDir = defaultCfg.Settings.CacheDir
 		}
 	}
 
@@ -98,7 +98,7 @@ func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
 
 func (m *Manager) GetDefaultConfig() *domain.Config {
 	return &domain.Config{
-		Global: domain.GlobalConfig{
+		Settings: domain.Settings{
 			Namespace: "aisync",
 			CacheDir:  "./.cache/aisync",
 		},

@@ -24,7 +24,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "empty_directory",
 			presetName: "empty_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"empty_case": {Type: "local", Details: domain.LocalInputSourceDetails{Path: "empty_case"}},
 				},
@@ -40,7 +40,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_single_rule_with_front_matter",
 			presetName: "single_rule_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"single_rule_case": {
 						Type:    "local",
@@ -68,7 +68,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_rule_without_front_matter_from_static_file",
 			presetName: "rule_no_frontmatter_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"rule_no_frontmatter_case": {
 						Type:    "local",
@@ -93,7 +93,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "rule_with_empty_attach_if_missing_in_frontmatter_from_static_file",
 			presetName: "missing_attach_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"missing_attach_case": {
 						Type:    "local",
@@ -121,7 +121,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "rule_with_invalid_front_matter_causes_error_from_static_file",
 			presetName: "invalid_fm_rule_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"invalid_fm_rule_case": {
 						Type:    "local",
@@ -136,7 +136,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "ignore_non_md_files_and_files_outside_target_dirs_from_static_file",
 			presetName: "ignore_files_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"ignore_files_case": {
 						Type:    "local",
@@ -170,7 +170,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_single_prompt_with_front_matter_from_static_file",
 			presetName: "single_prompt_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"single_prompt_case": {
 						Type:    "local",
@@ -204,7 +204,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_prompt_without_front_matter_from_static_file",
 			presetName: "prompt_no_frontmatter_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"prompt_no_frontmatter_case": {
 						Type:    "local",
@@ -236,7 +236,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_nested_rules_from_static_file",
 			presetName: "nested_rules_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"nested_rules_case": {
 						Type:    "local",
@@ -265,7 +265,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "parse_both_rules_and_prompts_with_git_subdir_from_static_file",
 			presetName: "both_git_subdir_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"both_git_subdir_case": {
 						Type: "git",
@@ -305,7 +305,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "preset_not_found_in_config",
 			presetName: "non_existent_preset",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{},
 			},
 			expectErr:        true,
@@ -329,7 +329,7 @@ func TestParsePresetPackage(t *testing.T) {
 			name:       "file_read_error_due_to_bad_frontmatter_parse_from_static_file", // Renamed for clarity and static file usage
 			presetName: "bad_frontmatter_parse_case",
 			config: &domain.Config{
-				Global: domain.GlobalConfig{CacheDir: "testdata/parse_preset_package"},
+				Settings: domain.Settings{CacheDir: "testdata/parse_preset_package"},
 				Inputs: map[string]domain.InputSource{
 					"bad_frontmatter_parse_case": {
 						Type:    "local",

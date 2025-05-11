@@ -14,13 +14,13 @@ type (
 
 	// Config represents the fully resolved and validated application configuration.
 	Config struct {
-		Global  GlobalConfig            // Resolved global settings
-		Inputs  map[string]InputSource  // Key is the input source identifier
-		Outputs map[string]OutputTarget // Key is the output target identifier
+		Settings                         // Resolved top-level settings
+		Inputs   map[string]InputSource  // Key is the input source identifier
+		Outputs  map[string]OutputTarget // Key is the output target identifier
 	}
 
-	// GlobalConfig holds application-wide settings with defaults applied.
-	GlobalConfig struct {
+	// Settings holds application-wide settings with defaults applied.
+	Settings struct {
 		CacheDir  string // Resolved cache directory path
 		Namespace string // Resolved namespace
 	}

@@ -31,7 +31,7 @@ target = "cursor"
 enabled = true
 `,
 			expectedConfig: &domain.Config{
-				Global: domain.GlobalConfig{
+				Settings: domain.Settings{
 					CacheDir:  "",
 					Namespace: "",
 				},
@@ -52,9 +52,9 @@ enabled = true
 			},
 		},
 		{
-			name: "full config with global and git",
+			name: "full config with settings and git",
 			tomlData: `
-[global]
+[settings]
 cacheDir = "~/.cache/ai-rules"
 namespace = "my-proj"
 
@@ -69,7 +69,7 @@ target = "github-copilot"
 enabled = false
 `,
 			expectedConfig: &domain.Config{
-				Global: domain.GlobalConfig{
+				Settings: domain.Settings{
 					CacheDir:  "~/.cache/ai-rules",
 					Namespace: "my-proj",
 				},
@@ -110,7 +110,7 @@ enabled = false
 			require.NoError(t, err) // Expect no error for success cases
 			require.NotNil(t, loadedCfg)
 
-			assert.Equal(t, tc.expectedConfig.Global, loadedCfg.Global)
+			assert.Equal(t, tc.expectedConfig.Settings, loadedCfg.Settings)
 			assert.Equal(t, tc.expectedConfig.Inputs, loadedCfg.Inputs)
 			assert.Equal(t, tc.expectedConfig.Outputs, loadedCfg.Outputs)
 		})
@@ -157,7 +157,7 @@ func TestTomlManager_Save(t *testing.T) {
 
 	// Create a domain.Config to save
 	saveCfg := &domain.Config{
-		Global: domain.GlobalConfig{
+		Settings: domain.Settings{
 			CacheDir:  filepath.Join(configDir, ".cache"), // Use resolved paths for testing
 			Namespace: "test-ns",
 		},
@@ -204,7 +204,7 @@ func TestTomlManager_Save(t *testing.T) {
 
 	expectedUserTomlCfg := config.NewTomlLoader().ToFormat(saveCfg)
 
-	assert.Equal(t, expectedUserTomlCfg.Global, loadedUserTomlCfg.Global)
+	assert.Equal(t, expectedUserTomlCfg.Settings, loadedUserTomlCfg.Settings)
 	assert.Equal(t, expectedUserTomlCfg.Inputs, loadedUserTomlCfg.Inputs)
 	assert.Equal(t, expectedUserTomlCfg.Outputs, loadedUserTomlCfg.Outputs)
 }

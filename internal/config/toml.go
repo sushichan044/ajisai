@@ -18,12 +18,12 @@ func NewTomlLoader() formatLoader[UserTomlConfig] {
 
 type (
 	UserTomlConfig struct {
-		Global  UserTomlGlobalConfig            `toml:"global,omitempty"`
-		Inputs  map[string]UserTomlInputSource  `toml:"inputs,omitempty"`
-		Outputs map[string]UserTomlOutputTarget `toml:"outputs,omitempty"`
+		Settings UserTomlSettings                `toml:"settings,omitempty"`
+		Inputs   map[string]UserTomlInputSource  `toml:"inputs,omitempty"`
+		Outputs  map[string]UserTomlOutputTarget `toml:"outputs,omitempty"`
 	}
 
-	UserTomlGlobalConfig struct {
+	UserTomlSettings struct {
 		CacheDir  string `toml:"cacheDir,omitempty"`
 		Namespace string `toml:"namespace,omitempty"`
 	}
@@ -116,9 +116,9 @@ func (loader *TomlLoader) ToFormat(cfg *domain.Config) UserTomlConfig {
 		}
 	}
 	return UserTomlConfig{
-		Global: UserTomlGlobalConfig{
-			CacheDir:  cfg.Global.CacheDir,
-			Namespace: cfg.Global.Namespace,
+		Settings: UserTomlSettings{
+			CacheDir:  cfg.Settings.CacheDir,
+			Namespace: cfg.Settings.Namespace,
 		},
 		Inputs:  inputs,
 		Outputs: outputs,
@@ -157,9 +157,9 @@ func (loader *TomlLoader) FromFormat(userTomlCfg UserTomlConfig) *domain.Config 
 	}
 
 	return &domain.Config{
-		Global: domain.GlobalConfig{
-			Namespace: userTomlCfg.Global.Namespace,
-			CacheDir:  userTomlCfg.Global.CacheDir,
+		Settings: domain.Settings{
+			Namespace: userTomlCfg.Settings.Namespace,
+			CacheDir:  userTomlCfg.Settings.CacheDir,
 		},
 		Inputs:  inputs,
 		Outputs: outputs,

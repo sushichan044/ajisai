@@ -21,7 +21,7 @@ func TestLoad(t *testing.T) {
 		// Non-existent path does not return an error, but returns a fallback config
 		require.NoError(t, err)
 
-		assert.Equal(t, "aisync", cfg.Global.Namespace)
+		assert.Equal(t, "aisync", cfg.Settings.Namespace)
 		assert.Empty(t, cfg.Inputs)
 		assert.Empty(t, cfg.Outputs)
 	})
@@ -39,7 +39,7 @@ func TestLoad(t *testing.T) {
 	t.Run("valid toml file loads successfully", func(t *testing.T) {
 		validTomlPath := filepath.Join(t.TempDir(), "valid.toml")
 		tomlContent := `
-[global]
+[settings]
 namespace = "test-namespace"
 cacheDir = "./test-cache"
 
@@ -56,7 +56,7 @@ target = "cursor"
 		cfg, err := config.NewManager().Load(validTomlPath)
 		require.NoError(t, err)
 
-		assert.Equal(t, "test-namespace", cfg.Global.Namespace)
+		assert.Equal(t, "test-namespace", cfg.Settings.Namespace)
 		assert.Contains(t, cfg.Inputs, "test")
 		assert.Equal(t, domain.InputSourceTypeLocal, cfg.Inputs["test"].Type)
 		assert.Contains(t, cfg.Outputs, "test")
@@ -66,7 +66,7 @@ target = "cursor"
 	t.Run("invalid toml file returns error", func(t *testing.T) {
 		invalidTomlPath := filepath.Join(t.TempDir(), "invalid.toml")
 		invalidContent := `
-[global
+[settings
 namespace = "test" # No closing bracket! Syntax error!
 `
 		err := os.WriteFile(invalidTomlPath, []byte(invalidContent), 0644)
@@ -93,7 +93,7 @@ func (m *MockConfigManager) Save(configPath string, cfg *domain.Config) error {
 
 func TestMockConfigManager(t *testing.T) {
 	mockCfg := &domain.Config{
-		Global: domain.GlobalConfig{
+		Settings: domain.Settings{
 			Namespace: "mock-namespace",
 			CacheDir:  "./mock-cache",
 		},
