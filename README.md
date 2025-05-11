@@ -46,7 +46,30 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
 
 ## Installation
 
-WIP
+<details>
+  <summary>homebrew</summary>
+
+```bash
+brew install sushichan044/tap/aisync
+```
+
+</details>
+
+<details>
+  <summary>go install</summary>
+
+```bash
+go install github.com/sushichan044/aisync@latest
+```
+
+</details>
+
+<details>
+  <summary>manual</summary>
+
+Download the latest release from the [GitHub releases page](https://github.com/sushichan044/aisync/releases).
+
+</details>
 
 ## Usage
 
