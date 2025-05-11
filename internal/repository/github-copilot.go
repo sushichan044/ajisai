@@ -7,33 +7,46 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/sushichan044/ai-rules-manager/internal"
 	"github.com/sushichan044/ai-rules-manager/internal/bridge"
 	"github.com/sushichan044/ai-rules-manager/internal/domain"
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-type GitHubCopilotRepository struct{}
+type GitHubCopilotRepository struct {
+	instructionsRootDir string
+	promptsRootDir      string
+}
 
-func NewGitHubCopilotRepository() domain.PresetRepository {
-	return &GitHubCopilotRepository{}
+func NewGitHubCopilotRepository() (domain.PresetRepository, error) {
+	cwd, wdErr := os.Getwd()
+	if wdErr != nil {
+		return nil, wdErr
+	}
+
+	return &GitHubCopilotRepository{
+		instructionsRootDir: filepath.Join(cwd, ".github", "instructions"),
+		promptsRootDir:      filepath.Join(cwd, ".github", "prompts"),
+	}, nil
 }
 
 const (
 	GitHubCopilotInstructionExtension = "instructions.md"
 	GitHubCopilotPromptExtension      = "prompt.md"
-
-	GitHubCopilotInstructionDir = "instructions"
-	GitHubCopilotPromptDir      = "prompts"
 )
 
 //gocognit:ignore
 func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	githubCopilotRoot, err := getGitHubCopilotRoot()
+	bridge := bridge.NewGitHubCopilotBridge()
+
+	vscodeHelper, err := internal.NewVSCodeHelper()
 	if err != nil {
 		return err
 	}
 
-	bridge := bridge.NewGitHubCopilotBridge()
+	if vscodeConfigErr := vscodeHelper.EnsureChatCustomizationEnabled(); vscodeConfigErr != nil {
+		return fmt.Errorf("failed to ensure chat customization is enabled: %w", vscodeConfigErr)
+	}
 
 	resolveInstructionPath := func(instruction *domain.RuleItem) (string, error) {
 		instructionPath, innerErr := instruction.GetInternalPath(
@@ -45,7 +58,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 			return "", innerErr
 		}
 
-		return filepath.Join(githubCopilotRoot, GitHubCopilotInstructionDir, instructionPath), nil
+		return filepath.Join(repository.instructionsRootDir, instructionPath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -58,7 +71,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 			return "", innerErr
 		}
 
-		return filepath.Join(githubCopilotRoot, GitHubCopilotPromptDir, promptPath), nil
+		return filepath.Join(repository.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -121,13 +134,8 @@ func (repository *GitHubCopilotRepository) ReadPackage(_ string) (domain.PresetP
 }
 
 func (repository *GitHubCopilotRepository) Clean(namespace string) error {
-	githubCopilotRoot, err := getGitHubCopilotRoot()
-	if err != nil {
-		return err
-	}
-
-	instructionDir := filepath.Join(githubCopilotRoot, GitHubCopilotInstructionDir, namespace)
-	promptDir := filepath.Join(githubCopilotRoot, GitHubCopilotPromptDir, namespace)
+	instructionDir := filepath.Join(repository.instructionsRootDir, namespace)
+	promptDir := filepath.Join(repository.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 
@@ -140,12 +148,4 @@ func (repository *GitHubCopilotRepository) Clean(namespace string) error {
 	})
 
 	return eg.Wait()
-}
-
-func getGitHubCopilotRoot() (string, error) {
-	cwd, wdErr := os.Getwd()
-	if wdErr != nil {
-		return "", wdErr
-	}
-	return filepath.Join(cwd, ".github"), nil
 }

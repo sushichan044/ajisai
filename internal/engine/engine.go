@@ -189,9 +189,9 @@ func getFetcher(inputType string) (domain.ContentFetcher, error) {
 func getRepository(target string) (domain.PresetRepository, error) {
 	switch target {
 	case "cursor":
-		return repository.NewCursorRepository(), nil
+		return repository.NewCursorRepository()
 	case "github-copilot":
-		return repository.NewGitHubCopilotRepository(), nil
+		return repository.NewGitHubCopilotRepository()
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)
 	}

@@ -12,28 +12,30 @@ import (
 	"github.com/sushichan044/ai-rules-manager/internal/utils"
 )
 
-type CursorRepository struct{}
+type CursorRepository struct {
+	rulesRootDir   string
+	promptsRootDir string
+}
 
 const (
 	CursorRuleExtension   = "mdc"
 	CursorPromptExtension = "md"
-
-	CursorRuleDir   = "rules"
-	CursorPromptDir = "prompts"
 )
 
-func NewCursorRepository() domain.PresetRepository {
-	return &CursorRepository{}
+func NewCursorRepository() (domain.PresetRepository, error) {
+	cwd, wdErr := os.Getwd()
+	if wdErr != nil {
+		return nil, wdErr
+	}
+
+	return &CursorRepository{
+		rulesRootDir:   filepath.Join(cwd, ".cursor", "rules"),
+		promptsRootDir: filepath.Join(cwd, ".cursor", "prompts"),
+	}, nil
 }
 
 //gocognit:ignore
 func (repository *CursorRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	cwd, wdErr := os.Getwd()
-	if wdErr != nil {
-		return wdErr
-	}
-	cursorRoot := filepath.Join(cwd, ".cursor")
-
 	bridge := bridge.NewCursorBridge()
 
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
@@ -42,7 +44,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 			return "", err
 		}
 
-		return filepath.Join(cursorRoot, CursorRuleDir, rulePath), nil
+		return filepath.Join(repository.rulesRootDir, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -51,7 +53,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 			return "", err
 		}
 
-		return filepath.Join(cursorRoot, CursorPromptDir, promptPath), nil
+		return filepath.Join(repository.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -114,15 +116,8 @@ func (repository *CursorRepository) ReadPackage(_ string) (domain.PresetPackage,
 }
 
 func (repository *CursorRepository) Clean(namespace string) error {
-	cwd, wdErr := os.Getwd()
-	if wdErr != nil {
-		return wdErr
-	}
-
-	cursorRoot := filepath.Join(cwd, ".cursor")
-
-	ruleDir := filepath.Join(cursorRoot, CursorRuleDir, namespace)
-	promptDir := filepath.Join(cursorRoot, CursorPromptDir, namespace)
+	ruleDir := filepath.Join(repository.rulesRootDir, namespace)
+	promptDir := filepath.Join(repository.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 
