@@ -38,6 +38,7 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
   - Update VSCode to 1.100 or later
   - Use latest GitHub Copilot extension
   - **Make sure you set `chat.promptFiles` to true in project or user settings.**
+  - `mode` and `tools` property in prompt file is not supported yet
   - Currently no support for using GitHub Copilot in other editors, IDEs.
 - [x] Cursor
 - [ ] Windsurf
