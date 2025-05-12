@@ -3,3 +3,5 @@
 # https://github.com/caarlos0/svu
 tag.prefix: v
 always: true
+# Until supports cline and roo code, it's still v0 even if breaking
+v0: true
