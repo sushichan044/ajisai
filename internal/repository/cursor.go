@@ -67,7 +67,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 
 	eg := errgroup.Group{}
 
-	for _, rule := range pkg.Rule {
+	for _, rule := range pkg.Rules {
 		eg.Go(func() error {
 			rulePath, err := resolveRulePath(rule)
 			if err != nil {
@@ -92,7 +92,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 		})
 	}
 
-	for _, prompt := range pkg.Prompt {
+	for _, prompt := range pkg.Prompts {
 		eg.Go(func() error {
 			promptPath, err := resolvePromptPath(prompt)
 			if err != nil {

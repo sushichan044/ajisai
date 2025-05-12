@@ -30,9 +30,9 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectedPackage: &domain.PresetPackage{
-				Name:   "empty_case",
-				Rule:   []*domain.RuleItem{},
-				Prompt: []*domain.PromptItem{},
+				Name:    "empty_case",
+				Rules:   []*domain.RuleItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -50,7 +50,7 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "single_rule_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"rule1",
 						"This is the content of test rule 1.\n",
@@ -60,7 +60,7 @@ func TestParsePresetPackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -78,14 +78,14 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "rule_no_frontmatter_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"rule_no_frontmatter",
 						"This rule has no front matter.\n",
 						domain.RuleMetadata{},
 					),
 				},
-				Prompt: []*domain.PromptItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -103,7 +103,7 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "missing_attach_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"missing_attach",
 						"Content\n",
@@ -113,7 +113,7 @@ func TestParsePresetPackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			expectErr: false,
 		},
@@ -146,7 +146,7 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "ignore_files_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"real_rule",
 						"Valid rule content\n",
@@ -155,7 +155,7 @@ func TestParsePresetPackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
 						"empty_prompt",
 						"", // Empty file content
@@ -180,14 +180,14 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "single_prompt_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"empty_rule",
 						"",
 						domain.RuleMetadata{},
 					),
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
 						"prompt1",
 						"This is the content of test prompt 1.\n",
@@ -214,14 +214,14 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "prompt_no_frontmatter_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"empty_rule",
 						"",
 						domain.RuleMetadata{},
 					),
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
 						"prompt_no_frontmatter",
 						"This prompt has no front matter.\n",
@@ -247,7 +247,7 @@ func TestParsePresetPackage(t *testing.T) {
 			expectErr: false,
 			expectedPackage: &domain.PresetPackage{
 				Name: "nested_rules_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"foo/bar", // Slug includes subdirectory
 						"This is the content of Bar.\n",
@@ -257,7 +257,7 @@ func TestParsePresetPackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			useElementsMatch: true,
 		},
@@ -278,7 +278,7 @@ func TestParsePresetPackage(t *testing.T) {
 			},
 			expectedPackage: &domain.PresetPackage{
 				Name: "both_git_subdir_case",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"ruleA",
 						"Rule A content\n",
@@ -288,7 +288,7 @@ func TestParsePresetPackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
 						"promptB",
 						"Prompt B content\n",
@@ -356,9 +356,9 @@ func TestParsePresetPackage(t *testing.T) {
 				if tc.useElementsMatch {
 					assert.Equal(t, tc.expectedPackage.Name, actualPackage.Name, "InputKey mismatch")
 					// Compare Rule items
-					assert.ElementsMatch(t, tc.expectedPackage.Rule, actualPackage.Rule, "Rule items mismatch")
+					assert.ElementsMatch(t, tc.expectedPackage.Rules, actualPackage.Rules, "Rule items mismatch")
 					// Compare Prompt items
-					assert.ElementsMatch(t, tc.expectedPackage.Prompt, actualPackage.Prompt, "Prompt items mismatch")
+					assert.ElementsMatch(t, tc.expectedPackage.Prompts, actualPackage.Prompts, "Prompt items mismatch")
 				} else {
 					assert.Equal(t, tc.expectedPackage, actualPackage)
 				}
