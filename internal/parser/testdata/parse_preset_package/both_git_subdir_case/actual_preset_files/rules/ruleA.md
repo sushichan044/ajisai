@@ -1,5 +1,5 @@
 ---
 attach: glob
-glob: ["*.go"]
+globs: ["*.go"]
 ---
 Rule A content

@@ -51,7 +51,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 			Metadata: CursorRuleMetadata{
 				AlwaysApply: false,
 				Description: "",
-				Globs:       strings.Join(rule.Metadata.Glob, ","),
+				Globs:       strings.Join(rule.Metadata.Globs, ","),
 			},
 		}, nil
 	case domain.AttachTypeAgentRequested:
@@ -88,7 +88,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAlways,
-				Glob:        emptyGlobs,
+				Globs:       emptyGlobs,
 				Description: "",
 			},
 		), nil
@@ -100,7 +100,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeGlob,
-				Glob:        strings.Split(rule.Metadata.Globs, ","),
+				Globs:       strings.Split(rule.Metadata.Globs, ","),
 				Description: "",
 			},
 		), nil
@@ -113,7 +113,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAgentRequested,
 				Description: rule.Metadata.Description,
-				Glob:        emptyGlobs,
+				Globs:       emptyGlobs,
 			},
 		), nil
 	}
@@ -124,7 +124,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 		domain.RuleMetadata{
 			Attach:      domain.AttachTypeManual,
 			Description: "",
-			Glob:        emptyGlobs,
+			Globs:       emptyGlobs,
 		},
 	), nil
 }

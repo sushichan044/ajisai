@@ -59,7 +59,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 			Content: rule.Content,
 			Metadata: WindsurfRuleMetadata{
 				Trigger:     WindsurfTriggerTypeGlob,
-				Globs:       strings.Join(rule.Metadata.Glob, ","),
+				Globs:       strings.Join(rule.Metadata.Globs, ","),
 				Description: "",
 			},
 		}, nil
@@ -97,7 +97,7 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAlways,
-				Glob:        emptyGlobs,
+				Globs:       emptyGlobs,
 				Description: "",
 			},
 		), nil
@@ -109,7 +109,7 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeGlob,
-				Glob:        strings.Split(rule.Metadata.Globs, ","),
+				Globs:       strings.Split(rule.Metadata.Globs, ","),
 				Description: "",
 			},
 		), nil
@@ -121,7 +121,7 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAgentRequested,
-				Glob:        emptyGlobs,
+				Globs:       emptyGlobs,
 				Description: rule.Metadata.Description,
 			},
 		), nil
@@ -133,7 +133,7 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeManual,
-				Glob:        emptyGlobs,
+				Globs:       emptyGlobs,
 				Description: "",
 			},
 		), nil

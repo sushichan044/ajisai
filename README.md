@@ -126,7 +126,7 @@ Each rule Markdown file can have the following metadata in its frontmatter:
 | Key           | Type    | Required | Description                                                                                                |
 |---------------|---------|----------|------------------------------------------------------------------------------------------------------------|
 | `attach` | String  | Yes       | Situation you want AI to read this rule. <br> Choose from `always`, `glob`, `agent-requested`, `manual`.  |
-| `glob`      | Array  | Yes <br> (when `attach` is `glob`) <br> | An array of glob patterns specifying which files this rule should apply to. <br> (e.g., `["**/*.go", "!**/*_test.go"]`). |
+| `globs`      | Array  | Yes <br> (when `attach` is `glob`) <br> | An array of glob patterns specifying which files this rule should apply to. <br> (e.g., `["**/*.go", "!**/*_test.go"]`). |
 | `description` | String  | Yes <br> (when `attach` is `agent-requested`) <br> | A brief description of what the prompt is for.                                                                |
 
 Example `rules/my-custom-rule.md`:
@@ -134,7 +134,7 @@ Example `rules/my-custom-rule.md`:
 ```markdown
 ---
 attach: always
-glob:
+globs:
   - "**/*.go"
   - "!**/*_test.go"
 ---
