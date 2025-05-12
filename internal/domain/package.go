@@ -41,7 +41,7 @@ type (
 	RuleMetadata struct {
 		Description string     // Optional: Detailed description from front matter.
 		Attach      AttachType // Required: How the rule is attached
-		Glob        []string   // Optional: Glob patterns, used when Attach is "glob".
+		Globs       []string   // Optional: Glob patterns, used when Attach is "glob".
 	}
 
 	// PromptMetadata defines the structure for metadata specific to prompts.

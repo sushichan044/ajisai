@@ -24,7 +24,7 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 				"# Test Always\n\nThis rule is always applied.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expected: bridge.GitHubCopilotInstruction{
@@ -43,7 +43,7 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 				"# Test Glob\n\nThis rule applies to specific patterns.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
-					Glob:   []string{"*.go", "internal/**/*.go"},
+					Globs:  []string{"*.go", "internal/**/*.go"},
 				},
 			),
 			expected: bridge.GitHubCopilotInstruction{
@@ -62,7 +62,7 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 				"# Test Manual\n\nThis rule is applied manually.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expected: bridge.GitHubCopilotInstruction{
@@ -79,7 +79,7 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 				"# Test Agent\n\nThis rule is requested by agent.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAgentRequested,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expected: bridge.GitHubCopilotInstruction{
@@ -96,7 +96,7 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 				"# Test Unsupported\n\nThis rule has unsupported attach type.",
 				domain.RuleMetadata{
 					Attach: "unsupported",
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expected:  bridge.GitHubCopilotInstruction{},
@@ -142,7 +142,7 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 				"# Test All Primary\n\nThis rule applies to all files (primary).",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expectErr: false,
@@ -161,7 +161,7 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 				"# Test All Secondary\n\nThis rule applies to all files (secondary).",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expectErr: false,
@@ -180,7 +180,7 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 				"# Test Specific Globs\n\nThis rule applies to specific patterns.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
-					Glob:   []string{"*.go", "internal/**/*.go"},
+					Globs:  []string{"*.go", "internal/**/*.go"},
 				},
 			),
 			expectErr: false,
@@ -199,7 +199,7 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 				"# Test Empty ApplyTo\n\nThis rule has empty ApplyTo.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expectErr: false,

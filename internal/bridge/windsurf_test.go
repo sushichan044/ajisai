@@ -167,7 +167,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 				"Always",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expectedRule: bridge.WindsurfRule{
@@ -187,7 +187,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
-					Glob:   []string{"**/*.go", "**/*.yaml"},
+					Globs:  []string{"**/*.go", "**/*.yaml"},
 				},
 			),
 			expectedRule: bridge.WindsurfRule{
@@ -207,7 +207,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 				"HeyHeyHey",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAgentRequested,
-					Glob:        []string{},
+					Globs:       []string{},
 					Description: longModelDecisionDescription,
 				},
 			),
@@ -228,7 +228,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 				"Content",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
-					Glob:   []string{},
+					Globs:  []string{},
 				},
 			),
 			expectedRule: bridge.WindsurfRule{
@@ -279,7 +279,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 				"Always",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAlways,
-					Glob:        []string{},
+					Globs:       []string{},
 					Description: "",
 				},
 			),
@@ -299,7 +299,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeGlob,
-					Glob:        []string{"**/*.go", "**/*.yaml"},
+					Globs:       []string{"**/*.go", "**/*.yaml"},
 					Description: "",
 				},
 			),
@@ -319,7 +319,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 				"HeyHeyHey",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAgentRequested,
-					Glob:        []string{},
+					Globs:       []string{},
 					Description: longModelDecisionDescription,
 				},
 			),
@@ -338,7 +338,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 				"Content",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeManual,
-					Glob:        []string{},
+					Globs:       []string{},
 					Description: "",
 				},
 			),

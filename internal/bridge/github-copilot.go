@@ -80,7 +80,7 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 			Slug:    rule.Slug,
 			Content: rule.Content,
 			Metadata: GitHubCopilotInstructionMetadata{
-				ApplyTo: strings.Join(rule.Metadata.Glob, ","),
+				ApplyTo: strings.Join(rule.Metadata.Globs, ","),
 			},
 		}, nil
 	case domain.AttachTypeAgentRequested, domain.AttachTypeManual:
@@ -106,7 +106,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 			rule.Content,
 			domain.RuleMetadata{
 				Attach: domain.AttachTypeAlways,
-				Glob:   emptyGlobs,
+				Globs:  emptyGlobs,
 			},
 		), nil
 	}
@@ -117,7 +117,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 			rule.Content,
 			domain.RuleMetadata{
 				Attach: domain.AttachTypeGlob,
-				Glob:   globs,
+				Globs:  globs,
 			},
 		), nil
 	}
@@ -127,7 +127,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 		rule.Content,
 		domain.RuleMetadata{
 			Attach: domain.AttachTypeManual,
-			Glob:   emptyGlobs,
+			Globs:  emptyGlobs,
 		},
 	), nil
 }

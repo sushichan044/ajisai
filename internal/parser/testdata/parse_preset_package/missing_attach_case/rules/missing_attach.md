@@ -1,4 +1,4 @@
 ---
-glob: ["*.txt"]
+globs: ["*.txt"]
 ---
 Content

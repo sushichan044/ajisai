@@ -1,6 +1,6 @@
 ---
 attach: glob
-glob:
+globs:
   - "**/*.go"
 ---
 
