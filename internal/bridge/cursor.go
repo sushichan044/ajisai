@@ -9,22 +9,24 @@ import (
 	"github.com/sushichan044/aisync/internal/domain"
 )
 
-type CursorRule struct {
-	Slug     string
-	Content  string
-	Metadata CursorRuleMetadata
-}
+type (
+	CursorRule struct {
+		Slug     string
+		Content  string
+		Metadata CursorRuleMetadata
+	}
 
-type CursorRuleMetadata struct {
-	AlwaysApply bool   `yaml:"alwaysApply"`
-	Description string `yaml:"description"`
-	Globs       string `yaml:"globs"` // e.g. "**/*.{js,ts,jsx,tsx}"
-}
+	CursorRuleMetadata struct {
+		AlwaysApply bool   `yaml:"alwaysApply"`
+		Description string `yaml:"description"`
+		Globs       string `yaml:"globs"` // e.g. "**/*.{js,ts,jsx,tsx}"
+	}
 
-type CursorPrompt struct {
-	Slug    string
-	Content string
-}
+	CursorPrompt struct {
+		Slug    string
+		Content string
+	}
+)
 
 type CursorBridge struct{}
 
