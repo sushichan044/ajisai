@@ -33,7 +33,7 @@ func main() {
 
 	app := &cli.Command{
 		Name:    "ajisai",
-		Usage:   "Manage AI agent configuration presets (rules)",
+		Usage:   "Manage AI agent configuration presets",
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
