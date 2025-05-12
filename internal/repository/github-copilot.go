@@ -7,9 +7,9 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/sushichan044/aisync/internal/bridge"
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/utils"
+	"github.com/sushichan044/ajisai/internal/bridge"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 type GitHubCopilotRepository struct {

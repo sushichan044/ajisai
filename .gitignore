@@ -41,6 +41,6 @@ docs/
 # Added by goreleaser init:
 dist/
 
-.cursor/**/aisync/
-.github/**/aisync/
-.windsurf/**/aisync/
+.cursor/**/ajisai/
+.github/**/ajisai/
+.windsurf/**/ajisai/

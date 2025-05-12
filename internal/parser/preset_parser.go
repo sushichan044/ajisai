@@ -13,8 +13,8 @@ import (
 	"github.com/adrg/frontmatter"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/utils"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 // ParsePresetPackage scans the source directory for rules and prompts and returns a PresetPackage.

@@ -36,7 +36,7 @@ func buildBinary() (string, error) {
 		return "", fmt.Errorf("failed to create temp dir: %w", err)
 	}
 
-	outputPath := filepath.Join(tempDir, "aisync-test")
+	outputPath := filepath.Join(tempDir, "ajisai-test")
 
 	// Build command - build the package in the current directory
 	buildCmd := exec.Command("go", "build", "-o", outputPath)
@@ -98,7 +98,7 @@ target = "cursor"
 func TestMain_Run_Version(t *testing.T) {
 	stdout, stderr, err := runCliCommand(t, []string{"--version"}, nil)
 	require.NoError(t, err, "stderr: %s", stderr)
-	assert.Contains(t, stdout, "aisync version dev (revision:dev)")
+	assert.Contains(t, stdout, "ajisai version dev (revision:dev)")
 	assert.Empty(t, stderr)
 }
 

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/utils"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 // Format-specific config loaders must implement this interface.
@@ -100,8 +100,8 @@ func (m *Manager) ApplyDefaults(cfg *domain.Config) (*domain.Config, error) {
 func (m *Manager) GetDefaultConfig() *domain.Config {
 	return &domain.Config{
 		Settings: domain.Settings{
-			Namespace:    "aisync",
-			CacheDir:     "./.cache/aisync",
+			Namespace:    "ajisai",
+			CacheDir:     "./.cache/ajisai",
 			Experimental: false,
 		},
 		Inputs:  make(map[string]domain.InputSource),

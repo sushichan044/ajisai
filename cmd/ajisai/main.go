@@ -7,8 +7,8 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/sushichan044/aisync/internal/config"
-	"github.com/sushichan044/aisync/internal/engine"
+	"github.com/sushichan044/ajisai/internal/config"
+	"github.com/sushichan044/ajisai/internal/engine"
 )
 
 var (
@@ -32,16 +32,16 @@ func main() {
 	}
 
 	app := &cli.Command{
-		Name:    "aisync",
-		Usage:   "Manage AI agent configuration presets (rules)",
+		Name:    "ajisai",
+		Usage:   "Manage AI agent configuration presets",
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "aisync.toml",
+				Value:   "ajisai.toml",
 				Usage:   "Load configuration from `FILE`",
-				Sources: cli.EnvVars("AISYNC_CONFIG_LOCATION"),
+				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
