@@ -42,9 +42,9 @@ func TestGitHubCopilotRepository_WritePackage(t *testing.T) {
 			name:      "EmptyPackage",
 			namespace: "test_namespace",
 			pkg: domain.PresetPackage{
-				Name:   "empty_package",
-				Rule:   []*domain.RuleItem{},
-				Prompt: []*domain.PromptItem{},
+				Name:    "empty_package",
+				Rules:   []*domain.RuleItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			setup: func(t *testing.T) (string, string) {
 				tempDir := t.TempDir()
@@ -77,7 +77,7 @@ func TestGitHubCopilotRepository_WritePackage(t *testing.T) {
 			namespace: "test_namespace",
 			pkg: domain.PresetPackage{
 				Name: "test_package",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
 						"test-rule",
 						"# Test Rule Content",
@@ -87,7 +87,7 @@ func TestGitHubCopilotRepository_WritePackage(t *testing.T) {
 						},
 					),
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
 						"test-prompt",
 						"# Test Prompt Content",
@@ -164,7 +164,7 @@ func TestGitHubCopilotRepository_WritePackage_Error(t *testing.T) {
 	// When writing a package with a rule
 	pkg := domain.PresetPackage{
 		Name: "test_package",
-		Rule: []*domain.RuleItem{
+		Rules: []*domain.RuleItem{
 			domain.NewRuleItem(
 				"test-rule",
 				"# Test Content",

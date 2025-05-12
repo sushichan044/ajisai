@@ -22,9 +22,9 @@ type (
 	AttachType string
 
 	PresetPackage struct {
-		Name   string        // name of the preset package. This value is used as the directory name in the cache.
-		Rule   []*RuleItem   // rules in the preset package
-		Prompt []*PromptItem // prompts in the preset package
+		Name    string        // name of the preset package. This value is used as the directory name in the cache.
+		Rules   []*RuleItem   // rules in the preset package
+		Prompts []*PromptItem // prompts in the preset package
 	}
 
 	RuleItem struct {

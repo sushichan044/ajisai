@@ -64,9 +64,9 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	}
 
 	return &domain.PresetPackage{
-		Name:   presetName,
-		Rule:   rules,
-		Prompt: prompts,
+		Name:    presetName,
+		Rules:   rules,
+		Prompts: prompts,
 	}, nil
 }
 

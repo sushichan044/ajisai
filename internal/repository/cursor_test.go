@@ -39,9 +39,9 @@ func TestCursorRepository_WritePackage(t *testing.T) {
 			name:      "EmptyPackage",
 			namespace: "test_namespace",
 			pkg: domain.PresetPackage{
-				Name:   "empty_package",
-				Rule:   []*domain.RuleItem{},
-				Prompt: []*domain.PromptItem{},
+				Name:    "empty_package",
+				Rules:   []*domain.RuleItem{},
+				Prompts: []*domain.PromptItem{},
 			},
 			setup: func(t *testing.T) (string, string) {
 				tempDir := t.TempDir()
@@ -74,7 +74,7 @@ func TestCursorRepository_WritePackage(t *testing.T) {
 			namespace: "test_namespace",
 			pkg: domain.PresetPackage{
 				Name: "test_package",
-				Rule: []*domain.RuleItem{
+				Rules: []*domain.RuleItem{
 					{
 						Metadata: domain.RuleMetadata{
 							Attach:      domain.AttachTypeAlways,
@@ -82,7 +82,7 @@ func TestCursorRepository_WritePackage(t *testing.T) {
 						},
 					},
 				},
-				Prompt: []*domain.PromptItem{
+				Prompts: []*domain.PromptItem{
 					{
 						Metadata: domain.PromptMetadata{
 							Description: "Test prompt description",
@@ -146,7 +146,7 @@ func TestCursorRepository_WritePackage_Error(t *testing.T) {
 	// When writing a package with a rule
 	pkg := domain.PresetPackage{
 		Name: "test_package",
-		Rule: []*domain.RuleItem{
+		Rules: []*domain.RuleItem{
 			{
 				Metadata: domain.RuleMetadata{
 					Attach:      domain.AttachTypeAlways,

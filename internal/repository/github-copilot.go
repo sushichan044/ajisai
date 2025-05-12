@@ -73,7 +73,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 
 	eg := errgroup.Group{}
 
-	for _, rule := range pkg.Rule {
+	for _, rule := range pkg.Rules {
 		eg.Go(func() error {
 			instructionPath, pathErr := resolveInstructionPath(rule)
 			if pathErr != nil {
@@ -98,7 +98,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 		})
 	}
 
-	for _, prompt := range pkg.Prompt {
+	for _, prompt := range pkg.Prompts {
 		eg.Go(func() error {
 			promptPath, pathErr := resolvePromptPath(prompt)
 			if pathErr != nil {
