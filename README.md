@@ -193,6 +193,10 @@ enabled = true     # Optional, default: true. Set false to disable this output.
 [outputs.github_copilot]
 target = "github-copilot"
 enabled = true
+
+[outputs.windsurf]
+target = "windsurf"
+enabled = true
 ```
 
 ## Contributing
