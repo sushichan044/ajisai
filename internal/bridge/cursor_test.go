@@ -9,7 +9,7 @@ import (
 	"github.com/sushichan044/aisync/internal/bridge"
 )
 
-const longDescriptionContent = `This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description `
+const longDescriptionContent = `This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description`
 
 func TestCursorRule_String(t *testing.T) {
 	testCases := []struct {
@@ -69,7 +69,7 @@ This rule applies to specific file patterns.
 			},
 			expected: `---
 alwaysApply: false
-description: 'This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description '
+description: This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description This is a test rule with description
 globs:
 ---
 # Description Rule

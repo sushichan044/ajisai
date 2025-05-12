@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"strings"
 
-	yaml "github.com/goccy/go-yaml"
-
 	"github.com/sushichan044/aisync/internal/domain"
 )
 
-type CursorRule struct {
-	Slug     string
-	Content  string
-	Metadata CursorRuleMetadata
-}
+type (
+	CursorRule struct {
+		Slug     string
+		Content  string
+		Metadata CursorRuleMetadata
+	}
 
-type CursorRuleMetadata struct {
-	AlwaysApply bool   `yaml:"alwaysApply"`
-	Description string `yaml:"description"`
-	Globs       string `yaml:"globs"` // e.g. "**/*.{js,ts,jsx,tsx}"
-}
+	CursorRuleMetadata struct {
+		AlwaysApply bool   `yaml:"alwaysApply"`
+		Description string `yaml:"description"`
+		Globs       string `yaml:"globs"` // e.g. "**/*.{js,ts,jsx,tsx}"
+	}
 
-type CursorPrompt struct {
-	Slug    string
-	Content string
-}
+	CursorPrompt struct {
+		Slug    string
+		Content string
+	}
+)
 
 type CursorBridge struct{}
 
@@ -145,62 +145,37 @@ func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptI
 }
 
 func (rule *CursorRule) String() (string, error) {
-	frontMatterBytes, err := yaml.Marshal(rule.Metadata)
-	if err != nil {
-		return "", err
+	// Cursor does not accept quoted front matters, so we need to write custom marshaler
+	metaKeys := 3 // alwaysApply, description, globs
+	metaContent := make([]string, 0, metaKeys)
+
+	metaContent = append(metaContent, fmt.Sprintf("alwaysApply: %t", rule.Metadata.AlwaysApply))
+
+	if rule.Metadata.Description == "" {
+		metaContent = append(metaContent, "description:")
+	} else {
+		description := strings.TrimRight(rule.Metadata.Description, " ")
+		metaContent = append(metaContent, fmt.Sprintf("description: %s", description))
 	}
 
-	fmStr := string(frontMatterBytes)
-	var resultLines []string
-	lines := strings.SplitSeq(strings.TrimRight(fmStr, "\n"), "\n")
-
-	// Cursor only accepts non-standard YAML formatting, so we need to write special encoding logic.
-	for line := range lines {
-		trimmedLine := strings.TrimSpace(line)
-
-		// Handle empty description: `description: ""` -> `description:`
-		if trimmedLine == `description: ""` {
-			resultLines = append(resultLines, "description:")
-			continue
-		}
-
-		// Handle empty globs: `globs: ""` -> `globs:`
-		if trimmedLine == `globs: ""` {
-			resultLines = append(resultLines, "globs:")
-			continue
-		}
-
-		// Handle non-empty description: `description: "..."` -> `description: '... '`
-		// It should be single-quoted, single-line, with a trailing space inside the quotes.
-		if strings.HasPrefix(line, "description: ") && rule.Metadata.Description != "" {
-			originalDesc := rule.Metadata.Description
-			// Replace newlines in original description with spaces to ensure it's single line
-			singleLineDesc := strings.ReplaceAll(originalDesc, "\n", " ")
-			// Trim any existing trailing spaces from the original description before adding our specific one
-			singleLineDesc = strings.TrimRight(singleLineDesc, " ")
-			resultLines = append(resultLines, fmt.Sprintf("description: '%s '", singleLineDesc))
-			continue
-		}
-
-		// Handle non-empty globs: `globs: "content"` -> `globs: content` (remove quotes)
-		if strings.HasPrefix(line, "globs: ") && rule.Metadata.Globs != "" {
-			content := strings.TrimPrefix(line, "globs: ")
-			content = strings.Trim(content, `"`) // Remove surrounding double quotes from default marshalling
-			resultLines = append(resultLines, "globs: "+content)
-			continue
-		}
-
-		resultLines = append(resultLines, line)
+	if rule.Metadata.Globs == "" {
+		metaContent = append(metaContent, "globs:")
+	} else {
+		globs := strings.TrimRight(rule.Metadata.Globs, " ")
+		metaContent = append(metaContent, fmt.Sprintf("globs: %s", globs))
 	}
 
-	fmStr = strings.Join(resultLines, "\n") + "\n"
+	frontMatter := fmt.Sprintf("---\n%s\n---", strings.Join(metaContent, "\n"))
 
-	var normalizedContent string
-	if rule.Content != "" {
-		normalizedContent = strings.TrimRight(rule.Content, "\n") + "\n"
+	// Special case: if the content is empty, we need to return just the front matter
+	if rule.Content == "" {
+		return frontMatter + "\n", nil
 	}
 
-	return fmt.Sprintf("---\n%s---\n%s", fmStr, normalizedContent), nil
+	// Remove trailing newlines from the content, then add one newline at the end
+	normalizedContent := strings.TrimRight(rule.Content, "\n")
+	result := fmt.Sprintf("%s\n%s", frontMatter, normalizedContent)
+	return result + "\n", nil
 }
 
 func (prompt *CursorPrompt) String() (string, error) {
