@@ -40,7 +40,8 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
   - `mode` and `tools` property in prompt file is not supported yet
   - Currently no support for using GitHub Copilot in other editors, IDEs.
 - [x] Cursor
-- [ ] Windsurf
+- [x] Windsurf
+  - Update Windsurf to Wave 8 or later
 - [ ] Cline
 - [ ] Roo Code
 

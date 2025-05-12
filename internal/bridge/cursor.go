@@ -154,14 +154,14 @@ func (rule *CursorRule) String() (string, error) {
 	if rule.Metadata.Description == "" {
 		metaContent = append(metaContent, "description:")
 	} else {
-		description := strings.TrimRight(rule.Metadata.Description, " ")
+		description := strings.TrimSpace(rule.Metadata.Description)
 		metaContent = append(metaContent, fmt.Sprintf("description: %s", description))
 	}
 
 	if rule.Metadata.Globs == "" {
 		metaContent = append(metaContent, "globs:")
 	} else {
-		globs := strings.TrimRight(rule.Metadata.Globs, " ")
+		globs := strings.TrimSpace(rule.Metadata.Globs)
 		metaContent = append(metaContent, fmt.Sprintf("globs: %s", globs))
 	}
 

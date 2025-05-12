@@ -14,3 +14,7 @@ enabled = true
 [outputs.github-copilot]
 target = "github-copilot"
 enabled = true
+
+[outputs.windsurf]
+target = "windsurf"
+enabled = true

@@ -43,3 +43,4 @@ dist/
 
 .cursor/**/aisync/
 .github/**/aisync/
+.windsurf/**/aisync/
