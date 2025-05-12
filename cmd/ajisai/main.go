@@ -41,7 +41,7 @@ func main() {
 				Aliases: []string{"c"},
 				Value:   "ajisai.toml",
 				Usage:   "Load configuration from `FILE`",
-				Sources: cli.EnvVars("ajisai_CONFIG_LOCATION"),
+				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
