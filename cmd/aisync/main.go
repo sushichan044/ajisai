@@ -32,9 +32,10 @@ func main() {
 	}
 
 	app := &cli.Command{
-		Name:    "aisync",
-		Usage:   "Manage AI agent configuration presets (rules)",
-		Version: version,
+		Name:                  "aisync",
+		Usage:                 "Manage AI agent configuration presets (rules)",
+		EnableShellCompletion: true,
+		Version:               version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
