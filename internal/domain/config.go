@@ -6,6 +6,7 @@ const (
 
 	OutputTargetTypeCursor        OutputTargetType = "cursor"         // Cursor output target
 	OutputTargetTypeGitHubCopilot OutputTargetType = "github-copilot" // GitHub Copilot output target
+	OutputTargetTypeWindsurf      OutputTargetType = "windsurf"       // WindSurf output target
 )
 
 type (

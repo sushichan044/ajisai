@@ -192,6 +192,8 @@ func getRepository(target domain.OutputTargetType) (domain.PresetRepository, err
 		return repository.NewCursorRepository()
 	case domain.OutputTargetTypeGitHubCopilot:
 		return repository.NewGitHubCopilotRepository()
+	case domain.OutputTargetTypeWindsurf:
+		return repository.NewWindsurfRepository()
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)
 	}
