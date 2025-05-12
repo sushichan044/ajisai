@@ -7,7 +7,7 @@ GOFLAGS = "-mod=readonly"
 
 [tasks.dev]
 description = "Run the application in development mode"
-run = "go run ./cmd/aisync"
+run = "go run ./cmd/ajisai"
 
 [tasks.lint]
 description = "Run golangci-lint"

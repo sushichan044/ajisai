@@ -1,8 +1,8 @@
-# aisync
+# ajisai
 
 <!-- TOC -->
 
-- [aisync](#aisync)
+- [ajisai](#ajisai)
   - [Features](#features)
   - [AI Coding Agents support status](#ai-coding-agents-support-status)
   - [Installation](#installation)
@@ -19,13 +19,13 @@
 > [!WARNING]
 > This software is still under development. Be careful.
 
-**aisync** is a command-line tool designed to manage and synchronize AI coding agent configuration presets (like rules and prompts) from various sources to different environments.
+**ajisai** is a command-line tool designed to manage and synchronize AI coding agent configuration presets (like rules and prompts) from various sources to different environments.
 
 It helps you keep your AI assistant\'s behavior consistent across platforms or easily share and version control your configurations.
 
 ## Features
 
-- Manage all your AI preset sources and destinations from a single `aisync.toml` file.
+- Manage all your AI preset sources and destinations from a single `ajisai.toml` file.
 - Fetch presets from local directories or remote Git repositories (specific branches, tags, or commits).
 - Export presets to formats and locations suitable for different AI coding agents (e.g., Cursor, GitHub Copilot).
 - *(Upcoming)* `import` command to import presets from existing agent formats.
@@ -51,7 +51,7 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
   <summary>homebrew</summary>
 
 ```bash
-brew install sushichan044/tap/aisync
+brew install sushichan044/tap/ajisai
 ```
 
 </details>
@@ -60,7 +60,7 @@ brew install sushichan044/tap/aisync
   <summary>go install</summary>
 
 ```bash
-go install github.com/sushichan044/aisync@latest
+go install github.com/sushichan044/ajisai@latest
 ```
 
 </details>
@@ -68,41 +68,41 @@ go install github.com/sushichan044/aisync@latest
 <details>
   <summary>manual</summary>
 
-Download the latest release from the [GitHub releases page](https://github.com/sushichan044/aisync/releases).
+Download the latest release from the [GitHub releases page](https://github.com/sushichan044/ajisai/releases).
 
 </details>
 
 ## Usage
 
-`aisync` is controlled via command-line arguments and flags.
+`ajisai` is controlled via command-line arguments and flags.
 
-The default configuration file is `aisync.toml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
+The default configuration file is `ajisai.toml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
 
 ### Commands
 
-- **`aisync apply`**: Fetches presets from all configured input sources, parses them, cleans the output directories, and then exports them to the configured output targets.
+- **`ajisai apply`**: Fetches presets from all configured input sources, parses them, cleans the output directories, and then exports them to the configured output targets.
 
     ```bash
-    aisync apply
-    aisync apply --config /path/to/your/custom-config.toml
+    ajisai apply
+    ajisai apply --config /path/to/your/custom-config.toml
     ```
 
-- **`aisync clean`**: Cleans the cache directory used by `aisync` to store fetched presets. By default, it cleans the cache specified in the configuration. The `--force` flag can be used to ensure cleaning even if errors occur during the process.
+- **`ajisai clean`**: Cleans the cache directory used by `ajisai` to store fetched presets. By default, it cleans the cache specified in the configuration. The `--force` flag can be used to ensure cleaning even if errors occur during the process.
 
     ```bash
-    aisync clean
-    aisync clean --force
+    ajisai clean
+    ajisai clean --force
     ```
 
 To see all available commands and options, use:
 
 ```bash
-aisync --help
+ajisai --help
 ```
 
 ## Defining preset
 
-A preset is a directory containing rules and prompts that `aisync` can manage. The expected directory structure for a preset is as follows:
+A preset is a directory containing rules and prompts that `ajisai` can manage. The expected directory structure for a preset is as follows:
 
 ```
 your-preset-name/
@@ -161,16 +161,16 @@ Please refactor the following Go code to improve its readability and maintainabi
 
 ## Configuration
 
-`aisync` is configured using a TOML file, by default named `aisync.toml`. Here is an example configuration:
+`ajisai` is configured using a TOML file, by default named `ajisai.toml`. Here is an example configuration:
 
 ```toml
 [settings]
-# Specifies the directory where `aisync` will store cached data of inputs.
-cacheDir = "./.cache/aisync" # Optional: Defaults to `./.cache/aisync`.
+# Specifies the directory where `ajisai` will store cached data of inputs.
+cacheDir = "./.cache/ajisai" # Optional: Defaults to `./.cache/ajisai`.
 
 # A namespace string that can be used by output targets to organize or prefix the imported presets.
-# For example, aisync might place presets under `~/.cursor/prompts/<namespace>/` or `~/.cursor/rules/<namespace>/`.
-namespace = "aisync"      # Optional: Defaults to `aisync`.
+# For example, ajisai might place presets under `~/.cursor/prompts/<namespace>/` or `~/.cursor/rules/<namespace>/`.
+namespace = "ajisai"      # Optional: Defaults to `ajisai`.
 
 experimental = false # Optional: Defaults to false. Set to true to enable experimental features.
 
@@ -197,6 +197,6 @@ enabled = true
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues on the [GitHub repository](https://github.com/sushichan044/aisync).
+Contributions are welcome! Please feel free to submit pull requests or open issues on the [GitHub repository](https://github.com/sushichan044/ajisai).
 
 (Further details on development setup, coding standards, and the contribution process can be added here.)

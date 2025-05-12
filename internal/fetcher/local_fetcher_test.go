@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/internal/fetcher"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/internal/fetcher"
 )
 
 func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {

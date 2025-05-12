@@ -7,7 +7,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/ajisai/internal/domain"
 )
 
 type TomlLoader struct{}
@@ -69,7 +69,7 @@ func (loader *TomlLoader) Save(configPath string, cfg *domain.Config) error {
 	}
 
 	// Write to a temporary file first for atomicity
-	tempFile, err := os.CreateTemp(configDir, ".aisync.tmp-")
+	tempFile, err := os.CreateTemp(configDir, ".ajisai.tmp-")
 	if err != nil {
 		return err
 	}

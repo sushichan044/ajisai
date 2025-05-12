@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/aisync/internal/config"
-	"github.com/sushichan044/aisync/internal/domain"
+	"github.com/sushichan044/ajisai/internal/config"
+	"github.com/sushichan044/ajisai/internal/domain"
 )
 
 func TestTomlManager_Load_Success(t *testing.T) {
@@ -101,7 +101,7 @@ enabled = false
 
 			// Create a temporary file
 			tempDir := t.TempDir()
-			configPath := filepath.Join(tempDir, "aisync.toml")
+			configPath := filepath.Join(tempDir, "ajisai.toml")
 			err := os.WriteFile(configPath, []byte(tc.tomlData), 0644)
 			require.NoError(t, err)
 

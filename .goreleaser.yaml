@@ -19,9 +19,9 @@ universal_binaries:
   - replace: true
 
 builds:
-  - main: ./cmd/aisync/main.go
-    id: aisync
-    binary: aisync
+  - main: ./cmd/ajisai/main.go
+    id: ajisai
+    binary: ajisai
     env:
       - CGO_ENABLED=0
     goos:
@@ -67,7 +67,7 @@ changelog:
 release:
   github:
     owner: sushichan044
-    name: aisync
+    name: ajisai
   footer: >-
 
     ---

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sushichan044/aisync/utils"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 func TestContainsAny(t *testing.T) {

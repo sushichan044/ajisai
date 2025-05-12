@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/internal/repository"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/internal/repository"
 )
 
 func createTestCursorRepository(t *testing.T, rulesDir, promptsDir string) *repository.CursorRepository {

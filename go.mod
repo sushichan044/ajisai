@@ -1,4 +1,4 @@
-module github.com/sushichan044/aisync
+module github.com/sushichan044/ajisai
 
 go 1.24.0
 
@@ -35,6 +35,6 @@ require (
 	gotest.tools/gotestsum v1.12.2 // indirect
 )
 
-replace github.com/sushichan044/aisync => ./
+replace github.com/sushichan044/ajisai => ./
 
 tool gotest.tools/gotestsum

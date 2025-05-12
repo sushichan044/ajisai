@@ -6,8 +6,8 @@ import (
 
 	yaml "github.com/goccy/go-yaml"
 
-	"github.com/sushichan044/aisync/internal/domain"
-	"github.com/sushichan044/aisync/utils"
+	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 type (
