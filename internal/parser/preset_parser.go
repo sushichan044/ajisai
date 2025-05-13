@@ -26,7 +26,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 		return nil, fmt.Errorf("preset %s not found in config", presetName)
 	}
 
-	presetRootDir, err := resolvePresetRootDir(config, presetName)
+	presetCacheRoot, err := config.GetPresetRootInCache(presetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve preset root directory: %w", err)
 	}
@@ -39,7 +39,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	eg := new(errgroup.Group)
 
 	eg.Go(func() error {
-		parsedPrompts, innerErr := parsePrompts(presetRootDir)
+		parsedPrompts, innerErr := parsePrompts(presetCacheRoot)
 		if innerErr != nil {
 			return fmt.Errorf("failed to parse prompts: %w", innerErr)
 		}
@@ -49,7 +49,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	})
 
 	eg.Go(func() error {
-		parsedRules, innerErr := parseRules(presetRootDir)
+		parsedRules, innerErr := parseRules(presetCacheRoot)
 		if innerErr != nil {
 			return fmt.Errorf("failed to parse rules: %w", innerErr)
 		}
@@ -164,29 +164,4 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 	}
 
 	return items, nil
-}
-
-func resolvePresetRootDir(config *domain.Config, presetName string) (string, error) {
-	cacheDir, err := utils.ResolveAbsPath(config.Settings.CacheDir)
-	if err != nil {
-		return "", err
-	}
-
-	inputConfig, ok := config.Inputs[presetName]
-	if !ok {
-		return "", fmt.Errorf("preset %s not found", presetName)
-	}
-
-	if _, isLocal := domain.GetInputSourceDetails[domain.LocalInputSourceDetails](inputConfig); isLocal {
-		return filepath.Join(cacheDir, presetName), nil
-	}
-
-	if gitInput, isGit := domain.GetInputSourceDetails[domain.GitInputSourceDetails](inputConfig); isGit {
-		if gitInput.Directory != "" {
-			return filepath.Join(cacheDir, presetName, gitInput.Directory), nil
-		}
-		return filepath.Join(cacheDir, presetName), nil
-	}
-
-	return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
 }

@@ -1,5 +1,12 @@
 package domain
 
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/sushichan044/ajisai/utils"
+)
+
 const (
 	InputSourceTypeLocal InputSourceType = "local" // Local file system input
 	InputSourceTypeGit   InputSourceType = "git"   // Git repository input
@@ -64,4 +71,34 @@ func (d GitInputSourceDetails) isInputSourceDetails() {}
 func GetInputSourceDetails[T InputSourceDetails](is InputSource) (T, bool) {
 	details, ok := is.Details.(T)
 	return details, ok
+}
+
+func (c *Config) GetPresetRootInCache(presetName string) (string, error) {
+	cacheDir, err := utils.ResolveAbsPath(c.Settings.CacheDir)
+	if err != nil {
+		return "", err
+	}
+
+	inputConfig, isConfigured := c.Inputs[presetName]
+	if !isConfigured {
+		return "", fmt.Errorf("preset %s not found", presetName)
+	}
+
+	switch inputConfig.Type {
+	case InputSourceTypeLocal:
+		if _, ok := GetInputSourceDetails[LocalInputSourceDetails](inputConfig); ok {
+			return filepath.Join(cacheDir, presetName), nil
+		}
+		return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
+	case InputSourceTypeGit:
+		if gitDetails, ok := GetInputSourceDetails[GitInputSourceDetails](inputConfig); ok {
+			if gitDetails.Directory != "" {
+				return filepath.Join(cacheDir, presetName, gitDetails.Directory), nil
+			}
+			return filepath.Join(cacheDir, presetName), nil
+		}
+		return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
+	default:
+		return "", fmt.Errorf("unsupported input source type: %s", inputConfig.Type)
+	}
 }
