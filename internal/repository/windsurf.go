@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -49,7 +50,6 @@ func NewWindsurfRepositoryWithPaths(rulesDir, promptsDir string) (*WindsurfRepos
 
 //gocognit:ignore
 func (repo *WindsurfRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(namespace, pkg.Name, WindsurfRuleExtension)
 		if err != nil {
@@ -124,6 +124,54 @@ func (repo *WindsurfRepository) WritePackage(namespace string, pkg domain.Preset
 
 func (repo *WindsurfRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
+}
+
+func (repo *WindsurfRepository) ReadRules(namespace string) ([]*domain.RuleItem, error) {
+	ruleDir := filepath.Join(repo.rulesRootDir, namespace)
+	rules := []*domain.RuleItem{}
+
+	walkErr := filepath.WalkDir(ruleDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() || filepath.Ext(d.Name()) != "."+WindsurfRuleExtension {
+			return nil
+		}
+
+		slug, slugErr := utils.GetSlugFromBaseDir(ruleDir, path)
+		if slugErr != nil {
+			return slugErr
+		}
+
+		rawBody, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+
+		result, parseErr := utils.ParseMarkdownWithMetadata[bridge.WindsurfRuleMetadata](rawBody)
+		if parseErr != nil {
+			return parseErr
+		}
+
+		ruleItem, bridgeErr := repo.bridge.FromAgentRule(bridge.WindsurfRule{
+			Slug:     slug,
+			Content:  result.Content,
+			Metadata: result.FrontMatter,
+		})
+		if bridgeErr != nil {
+			return bridgeErr
+		}
+
+		rules = append(rules, &ruleItem)
+		return nil
+	})
+
+	if walkErr != nil {
+		return nil, walkErr
+	}
+
+	return rules, nil
 }
 
 func (repo *WindsurfRepository) Clean(namespace string) error {
