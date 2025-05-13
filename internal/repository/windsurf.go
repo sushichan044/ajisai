@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -15,6 +16,8 @@ import (
 type WindsurfRepository struct {
 	rulesRootDir   string
 	promptsRootDir string
+
+	bridge domain.AgentBridge[bridge.WindsurfRule, bridge.WindsurfPrompt]
 }
 
 const (
@@ -31,6 +34,7 @@ func NewWindsurfRepository() (domain.PresetRepository, error) {
 	return &WindsurfRepository{
 		rulesRootDir:   filepath.Join(cwd, ".windsurf", "rules"),
 		promptsRootDir: filepath.Join(cwd, ".windsurf", "prompts"),
+		bridge:         bridge.NewWindsurfBridge(),
 	}, nil
 }
 
@@ -40,20 +44,19 @@ func NewWindsurfRepositoryWithPaths(rulesDir, promptsDir string) (*WindsurfRepos
 	return &WindsurfRepository{
 		rulesRootDir:   rulesDir,
 		promptsRootDir: promptsDir,
+		bridge:         bridge.NewWindsurfBridge(),
 	}, nil
 }
 
 //gocognit:ignore
-func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	bridge := bridge.NewWindsurfBridge()
-
+func (repo *WindsurfRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(namespace, pkg.Name, WindsurfRuleExtension)
 		if err != nil {
 			return "", err
 		}
 
-		return filepath.Join(repository.rulesRootDir, rulePath), nil
+		return filepath.Join(repo.rulesRootDir, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -62,7 +65,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 			return "", err
 		}
 
-		return filepath.Join(repository.promptsRootDir, promptPath), nil
+		return filepath.Join(repo.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -73,7 +76,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 				return err
 			}
 
-			ruleItem, err := bridge.ToAgentRule(*rule)
+			ruleItem, err := repo.bridge.ToAgentRule(*rule)
 			if err != nil {
 				return err
 			}
@@ -98,7 +101,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 				return err
 			}
 
-			prompt, promptConversionErr := bridge.ToAgentPrompt(*prompt)
+			prompt, promptConversionErr := repo.bridge.ToAgentPrompt(*prompt)
 			if promptConversionErr != nil {
 				return promptConversionErr
 			}
@@ -119,13 +122,61 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 	return eg.Wait()
 }
 
-func (repository *WindsurfRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
+func (repo *WindsurfRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
 
-func (repository *WindsurfRepository) Clean(namespace string) error {
-	ruleDir := filepath.Join(repository.rulesRootDir, namespace)
-	promptDir := filepath.Join(repository.promptsRootDir, namespace)
+func (repo *WindsurfRepository) ReadRules(namespace string) ([]*domain.RuleItem, error) {
+	ruleDir := filepath.Join(repo.rulesRootDir, namespace)
+	rules := []*domain.RuleItem{}
+
+	walkErr := filepath.WalkDir(ruleDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() || filepath.Ext(d.Name()) != "."+WindsurfRuleExtension {
+			return nil
+		}
+
+		slug, slugErr := utils.GetSlugFromBaseDir(ruleDir, path)
+		if slugErr != nil {
+			return slugErr
+		}
+
+		rawBody, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+
+		result, parseErr := utils.ParseMarkdownWithMetadata[bridge.WindsurfRuleMetadata](rawBody)
+		if parseErr != nil {
+			return parseErr
+		}
+
+		ruleItem, bridgeErr := repo.bridge.FromAgentRule(bridge.WindsurfRule{
+			Slug:     slug,
+			Content:  result.Content,
+			Metadata: result.FrontMatter,
+		})
+		if bridgeErr != nil {
+			return bridgeErr
+		}
+
+		rules = append(rules, &ruleItem)
+		return nil
+	})
+
+	if walkErr != nil {
+		return nil, walkErr
+	}
+
+	return rules, nil
+}
+
+func (repo *WindsurfRepository) Clean(namespace string) error {
+	ruleDir := filepath.Join(repo.rulesRootDir, namespace)
+	promptDir := filepath.Join(repo.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 

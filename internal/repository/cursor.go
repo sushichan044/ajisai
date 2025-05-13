@@ -15,6 +15,8 @@ import (
 type CursorRepository struct {
 	rulesRootDir   string
 	promptsRootDir string
+
+	bridge domain.AgentBridge[bridge.CursorRule, bridge.CursorPrompt]
 }
 
 const (
@@ -31,6 +33,7 @@ func NewCursorRepository() (domain.PresetRepository, error) {
 	return &CursorRepository{
 		rulesRootDir:   filepath.Join(cwd, ".cursor", "rules"),
 		promptsRootDir: filepath.Join(cwd, ".cursor", "prompts"),
+		bridge:         bridge.NewCursorBridge(),
 	}, nil
 }
 
@@ -38,22 +41,21 @@ func NewCursorRepository() (domain.PresetRepository, error) {
 // This is mainly used for testing.
 func NewCursorRepositoryWithPaths(rulesDir, promptsDir string) (*CursorRepository, error) {
 	return &CursorRepository{
+		bridge:         bridge.NewCursorBridge(),
 		rulesRootDir:   rulesDir,
 		promptsRootDir: promptsDir,
 	}, nil
 }
 
 //gocognit:ignore
-func (repository *CursorRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	bridge := bridge.NewCursorBridge()
-
+func (repo *CursorRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(namespace, pkg.Name, CursorRuleExtension)
 		if err != nil {
 			return "", err
 		}
 
-		return filepath.Join(repository.rulesRootDir, rulePath), nil
+		return filepath.Join(repo.rulesRootDir, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -62,7 +64,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 			return "", err
 		}
 
-		return filepath.Join(repository.promptsRootDir, promptPath), nil
+		return filepath.Join(repo.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -74,7 +76,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 				return err
 			}
 
-			cursorRule, ruleConversionErr := bridge.ToAgentRule(*rule)
+			cursorRule, ruleConversionErr := repo.bridge.ToAgentRule(*rule)
 			if ruleConversionErr != nil {
 				return ruleConversionErr
 			}
@@ -99,7 +101,7 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 				return err
 			}
 
-			cursorPrompt, promptConversionErr := bridge.ToAgentPrompt(*prompt)
+			cursorPrompt, promptConversionErr := repo.bridge.ToAgentPrompt(*prompt)
 			if promptConversionErr != nil {
 				return promptConversionErr
 			}
@@ -120,13 +122,13 @@ func (repository *CursorRepository) WritePackage(namespace string, pkg domain.Pr
 	return eg.Wait()
 }
 
-func (repository *CursorRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
+func (repo *CursorRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
 
-func (repository *CursorRepository) Clean(namespace string) error {
-	ruleDir := filepath.Join(repository.rulesRootDir, namespace)
-	promptDir := filepath.Join(repository.promptsRootDir, namespace)
+func (repo *CursorRepository) Clean(namespace string) error {
+	ruleDir := filepath.Join(repo.rulesRootDir, namespace)
+	promptDir := filepath.Join(repo.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 

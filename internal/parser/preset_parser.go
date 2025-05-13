@@ -1,16 +1,13 @@
 package parser
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
-	"github.com/adrg/frontmatter"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/sushichan044/ajisai/internal/domain"
@@ -27,7 +24,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 		return nil, fmt.Errorf("preset %s not found in config", presetName)
 	}
 
-	presetRootDir, err := resolvePresetRootDir(config, presetName)
+	presetCacheRoot, err := config.GetPresetRootInCache(presetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve preset root directory: %w", err)
 	}
@@ -40,7 +37,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	eg := new(errgroup.Group)
 
 	eg.Go(func() error {
-		parsedPrompts, innerErr := parsePrompts(presetRootDir)
+		parsedPrompts, innerErr := parsePrompts(presetCacheRoot)
 		if innerErr != nil {
 			return fmt.Errorf("failed to parse prompts: %w", innerErr)
 		}
@@ -50,7 +47,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 	})
 
 	eg.Go(func() error {
-		parsedRules, innerErr := parseRules(presetRootDir)
+		parsedRules, innerErr := parseRules(presetCacheRoot)
 		if innerErr != nil {
 			return fmt.Errorf("failed to parse rules: %w", innerErr)
 		}
@@ -89,24 +86,22 @@ func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
 			return nil
 		}
 
-		slug, err := getPromptSlug(rootDir, path)
+		slug, err := utils.GetSlugFromBaseDir(promptRootDir, path)
 		if err != nil {
 			return err
 		}
 
-		content, err := os.ReadFile(path)
+		body, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		var metadata domain.PromptMetadata
-
-		rest, err := frontmatter.Parse(bytes.NewReader(content), &metadata)
+		result, err := utils.ParseMarkdownWithMetadata[domain.PromptMetadata](body)
 		if err != nil {
 			return err
 		}
 
-		ruleItem := domain.NewPromptItem(slug, string(rest), metadata)
+		ruleItem := domain.NewPromptItem(slug, result.Content, result.FrontMatter)
 
 		items = append(items, ruleItem)
 		return nil
@@ -138,24 +133,22 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 			return nil
 		}
 
-		slug, err := getRuleSlug(rootDir, path)
+		slug, err := utils.GetSlugFromBaseDir(ruleRootDir, path)
 		if err != nil {
 			return err
 		}
 
-		content, err := os.ReadFile(path)
+		body, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		var metadata domain.RuleMetadata
-
-		rest, err := frontmatter.Parse(bytes.NewReader(content), &metadata)
+		result, err := utils.ParseMarkdownWithMetadata[domain.RuleMetadata](body)
 		if err != nil {
 			return err
 		}
 
-		ruleItem := domain.NewRuleItem(slug, string(rest), metadata)
+		ruleItem := domain.NewRuleItem(slug, result.Content, result.FrontMatter)
 		items = append(items, ruleItem)
 		return nil
 	})
@@ -165,70 +158,4 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 	}
 
 	return items, nil
-}
-
-var (
-	ruleSlugRegex = regexp.MustCompile(
-		fmt.Sprintf("^%s/(.*)\\.%s$", domain.RulesPresetType, domain.RuleInternalExtension),
-	)
-
-	promptSlugRegex = regexp.MustCompile(
-		fmt.Sprintf("^%s/(.*)\\.%s$", domain.PromptsPresetType, domain.PromptInternalExtension),
-	)
-)
-
-func getRuleSlug(pkgRootDir string, fullPath string) (string, error) {
-	relPath, err := filepath.Rel(pkgRootDir, fullPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get relative path: %w", err)
-	}
-
-	// e.g. rules/react/my-rule.md -> matches[0] = "rules/react/my-rule.md", matches[1] = "react/my-rule"
-	expectMatches := 2
-	matches := ruleSlugRegex.FindStringSubmatch(relPath)
-	if len(matches) < expectMatches {
-		return "", fmt.Errorf("invalid rule path format: %s", relPath)
-	}
-
-	return matches[1], nil
-}
-
-func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
-	relPath, err := filepath.Rel(pkgRootDir, fullPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get relative path: %w", err)
-	}
-
-	expectMatches := 2
-	matches := promptSlugRegex.FindStringSubmatch(relPath)
-	if len(matches) < expectMatches {
-		return "", fmt.Errorf("invalid prompt path format: %s", relPath)
-	}
-
-	return matches[1], nil
-}
-
-func resolvePresetRootDir(config *domain.Config, presetName string) (string, error) {
-	cacheDir, err := utils.ResolveAbsPath(config.Settings.CacheDir)
-	if err != nil {
-		return "", err
-	}
-
-	inputConfig, ok := config.Inputs[presetName]
-	if !ok {
-		return "", fmt.Errorf("preset %s not found", presetName)
-	}
-
-	if _, isLocal := domain.GetInputSourceDetails[domain.LocalInputSourceDetails](inputConfig); isLocal {
-		return filepath.Join(cacheDir, presetName), nil
-	}
-
-	if gitInput, isGit := domain.GetInputSourceDetails[domain.GitInputSourceDetails](inputConfig); isGit {
-		if gitInput.Directory != "" {
-			return filepath.Join(cacheDir, presetName, gitInput.Directory), nil
-		}
-		return filepath.Join(cacheDir, presetName), nil
-	}
-
-	return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
 }
