@@ -1,150 +1,58 @@
 package repository
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-
-	"golang.org/x/sync/errgroup"
-
 	"github.com/sushichan044/ajisai/internal/bridge"
 	"github.com/sushichan044/ajisai/internal/domain"
-	"github.com/sushichan044/ajisai/utils"
 )
 
-type GitHubCopilotRepository struct {
-	instructionsRootDir string
-	promptsRootDir      string
-
+type gitHubCopilotAdapter struct {
 	bridge domain.AgentBridge[bridge.GitHubCopilotInstruction, bridge.GitHubCopilotPrompt]
 }
 
-func NewGitHubCopilotRepository() (domain.PresetRepository, error) {
-	cwd, wdErr := os.Getwd()
-	if wdErr != nil {
-		return nil, wdErr
-	}
-
-	return &GitHubCopilotRepository{
-		instructionsRootDir: filepath.Join(cwd, ".github", "instructions"),
-		promptsRootDir:      filepath.Join(cwd, ".github", "prompts"),
-		bridge:              bridge.NewGitHubCopilotBridge(),
-	}, nil
-}
-
-func NewGitHubCopilotRepositoryWithPaths(instructionsDir, promptsDir string) (*GitHubCopilotRepository, error) {
-	return &GitHubCopilotRepository{
-		instructionsRootDir: instructionsDir,
-		promptsRootDir:      promptsDir,
-		bridge:              bridge.NewGitHubCopilotBridge(),
-	}, nil
-}
-
 const (
-	GitHubCopilotInstructionExtension = "instructions.md"
-	GitHubCopilotPromptExtension      = "prompt.md"
+	gitHubCopilotInstructionExtension = ".instructions.md"
+	gitHubCopilotPromptExtension      = ".prompt.md"
+
+	githubCopilotInstructionsDir = ".github/instructions"
+	githubCopilotPromptsDir      = ".github/prompts"
 )
 
-//gocognit:ignore
-func (repo *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	resolveInstructionPath := func(instruction *domain.RuleItem) (string, error) {
-		instructionPath, innerErr := instruction.GetInternalPath(
-			namespace,
-			pkg.Name,
-			GitHubCopilotInstructionExtension,
-		)
-		if innerErr != nil {
-			return "", innerErr
-		}
-
-		return filepath.Join(repo.instructionsRootDir, instructionPath), nil
+func NewGitHubCopilotAdapter() AgentFileAdapter {
+	return &gitHubCopilotAdapter{
+		bridge: bridge.NewGitHubCopilotBridge(),
 	}
-
-	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
-		promptPath, innerErr := prompt.GetInternalPath(
-			namespace,
-			pkg.Name,
-			GitHubCopilotPromptExtension,
-		)
-		if innerErr != nil {
-			return "", innerErr
-		}
-
-		return filepath.Join(repo.promptsRootDir, promptPath), nil
-	}
-
-	eg := errgroup.Group{}
-
-	for _, rule := range pkg.Rules {
-		eg.Go(func() error {
-			instructionPath, pathErr := resolveInstructionPath(rule)
-			if pathErr != nil {
-				return pathErr
-			}
-
-			instruction, bridgeErr := repo.bridge.ToAgentRule(*rule)
-			if bridgeErr != nil {
-				return bridgeErr
-			}
-
-			instructionStr, serializeErr := instruction.String()
-			if serializeErr != nil {
-				return serializeErr
-			}
-
-			if dirErr := utils.EnsureDir(filepath.Dir(instructionPath)); dirErr != nil {
-				return fmt.Errorf("failed to create directory for instruction %s: %w", instructionPath, dirErr)
-			}
-
-			return os.WriteFile(instructionPath, []byte(instructionStr), 0600)
-		})
-	}
-
-	for _, prompt := range pkg.Prompts {
-		eg.Go(func() error {
-			promptPath, pathErr := resolvePromptPath(prompt)
-			if pathErr != nil {
-				return pathErr
-			}
-
-			prompt, bridgeErr := repo.bridge.ToAgentPrompt(*prompt)
-			if bridgeErr != nil {
-				return bridgeErr
-			}
-
-			promptStr, serializeErr := prompt.String()
-			if serializeErr != nil {
-				return serializeErr
-			}
-
-			if dirErr := utils.EnsureDir(filepath.Dir(promptPath)); dirErr != nil {
-				return fmt.Errorf("failed to create directory for prompt %s: %w", promptPath, dirErr)
-			}
-
-			return os.WriteFile(promptPath, []byte(promptStr), 0600)
-		})
-	}
-
-	return eg.Wait()
 }
 
-func (repo *GitHubCopilotRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
-	return domain.PresetPackage{}, nil
+func (adapter *gitHubCopilotAdapter) RuleExtension() string {
+	return gitHubCopilotInstructionExtension
 }
 
-func (repo *GitHubCopilotRepository) Clean(namespace string) error {
-	instructionDir := filepath.Join(repo.instructionsRootDir, namespace)
-	promptDir := filepath.Join(repo.promptsRootDir, namespace)
+func (adapter *gitHubCopilotAdapter) PromptExtension() string {
+	return gitHubCopilotPromptExtension
+}
 
-	eg := errgroup.Group{}
+func (adapter *gitHubCopilotAdapter) RulesDir() string {
+	return githubCopilotInstructionsDir
+}
 
-	eg.Go(func() error {
-		return os.RemoveAll(instructionDir)
-	})
+func (adapter *gitHubCopilotAdapter) PromptsDir() string {
+	return githubCopilotPromptsDir
+}
 
-	eg.Go(func() error {
-		return os.RemoveAll(promptDir)
-	})
+func (adapter *gitHubCopilotAdapter) SerializeRule(rule *domain.RuleItem) (string, error) {
+	agentRule, err := adapter.bridge.ToAgentRule(*rule)
+	if err != nil {
+		return "", err
+	}
 
-	return eg.Wait()
+	return adapter.bridge.SerializeAgentRule(agentRule)
+}
+
+func (adapter *gitHubCopilotAdapter) SerializePrompt(prompt *domain.PromptItem) (string, error) {
+	agentPrompt, err := adapter.bridge.ToAgentPrompt(*prompt)
+	if err != nil {
+		return "", err
+	}
+
+	return adapter.bridge.SerializeAgentPrompt(agentPrompt)
 }

@@ -80,6 +80,6 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 	}
 }
 
-func (item *presetItem) GetInternalPath(namespace string, packageName string, extension string) (string, error) {
-	return filepath.Join(namespace, packageName, item.Slug+"."+extension), nil
+func (item *presetItem) GetInternalPath(packageName string, extension string) (string, error) {
+	return filepath.Join(packageName, item.Slug+extension), nil
 }
