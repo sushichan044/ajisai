@@ -59,9 +59,9 @@ func (engine *Engine) Parse(presetNames []string) ([]domain.AgentPreset, error) 
 
 	presets := make([]domain.AgentPreset, 0, len(presetNames))
 
-	for _, pkgName := range presetNames {
+	for _, presetName := range presetNames {
 		eg.Go(func() error {
-			parsedPkg, parseErr := parser.ParsePreset(engine.cfg, pkgName)
+			parsedPkg, parseErr := parser.ParsePreset(engine.cfg, presetName)
 			if parseErr != nil {
 				return fmt.Errorf("failed to parse preset: %w", parseErr)
 			}
@@ -161,9 +161,9 @@ func (engine *Engine) Export(presets []domain.AgentPreset) error {
 	eg := errgroup.Group{}
 
 	for _, currentRepo := range repos {
-		for _, pkg := range presets {
+		for _, preset := range presets {
 			eg.Go(func() error {
-				return currentRepo.WritePreset(engine.cfg.Settings.Namespace, pkg)
+				return currentRepo.WritePreset(engine.cfg.Settings.Namespace, preset)
 			})
 		}
 	}

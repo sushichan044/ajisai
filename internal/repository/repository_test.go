@@ -62,7 +62,7 @@ func TestWritePreset(t *testing.T) {
 	repo, err := repository.NewPresetRepository(adapter)
 	require.NoError(t, err)
 
-	pkg := domain.AgentPreset{
+	preset := domain.AgentPreset{
 		Name: "test-package",
 		Rules: []*domain.RuleItem{
 			domain.NewRuleItem("test-rule", "Rule content", domain.RuleMetadata{
@@ -77,7 +77,7 @@ func TestWritePreset(t *testing.T) {
 		},
 	}
 
-	err = repo.WritePreset("test-namespace", pkg)
+	err = repo.WritePreset("test-namespace", preset)
 	require.NoError(t, err)
 
 	rulePath := filepath.Join(
@@ -147,9 +147,9 @@ func TestReadPreset(t *testing.T) {
 	repo, err := repository.NewPresetRepository(adapter)
 	require.NoError(t, err)
 
-	pkg, err := repo.ReadPreset("test-namespace")
+	preset, err := repo.ReadPreset("test-namespace")
 	require.NoError(t, err)
-	assert.Empty(t, pkg.Name)
-	assert.Empty(t, pkg.Rules)
-	assert.Empty(t, pkg.Prompts)
+	assert.Empty(t, preset.Name)
+	assert.Empty(t, preset.Rules)
+	assert.Empty(t, preset.Prompts)
 }
