@@ -22,7 +22,7 @@ type (
 
 	// Config represents the fully resolved and validated application configuration.
 	Config struct {
-		Settings                         // Resolved top-level settings
+		Settings Settings                // Resolved top-level settings
 		Inputs   map[string]InputSource  // Key is the input source identifier
 		Outputs  map[string]OutputTarget // Key is the output target identifier
 	}
