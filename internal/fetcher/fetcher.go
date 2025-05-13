@@ -7,16 +7,16 @@ import (
 )
 
 type InvalidSourceTypeError struct {
-	expectedType domain.InputSourceType
-	actualType   domain.InputSourceType
+	expectedType domain.PresetSourceType
+	actualType   domain.PresetSourceType
 	err          error
 }
 
-func (e *InvalidSourceTypeError) ExpectedType() domain.InputSourceType {
+func (e *InvalidSourceTypeError) ExpectedType() domain.PresetSourceType {
 	return e.expectedType
 }
 
-func (e *InvalidSourceTypeError) ActualType() domain.InputSourceType {
+func (e *InvalidSourceTypeError) ActualType() domain.PresetSourceType {
 	return e.actualType
 }
 

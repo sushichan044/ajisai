@@ -54,7 +54,7 @@ func (m *mockFileAdapter) SerializePrompt(prompt *domain.PromptItem) (string, er
 	return "---\ndescription: " + prompt.Metadata.Description + "\n---\n" + prompt.Content, nil
 }
 
-func TestWritePackage(t *testing.T) {
+func TestWritePreset(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Chdir(tempDir)
 
@@ -62,7 +62,7 @@ func TestWritePackage(t *testing.T) {
 	repo, err := repository.NewPresetRepository(adapter)
 	require.NoError(t, err)
 
-	pkg := domain.PresetPackage{
+	preset := domain.AgentPreset{
 		Name: "test-package",
 		Rules: []*domain.RuleItem{
 			domain.NewRuleItem("test-rule", "Rule content", domain.RuleMetadata{
@@ -77,7 +77,7 @@ func TestWritePackage(t *testing.T) {
 		},
 	}
 
-	err = repo.WritePackage("test-namespace", pkg)
+	err = repo.WritePreset("test-namespace", preset)
 	require.NoError(t, err)
 
 	rulePath := filepath.Join(
@@ -142,14 +142,14 @@ func TestClean(t *testing.T) {
 	assert.ErrorIs(t, err, os.ErrNotExist, "Prompts directory should be removed")
 }
 
-func TestReadPackage(t *testing.T) {
+func TestReadPreset(t *testing.T) {
 	adapter := newMockFileAdapter()
 	repo, err := repository.NewPresetRepository(adapter)
 	require.NoError(t, err)
 
-	pkg, err := repo.ReadPackage("test-namespace")
+	preset, err := repo.ReadPreset("test-namespace")
 	require.NoError(t, err)
-	assert.Empty(t, pkg.Name)
-	assert.Empty(t, pkg.Rules)
-	assert.Empty(t, pkg.Prompts)
+	assert.Empty(t, preset.Name)
+	assert.Empty(t, preset.Rules)
+	assert.Empty(t, preset.Prompts)
 }

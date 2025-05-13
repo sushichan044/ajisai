@@ -23,13 +23,13 @@ type (
 		DeserializeAgentPrompt(slug string, promptBody string) (TPrompt, error)
 	}
 
-	// PresetRepository is a repository for read / write PresetPackage into a specific agent format.
+	// PresetRepository is a repository for read / write Preset into a specific agent format.
 	PresetRepository interface {
-		// ReadPackage reads a preset package from the given namespace.
-		ReadPackage(namespace string) (PresetPackage, error)
+		// ReadPreset reads a preset from the given namespace.
+		ReadPreset(namespace string) (AgentPreset, error)
 
-		// WritePackage writes a preset package to the given namespace.
-		WritePackage(namespace string, pkg PresetPackage) error
+		// WritePreset writes a preset to the given namespace.
+		WritePreset(namespace string, preset AgentPreset) error
 
 		// Clean removes all presets from the repository.
 		Clean(namespace string) error

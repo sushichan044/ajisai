@@ -8,21 +8,21 @@ import (
 )
 
 const (
-	InputSourceTypeLocal InputSourceType = "local" // Local file system input
-	InputSourceTypeGit   InputSourceType = "git"   // Git repository input
+	PresetSourceTypeLocal PresetSourceType = "local" // Local file system input
+	PresetSourceTypeGit   PresetSourceType = "git"   // Git repository input
 
-	OutputTargetTypeCursor        OutputTargetType = "cursor"         // Cursor output target
-	OutputTargetTypeGitHubCopilot OutputTargetType = "github-copilot" // GitHub Copilot output target
-	OutputTargetTypeWindsurf      OutputTargetType = "windsurf"       // WindSurf output target
+	SupportedAgentTypeCursor        SupportedAgentType = "cursor"         // Cursor output target
+	SupportedAgentTypeGitHubCopilot SupportedAgentType = "github-copilot" // GitHub Copilot output target
+	SupportedAgentTypeWindsurf      SupportedAgentType = "windsurf"       // WindSurf output target
 )
 
 type (
-	InputSourceType  string
-	OutputTargetType string
+	PresetSourceType   string
+	SupportedAgentType string
 
 	// Config represents the fully resolved and validated application configuration.
 	Config struct {
-		Settings                         // Resolved top-level settings
+		Settings Settings                // Resolved top-level settings
 		Inputs   map[string]InputSource  // Key is the input source identifier
 		Outputs  map[string]OutputTarget // Key is the output target identifier
 	}
@@ -36,7 +36,7 @@ type (
 
 	// InputSource defines a configured source for presets.
 	InputSource struct {
-		Type    InputSourceType    // Type identifier (e.g., "local", "git")
+		Type    PresetSourceType   // Type identifier (e.g., "local", "git")
 		Details InputSourceDetails // Type-specific configuration details
 	}
 
@@ -58,7 +58,7 @@ type (
 
 	// OutputTarget defines a configured destination for the processed presets.
 	OutputTarget struct {
-		Target  OutputTargetType // Type of output target (e.g., "cursor", "github-copilot")
+		Target  SupportedAgentType // Type of output target (e.g., "cursor", "github-copilot")
 		Enabled bool
 	}
 )
@@ -85,12 +85,12 @@ func (c *Config) GetPresetRootInCache(presetName string) (string, error) {
 	}
 
 	switch inputConfig.Type {
-	case InputSourceTypeLocal:
+	case PresetSourceTypeLocal:
 		if _, ok := GetInputSourceDetails[LocalInputSourceDetails](inputConfig); ok {
 			return filepath.Join(cacheDir, presetName), nil
 		}
 		return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
-	case InputSourceTypeGit:
+	case PresetSourceTypeGit:
 		if gitDetails, ok := GetInputSourceDetails[GitInputSourceDetails](inputConfig); ok {
 			if gitDetails.Directory != "" {
 				return filepath.Join(cacheDir, presetName, gitDetails.Directory), nil

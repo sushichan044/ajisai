@@ -37,7 +37,7 @@ enabled = true
 				},
 				Inputs: map[string]domain.InputSource{
 					"local_rules": {
-						Type: domain.InputSourceTypeLocal,
+						Type: domain.PresetSourceTypeLocal,
 						Details: domain.LocalInputSourceDetails{
 							Path: "./rules",
 						},
@@ -45,7 +45,7 @@ enabled = true
 				},
 				Outputs: map[string]domain.OutputTarget{
 					"cursor": {
-						Target:  domain.OutputTargetTypeCursor,
+						Target:  domain.SupportedAgentTypeCursor,
 						Enabled: true,
 					},
 				},
@@ -77,7 +77,7 @@ enabled = false
 				},
 				Inputs: map[string]domain.InputSource{
 					"remote_rules": {
-						Type: domain.InputSourceTypeGit,
+						Type: domain.PresetSourceTypeGit,
 						Details: domain.GitInputSourceDetails{
 							Repository: "https://example.com/repo.git",
 							Revision:   "main",
@@ -87,7 +87,7 @@ enabled = false
 				},
 				Outputs: map[string]domain.OutputTarget{
 					"github_copilot": {
-						Target:  domain.OutputTargetTypeGitHubCopilot,
+						Target:  domain.SupportedAgentTypeGitHubCopilot,
 						Enabled: false,
 					},
 				},
@@ -186,7 +186,7 @@ func TestTomlManager_Save(t *testing.T) {
 				Enabled: true,
 			},
 			"github_copilot": {
-				Target:  domain.OutputTargetTypeGitHubCopilot,
+				Target:  domain.SupportedAgentTypeGitHubCopilot,
 				Enabled: false,
 			},
 		},
