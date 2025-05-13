@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 type (
@@ -17,7 +18,7 @@ type (
 	CursorRuleMetadata struct {
 		AlwaysApply bool   `yaml:"alwaysApply"`
 		Description string `yaml:"description"`
-		Globs       string `yaml:"globs"` // e.g. "**/*.{js,ts,jsx,tsx}"
+		Globs       string `yaml:"globs"`
 	}
 
 	CursorPrompt struct {
@@ -144,7 +145,7 @@ func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptI
 	), nil
 }
 
-func (rule *CursorRule) String() (string, error) {
+func (bridge *CursorBridge) SerializeAgentRule(rule CursorRule) (string, error) {
 	// Cursor does not accept quoted front matters, so we need to write custom marshaler
 	metaKeys := 3 // alwaysApply, description, globs
 	metaContent := make([]string, 0, metaKeys)
@@ -178,6 +179,35 @@ func (rule *CursorRule) String() (string, error) {
 	return result + "\n", nil
 }
 
-func (prompt *CursorPrompt) String() (string, error) {
+func (bridge *CursorBridge) DeserializeAgentRule(slug string, ruleBody string) (CursorRule, error) {
+	// we need to add quotes around the globs
+	lines := strings.Split(ruleBody, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "globs: ") {
+			lines[i] = fmt.Sprintf("globs: '%s'", strings.TrimSpace(line[7:]))
+		}
+	}
+	ruleBody = strings.Join(lines, "\n")
+
+	result, err := utils.ParseMarkdownWithMetadata[CursorRuleMetadata]([]byte(ruleBody))
+	if err != nil {
+		return CursorRule{}, err
+	}
+
+	return CursorRule{
+		Slug:     slug,
+		Content:  result.Content,
+		Metadata: result.FrontMatter,
+	}, nil
+}
+
+func (bridge *CursorBridge) SerializeAgentPrompt(prompt CursorPrompt) (string, error) {
 	return prompt.Content, nil
+}
+
+func (bridge *CursorBridge) DeserializeAgentPrompt(slug string, promptBody string) (CursorPrompt, error) {
+	return CursorPrompt{
+		Slug:    slug,
+		Content: promptBody,
+	}, nil
 }

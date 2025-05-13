@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 type (
@@ -157,7 +158,7 @@ func (bridge *WindsurfBridge) FromAgentPrompt(prompt WindsurfPrompt) (domain.Pro
 	), nil
 }
 
-func (rule *WindsurfRule) String() (string, error) {
+func (bridge *WindsurfBridge) SerializeAgentRule(rule WindsurfRule) (string, error) {
 	metaKeys := 3 // trigger, description, globs
 	metaValues := make([]string, 0, metaKeys)
 
@@ -188,6 +189,35 @@ func (rule *WindsurfRule) String() (string, error) {
 	return result + "\n", nil
 }
 
-func (prompt *WindsurfPrompt) String() (string, error) {
+func (bridge *WindsurfBridge) DeserializeAgentRule(slug string, ruleBody string) (WindsurfRule, error) {
+	// we need to add quotes around the globs
+	lines := strings.Split(ruleBody, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "globs: ") {
+			lines[i] = fmt.Sprintf("globs: '%s'", strings.TrimSpace(line[7:]))
+		}
+	}
+	ruleBody = strings.Join(lines, "\n")
+
+	result, err := utils.ParseMarkdownWithMetadata[WindsurfRuleMetadata]([]byte(ruleBody))
+	if err != nil {
+		return WindsurfRule{}, err
+	}
+
+	return WindsurfRule{
+		Slug:     slug,
+		Content:  result.Content,
+		Metadata: result.FrontMatter,
+	}, nil
+}
+
+func (bridge *WindsurfBridge) SerializeAgentPrompt(prompt WindsurfPrompt) (string, error) {
 	return prompt.Content, nil
+}
+
+func (bridge *WindsurfBridge) DeserializeAgentPrompt(slug string, promptBody string) (WindsurfPrompt, error) {
+	return WindsurfPrompt{
+		Slug:    slug,
+		Content: promptBody,
+	}, nil
 }
