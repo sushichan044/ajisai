@@ -1,6 +1,7 @@
 package bridge_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -146,7 +147,8 @@ trigger: always_on
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := tc.rule.String()
+			bridgeInstance := bridge.NewWindsurfBridge()
+			actual, err := bridgeInstance.SerializeAgentRule(tc.rule)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expected, actual)
 		})
@@ -400,4 +402,169 @@ func TestWindsurfBridge_PromptConversion(t *testing.T) {
 	actualDomainPrompt, err := bridgeInstance.FromAgentPrompt(windsurfPrompt)
 	require.NoError(t, err)
 	assert.Equal(t, expectedDomainPrompt, actualDomainPrompt)
+}
+
+func TestWindsurfBridge_SerializeAndDeserializeRule(t *testing.T) {
+	testCases := []struct {
+		name           string
+		rule           bridge.WindsurfRule
+		expectedString string
+	}{
+		{
+			name: "Always rule",
+			rule: bridge.WindsurfRule{
+				Slug:    "always-rule",
+				Content: "This is an always-on rule",
+				Metadata: bridge.WindsurfRuleMetadata{
+					Trigger:     bridge.WindsurfTriggerTypeAlways,
+					Globs:       "",
+					Description: "",
+				},
+			},
+			expectedString: `---
+trigger: always_on
+---
+
+This is an always-on rule
+`,
+		},
+		{
+			name: "Glob rule",
+			rule: bridge.WindsurfRule{
+				Slug:    "glob-rule",
+				Content: "This is a glob rule",
+				Metadata: bridge.WindsurfRuleMetadata{
+					Trigger:     bridge.WindsurfTriggerTypeGlob,
+					Globs:       "*.go,*.md",
+					Description: "",
+				},
+			},
+			expectedString: `---
+trigger: glob
+globs: *.go,*.md
+---
+
+This is a glob rule
+`,
+		},
+		{
+			name: "Rule with description",
+			rule: bridge.WindsurfRule{
+				Slug:    "rule-with-description",
+				Content: "This rule has a description",
+				Metadata: bridge.WindsurfRuleMetadata{
+					Trigger:     bridge.WindsurfTriggerTypeAgentRequested,
+					Globs:       "",
+					Description: "This is a description for the rule",
+				},
+			},
+			expectedString: `---
+trigger: model_decision
+description: This is a description for the rule
+---
+
+This rule has a description
+`,
+		},
+		{
+			name: "Empty content rule",
+			rule: bridge.WindsurfRule{
+				Slug:    "empty-rule",
+				Content: "",
+				Metadata: bridge.WindsurfRuleMetadata{
+					Trigger:     bridge.WindsurfTriggerTypeManual,
+					Globs:       "",
+					Description: "",
+				},
+			},
+			expectedString: `---
+trigger: manual
+---
+
+`,
+		},
+	}
+
+	bridgeInstance := bridge.NewWindsurfBridge()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Test serialization
+			serialized, err := bridgeInstance.SerializeAgentRule(tc.rule)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedString, serialized)
+
+			// Test deserialization - we compare Content and Metadata independently as Content might have different newlines
+			deserialized, err := bridgeInstance.DeserializeAgentRule(tc.rule.Slug, serialized)
+			require.NoError(t, err)
+
+			// Normalize content by trimming both leading and trailing whitespace (including newlines)
+			deserializedContent := strings.TrimSpace(deserialized.Content)
+			expectedContent := strings.TrimSpace(tc.rule.Content)
+
+			assert.Equal(t, tc.rule.Slug, deserialized.Slug)
+			assert.Equal(t, expectedContent, deserializedContent)
+			assert.Equal(t, tc.rule.Metadata, deserialized.Metadata)
+		})
+	}
+}
+
+func TestWindsurfBridge_DeserializeRuleInvalidFormat(t *testing.T) {
+	bridgeInstance := bridge.NewWindsurfBridge()
+
+	// Invalid YAML front matter with completely broken format
+	invalidContent := `---
+trigger: @invalid-format
+---
+
+This is invalid
+`
+
+	_, err := bridgeInstance.DeserializeAgentRule("invalid-rule", invalidContent)
+	require.Error(t, err)
+}
+
+func TestWindsurfBridge_SerializeAndDeserializePrompt(t *testing.T) {
+	testCases := []struct {
+		name   string
+		prompt bridge.WindsurfPrompt
+	}{
+		{
+			name: "Simple prompt",
+			prompt: bridge.WindsurfPrompt{
+				Slug:    "simple-prompt",
+				Content: "This is a simple prompt",
+			},
+		},
+		{
+			name: "Prompt with markdown",
+			prompt: bridge.WindsurfPrompt{
+				Slug:    "markdown-prompt",
+				Content: "# Markdown Prompt\n\n- Item 1\n- Item 2\n\n```go\nfunc test() {}\n```",
+			},
+		},
+		{
+			name: "Empty prompt",
+			prompt: bridge.WindsurfPrompt{
+				Slug:    "empty-prompt",
+				Content: "",
+			},
+		},
+	}
+
+	bridgeInstance := bridge.NewWindsurfBridge()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Test serialization
+			serialized, err := bridgeInstance.SerializeAgentPrompt(tc.prompt)
+			require.NoError(t, err)
+			assert.Equal(t, tc.prompt.Content, serialized)
+
+			// Test deserialization
+			deserialized, err := bridgeInstance.DeserializeAgentPrompt(tc.prompt.Slug, serialized)
+			require.NoError(t, err)
+			assert.Equal(t, tc.prompt, deserialized)
+		})
+	}
 }

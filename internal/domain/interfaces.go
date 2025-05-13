@@ -13,8 +13,14 @@ type (
 		ToAgentRule(rule RuleItem) (TRule, error)
 		FromAgentRule(rule TRule) (RuleItem, error)
 
+		SerializeAgentRule(rule TRule) (string, error)
+		DeserializeAgentRule(slug string, ruleBody string) (TRule, error)
+
 		FromAgentPrompt(prompt TPrompt) (PromptItem, error)
 		ToAgentPrompt(prompt PromptItem) (TPrompt, error)
+
+		SerializeAgentPrompt(prompt TPrompt) (string, error)
+		DeserializeAgentPrompt(slug string, promptBody string) (TPrompt, error)
 	}
 
 	// PresetRepository is a repository for read / write PresetPackage into a specific agent format.

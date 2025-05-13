@@ -155,8 +155,8 @@ func (bridge *GitHubCopilotBridge) FromAgentPrompt(prompt GitHubCopilotPrompt) (
 	), nil
 }
 
-func (instruction *GitHubCopilotInstruction) String() (string, error) {
-	frontMatterBytes, err := yaml.Marshal(instruction.Metadata)
+func (bridge *GitHubCopilotBridge) SerializeAgentRule(rule GitHubCopilotInstruction) (string, error) {
+	frontMatterBytes, err := yaml.Marshal(rule.Metadata)
 	if err != nil {
 		return "", err
 	}
@@ -165,13 +165,29 @@ func (instruction *GitHubCopilotInstruction) String() (string, error) {
 
 	if strings.TrimSpace(metadata) == "{}" {
 		// If the metadata is empty, return the content only.
-		return instruction.Content, nil
+		return rule.Content, nil
 	}
 
-	return fmt.Sprintf("---\n%s---\n\n%s", metadata, instruction.Content), nil
+	return fmt.Sprintf("---\n%s---\n\n%s", metadata, rule.Content), nil
 }
 
-func (prompt *GitHubCopilotPrompt) String() (string, error) {
+func (bridge *GitHubCopilotBridge) DeserializeAgentRule(
+	slug string,
+	ruleBody string,
+) (GitHubCopilotInstruction, error) {
+	result, err := utils.ParseMarkdownWithMetadata[GitHubCopilotInstructionMetadata]([]byte(ruleBody))
+	if err != nil {
+		return GitHubCopilotInstruction{}, err
+	}
+
+	return GitHubCopilotInstruction{
+		Slug:     slug,
+		Content:  result.Content,
+		Metadata: result.FrontMatter,
+	}, nil
+}
+
+func (bridge *GitHubCopilotBridge) SerializeAgentPrompt(prompt GitHubCopilotPrompt) (string, error) {
 	frontMatterBytes, err := yaml.Marshal(prompt.Metadata)
 	if err != nil {
 		return "", err
@@ -184,4 +200,20 @@ func (prompt *GitHubCopilotPrompt) String() (string, error) {
 		return prompt.Content, nil
 	}
 	return fmt.Sprintf("---\n%s---\n\n%s", metadata, prompt.Content), nil
+}
+
+func (bridge *GitHubCopilotBridge) DeserializeAgentPrompt(
+	slug string,
+	promptBody string,
+) (GitHubCopilotPrompt, error) {
+	result, err := utils.ParseMarkdownWithMetadata[GitHubCopilotPromptMetadata]([]byte(promptBody))
+	if err != nil {
+		return GitHubCopilotPrompt{}, err
+	}
+
+	return GitHubCopilotPrompt{
+		Slug:     slug,
+		Content:  result.Content,
+		Metadata: result.FrontMatter,
+	}, nil
 }
