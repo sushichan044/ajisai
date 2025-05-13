@@ -15,6 +15,8 @@ import (
 type GitHubCopilotRepository struct {
 	instructionsRootDir string
 	promptsRootDir      string
+
+	bridge domain.AgentBridge[bridge.GitHubCopilotInstruction, bridge.GitHubCopilotPrompt]
 }
 
 func NewGitHubCopilotRepository() (domain.PresetRepository, error) {
@@ -26,6 +28,7 @@ func NewGitHubCopilotRepository() (domain.PresetRepository, error) {
 	return &GitHubCopilotRepository{
 		instructionsRootDir: filepath.Join(cwd, ".github", "instructions"),
 		promptsRootDir:      filepath.Join(cwd, ".github", "prompts"),
+		bridge:              bridge.NewGitHubCopilotBridge(),
 	}, nil
 }
 
@@ -33,6 +36,7 @@ func NewGitHubCopilotRepositoryWithPaths(instructionsDir, promptsDir string) (*G
 	return &GitHubCopilotRepository{
 		instructionsRootDir: instructionsDir,
 		promptsRootDir:      promptsDir,
+		bridge:              bridge.NewGitHubCopilotBridge(),
 	}, nil
 }
 
@@ -42,9 +46,7 @@ const (
 )
 
 //gocognit:ignore
-func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	bridge := bridge.NewGitHubCopilotBridge()
-
+func (repo *GitHubCopilotRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 	resolveInstructionPath := func(instruction *domain.RuleItem) (string, error) {
 		instructionPath, innerErr := instruction.GetInternalPath(
 			namespace,
@@ -55,7 +57,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 			return "", innerErr
 		}
 
-		return filepath.Join(repository.instructionsRootDir, instructionPath), nil
+		return filepath.Join(repo.instructionsRootDir, instructionPath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -68,7 +70,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 			return "", innerErr
 		}
 
-		return filepath.Join(repository.promptsRootDir, promptPath), nil
+		return filepath.Join(repo.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -80,7 +82,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 				return pathErr
 			}
 
-			instruction, bridgeErr := bridge.ToAgentRule(*rule)
+			instruction, bridgeErr := repo.bridge.ToAgentRule(*rule)
 			if bridgeErr != nil {
 				return bridgeErr
 			}
@@ -105,7 +107,7 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 				return pathErr
 			}
 
-			prompt, bridgeErr := bridge.ToAgentPrompt(*prompt)
+			prompt, bridgeErr := repo.bridge.ToAgentPrompt(*prompt)
 			if bridgeErr != nil {
 				return bridgeErr
 			}
@@ -126,13 +128,13 @@ func (repository *GitHubCopilotRepository) WritePackage(namespace string, pkg do
 	return eg.Wait()
 }
 
-func (repository *GitHubCopilotRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
+func (repo *GitHubCopilotRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
 
-func (repository *GitHubCopilotRepository) Clean(namespace string) error {
-	instructionDir := filepath.Join(repository.instructionsRootDir, namespace)
-	promptDir := filepath.Join(repository.promptsRootDir, namespace)
+func (repo *GitHubCopilotRepository) Clean(namespace string) error {
+	instructionDir := filepath.Join(repo.instructionsRootDir, namespace)
+	promptDir := filepath.Join(repo.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 

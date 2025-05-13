@@ -15,6 +15,8 @@ import (
 type WindsurfRepository struct {
 	rulesRootDir   string
 	promptsRootDir string
+
+	bridge domain.AgentBridge[bridge.WindsurfRule, bridge.WindsurfPrompt]
 }
 
 const (
@@ -31,6 +33,7 @@ func NewWindsurfRepository() (domain.PresetRepository, error) {
 	return &WindsurfRepository{
 		rulesRootDir:   filepath.Join(cwd, ".windsurf", "rules"),
 		promptsRootDir: filepath.Join(cwd, ".windsurf", "prompts"),
+		bridge:         bridge.NewWindsurfBridge(),
 	}, nil
 }
 
@@ -40,12 +43,12 @@ func NewWindsurfRepositoryWithPaths(rulesDir, promptsDir string) (*WindsurfRepos
 	return &WindsurfRepository{
 		rulesRootDir:   rulesDir,
 		promptsRootDir: promptsDir,
+		bridge:         bridge.NewWindsurfBridge(),
 	}, nil
 }
 
 //gocognit:ignore
-func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
-	bridge := bridge.NewWindsurfBridge()
+func (repo *WindsurfRepository) WritePackage(namespace string, pkg domain.PresetPackage) error {
 
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(namespace, pkg.Name, WindsurfRuleExtension)
@@ -53,7 +56,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 			return "", err
 		}
 
-		return filepath.Join(repository.rulesRootDir, rulePath), nil
+		return filepath.Join(repo.rulesRootDir, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
@@ -62,7 +65,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 			return "", err
 		}
 
-		return filepath.Join(repository.promptsRootDir, promptPath), nil
+		return filepath.Join(repo.promptsRootDir, promptPath), nil
 	}
 
 	eg := errgroup.Group{}
@@ -73,7 +76,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 				return err
 			}
 
-			ruleItem, err := bridge.ToAgentRule(*rule)
+			ruleItem, err := repo.bridge.ToAgentRule(*rule)
 			if err != nil {
 				return err
 			}
@@ -98,7 +101,7 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 				return err
 			}
 
-			prompt, promptConversionErr := bridge.ToAgentPrompt(*prompt)
+			prompt, promptConversionErr := repo.bridge.ToAgentPrompt(*prompt)
 			if promptConversionErr != nil {
 				return promptConversionErr
 			}
@@ -119,13 +122,13 @@ func (repository *WindsurfRepository) WritePackage(namespace string, pkg domain.
 	return eg.Wait()
 }
 
-func (repository *WindsurfRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
+func (repo *WindsurfRepository) ReadPackage(_ string) (domain.PresetPackage, error) {
 	return domain.PresetPackage{}, nil
 }
 
-func (repository *WindsurfRepository) Clean(namespace string) error {
-	ruleDir := filepath.Join(repository.rulesRootDir, namespace)
-	promptDir := filepath.Join(repository.promptsRootDir, namespace)
+func (repo *WindsurfRepository) Clean(namespace string) error {
+	ruleDir := filepath.Join(repo.rulesRootDir, namespace)
+	promptDir := filepath.Join(repo.promptsRootDir, namespace)
 
 	eg := errgroup.Group{}
 
