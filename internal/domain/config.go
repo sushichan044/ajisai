@@ -11,14 +11,14 @@ const (
 	InputSourceTypeLocal InputSourceType = "local" // Local file system input
 	InputSourceTypeGit   InputSourceType = "git"   // Git repository input
 
-	OutputTargetTypeCursor        OutputTargetType = "cursor"         // Cursor output target
-	OutputTargetTypeGitHubCopilot OutputTargetType = "github-copilot" // GitHub Copilot output target
-	OutputTargetTypeWindsurf      OutputTargetType = "windsurf"       // WindSurf output target
+	SupportedAgentTypeCursor        SupportedAgentType = "cursor"         // Cursor output target
+	SupportedAgentTypeGitHubCopilot SupportedAgentType = "github-copilot" // GitHub Copilot output target
+	SupportedAgentTypeWindsurf      SupportedAgentType = "windsurf"       // WindSurf output target
 )
 
 type (
-	InputSourceType  string
-	OutputTargetType string
+	InputSourceType    string
+	SupportedAgentType string
 
 	// Config represents the fully resolved and validated application configuration.
 	Config struct {
@@ -58,7 +58,7 @@ type (
 
 	// OutputTarget defines a configured destination for the processed presets.
 	OutputTarget struct {
-		Target  OutputTargetType // Type of output target (e.g., "cursor", "github-copilot")
+		Target  SupportedAgentType // Type of output target (e.g., "cursor", "github-copilot")
 		Enabled bool
 	}
 )

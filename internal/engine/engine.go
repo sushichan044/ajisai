@@ -186,13 +186,13 @@ func getFetcher(inputType domain.InputSourceType) (domain.ContentFetcher, error)
 	}
 }
 
-func getRepository(target domain.OutputTargetType) (domain.PresetRepository, error) {
+func getRepository(target domain.SupportedAgentType) (domain.PresetRepository, error) {
 	switch target {
-	case domain.OutputTargetTypeCursor:
+	case domain.SupportedAgentTypeCursor:
 		return repository.NewPresetRepository(repository.NewCursorAdapter())
-	case domain.OutputTargetTypeGitHubCopilot:
+	case domain.SupportedAgentTypeGitHubCopilot:
 		return repository.NewPresetRepository(repository.NewGitHubCopilotAdapter())
-	case domain.OutputTargetTypeWindsurf:
+	case domain.SupportedAgentTypeWindsurf:
 		return repository.NewPresetRepository(repository.NewWindsurfAdapter())
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)

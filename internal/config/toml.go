@@ -38,7 +38,7 @@ type (
 	}
 
 	UserTomlOutputTarget struct {
-		Target  domain.OutputTargetType `toml:"target"`
+		Target  domain.SupportedAgentType `toml:"target"`
 		Enabled bool                    `toml:"enabled"`
 	}
 )

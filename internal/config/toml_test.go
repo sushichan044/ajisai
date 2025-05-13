@@ -45,7 +45,7 @@ enabled = true
 				},
 				Outputs: map[string]domain.OutputTarget{
 					"cursor": {
-						Target:  domain.OutputTargetTypeCursor,
+						Target:  domain.SupportedAgentTypeCursor,
 						Enabled: true,
 					},
 				},
@@ -87,7 +87,7 @@ enabled = false
 				},
 				Outputs: map[string]domain.OutputTarget{
 					"github_copilot": {
-						Target:  domain.OutputTargetTypeGitHubCopilot,
+						Target:  domain.SupportedAgentTypeGitHubCopilot,
 						Enabled: false,
 					},
 				},
@@ -186,7 +186,7 @@ func TestTomlManager_Save(t *testing.T) {
 				Enabled: true,
 			},
 			"github_copilot": {
-				Target:  domain.OutputTargetTypeGitHubCopilot,
+				Target:  domain.SupportedAgentTypeGitHubCopilot,
 				Enabled: false,
 			},
 		},
