@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/adrg/frontmatter"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/sushichan044/ajisai/internal/domain"
@@ -93,19 +91,17 @@ func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
 			return err
 		}
 
-		content, err := os.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		var metadata domain.PromptMetadata
-
-		rest, err := frontmatter.Parse(bytes.NewReader(content), &metadata)
+		result, err := utils.ParseMarkdownWithMetadata[domain.PromptMetadata](bytes)
 		if err != nil {
 			return err
 		}
 
-		ruleItem := domain.NewPromptItem(slug, string(rest), metadata)
+		ruleItem := domain.NewPromptItem(slug, result.Content, result.FrontMatter)
 
 		items = append(items, ruleItem)
 		return nil
@@ -142,19 +138,17 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 			return err
 		}
 
-		content, err := os.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		var metadata domain.RuleMetadata
-
-		rest, err := frontmatter.Parse(bytes.NewReader(content), &metadata)
+		result, err := utils.ParseMarkdownWithMetadata[domain.RuleMetadata](bytes)
 		if err != nil {
 			return err
 		}
 
-		ruleItem := domain.NewRuleItem(slug, string(rest), metadata)
+		ruleItem := domain.NewRuleItem(slug, result.Content, result.FrontMatter)
 		items = append(items, ruleItem)
 		return nil
 	})
