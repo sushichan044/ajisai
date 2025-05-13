@@ -30,16 +30,16 @@ type (
 	}
 
 	UserTomlInputSource struct {
-		Type       domain.InputSourceType `toml:"type"`                 // Required
-		Path       string                 `toml:"path,omitempty"`       // Used if type=local
-		Repository string                 `toml:"repository,omitempty"` // Used if type=git
-		Revision   string                 `toml:"revision,omitempty"`   // Used if type=git (Optional ref/branch/tag/commit)
-		Directory  string                 `toml:"directory,omitempty"`  // Used if type=git (Optional)
+		Type       domain.PresetSourceType `toml:"type"`                 // Required
+		Path       string                  `toml:"path,omitempty"`       // Used if type=local
+		Repository string                  `toml:"repository,omitempty"` // Used if type=git
+		Revision   string                  `toml:"revision,omitempty"`   // Used if type=git (Optional ref/branch/tag/commit)
+		Directory  string                  `toml:"directory,omitempty"`  // Used if type=git (Optional)
 	}
 
 	UserTomlOutputTarget struct {
 		Target  domain.SupportedAgentType `toml:"target"`
-		Enabled bool                    `toml:"enabled"`
+		Enabled bool                      `toml:"enabled"`
 	}
 )
 
@@ -96,12 +96,12 @@ func (loader *TomlLoader) ToFormat(cfg *domain.Config) UserTomlConfig {
 		switch inputDetails := input.Details.(type) {
 		case domain.LocalInputSourceDetails:
 			inputs[key] = UserTomlInputSource{
-				Type: domain.InputSourceTypeLocal,
+				Type: domain.PresetSourceTypeLocal,
 				Path: inputDetails.Path,
 			}
 		case domain.GitInputSourceDetails:
 			inputs[key] = UserTomlInputSource{
-				Type:       domain.InputSourceTypeGit,
+				Type:       domain.PresetSourceTypeGit,
 				Repository: inputDetails.Repository,
 				Revision:   inputDetails.Revision,
 				Directory:  inputDetails.Directory,
@@ -131,16 +131,16 @@ func (loader *TomlLoader) FromFormat(userTomlCfg UserTomlConfig) *domain.Config 
 	inputs := make(map[string]domain.InputSource)
 	for key, input := range userTomlCfg.Inputs {
 		switch input.Type {
-		case domain.InputSourceTypeLocal:
+		case domain.PresetSourceTypeLocal:
 			inputs[key] = domain.InputSource{
-				Type: domain.InputSourceTypeLocal,
+				Type: domain.PresetSourceTypeLocal,
 				Details: domain.LocalInputSourceDetails{
 					Path: input.Path,
 				},
 			}
-		case domain.InputSourceTypeGit:
+		case domain.PresetSourceTypeGit:
 			inputs[key] = domain.InputSource{
-				Type: domain.InputSourceTypeGit,
+				Type: domain.PresetSourceTypeGit,
 				Details: domain.GitInputSourceDetails{
 					Repository: input.Repository,
 					Revision:   input.Revision,

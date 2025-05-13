@@ -37,7 +37,7 @@ enabled = true
 				},
 				Inputs: map[string]domain.InputSource{
 					"local_rules": {
-						Type: domain.InputSourceTypeLocal,
+						Type: domain.PresetSourceTypeLocal,
 						Details: domain.LocalInputSourceDetails{
 							Path: "./rules",
 						},
@@ -77,7 +77,7 @@ enabled = false
 				},
 				Inputs: map[string]domain.InputSource{
 					"remote_rules": {
-						Type: domain.InputSourceTypeGit,
+						Type: domain.PresetSourceTypeGit,
 						Details: domain.GitInputSourceDetails{
 							Repository: "https://example.com/repo.git",
 							Revision:   "main",

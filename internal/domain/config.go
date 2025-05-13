@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	InputSourceTypeLocal InputSourceType = "local" // Local file system input
-	InputSourceTypeGit   InputSourceType = "git"   // Git repository input
+	PresetSourceTypeLocal PresetSourceType = "local" // Local file system input
+	PresetSourceTypeGit   PresetSourceType = "git"   // Git repository input
 
 	SupportedAgentTypeCursor        SupportedAgentType = "cursor"         // Cursor output target
 	SupportedAgentTypeGitHubCopilot SupportedAgentType = "github-copilot" // GitHub Copilot output target
@@ -17,7 +17,7 @@ const (
 )
 
 type (
-	InputSourceType    string
+	PresetSourceType   string
 	SupportedAgentType string
 
 	// Config represents the fully resolved and validated application configuration.
@@ -36,7 +36,7 @@ type (
 
 	// InputSource defines a configured source for presets.
 	InputSource struct {
-		Type    InputSourceType    // Type identifier (e.g., "local", "git")
+		Type    PresetSourceType   // Type identifier (e.g., "local", "git")
 		Details InputSourceDetails // Type-specific configuration details
 	}
 
@@ -85,12 +85,12 @@ func (c *Config) GetPresetRootInCache(presetName string) (string, error) {
 	}
 
 	switch inputConfig.Type {
-	case InputSourceTypeLocal:
+	case PresetSourceTypeLocal:
 		if _, ok := GetInputSourceDetails[LocalInputSourceDetails](inputConfig); ok {
 			return filepath.Join(cacheDir, presetName), nil
 		}
 		return "", fmt.Errorf("invalid input source type: %s", inputConfig.Type)
-	case InputSourceTypeGit:
+	case PresetSourceTypeGit:
 		if gitDetails, ok := GetInputSourceDetails[GitInputSourceDetails](inputConfig); ok {
 			if gitDetails.Directory != "" {
 				return filepath.Join(cacheDir, presetName, gitDetails.Directory), nil

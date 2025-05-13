@@ -175,11 +175,11 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	return nil
 }
 
-func getFetcher(inputType domain.InputSourceType) (domain.ContentFetcher, error) {
+func getFetcher(inputType domain.PresetSourceType) (domain.ContentFetcher, error) {
 	switch inputType {
-	case domain.InputSourceTypeLocal:
+	case domain.PresetSourceTypeLocal:
 		return fetcher.NewLocalFetcher(), nil
-	case domain.InputSourceTypeGit:
+	case domain.PresetSourceTypeGit:
 		return fetcher.NewGitFetcher(), nil
 	default:
 		return nil, fmt.Errorf("unknown input type: %s", inputType)

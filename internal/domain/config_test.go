@@ -29,7 +29,7 @@ func TestConfig_GetPresetRootInCache(t *testing.T) {
 				},
 				Inputs: map[string]domain.InputSource{
 					"local_rules": {
-						Type: domain.InputSourceTypeLocal,
+						Type: domain.PresetSourceTypeLocal,
 						Details: domain.LocalInputSourceDetails{
 							Path: "./rules",
 						},
@@ -48,7 +48,7 @@ func TestConfig_GetPresetRootInCache(t *testing.T) {
 				},
 				Inputs: map[string]domain.InputSource{
 					"git_rules": {
-						Type: domain.InputSourceTypeGit,
+						Type: domain.PresetSourceTypeGit,
 						Details: domain.GitInputSourceDetails{
 							Repository: "https://github.com/example/repo",
 							Revision:   "main",
@@ -68,7 +68,7 @@ func TestConfig_GetPresetRootInCache(t *testing.T) {
 				},
 				Inputs: map[string]domain.InputSource{
 					"git_rules_with_dir": {
-						Type: domain.InputSourceTypeGit,
+						Type: domain.PresetSourceTypeGit,
 						Details: domain.GitInputSourceDetails{
 							Repository: "https://github.com/example/repo",
 							Revision:   "main",
@@ -117,14 +117,14 @@ func TestConfig_GetPresetRootInCache(t *testing.T) {
 				},
 				Inputs: map[string]domain.InputSource{
 					"invalid_local": {
-						Type:    domain.InputSourceTypeLocal,
+						Type:    domain.PresetSourceTypeLocal,
 						Details: domain.GitInputSourceDetails{}, // 不正な詳細タイプ
 					},
 				},
 			},
 			presetName:     "invalid_local",
 			expectedPath:   "",
-			expectedErrMsg: fmt.Sprintf("invalid input source type: %s", domain.InputSourceTypeLocal),
+			expectedErrMsg: fmt.Sprintf("invalid input source type: %s", domain.PresetSourceTypeLocal),
 		},
 		{
 			name: "invalid git input source details",
@@ -134,14 +134,14 @@ func TestConfig_GetPresetRootInCache(t *testing.T) {
 				},
 				Inputs: map[string]domain.InputSource{
 					"invalid_git": {
-						Type:    domain.InputSourceTypeGit,
+						Type:    domain.PresetSourceTypeGit,
 						Details: domain.LocalInputSourceDetails{}, // 不正な詳細タイプ
 					},
 				},
 			},
 			presetName:     "invalid_git",
 			expectedPath:   "",
-			expectedErrMsg: fmt.Sprintf("invalid input source type: %s", domain.InputSourceTypeGit),
+			expectedErrMsg: fmt.Sprintf("invalid input source type: %s", domain.PresetSourceTypeGit),
 		},
 	}
 

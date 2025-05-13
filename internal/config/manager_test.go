@@ -58,7 +58,7 @@ target = "cursor"
 
 		assert.Equal(t, "test-namespace", cfg.Settings.Namespace)
 		assert.Contains(t, cfg.Inputs, "test")
-		assert.Equal(t, domain.InputSourceTypeLocal, cfg.Inputs["test"].Type)
+		assert.Equal(t, domain.PresetSourceTypeLocal, cfg.Inputs["test"].Type)
 		assert.Contains(t, cfg.Outputs, "test")
 		assert.Equal(t, domain.SupportedAgentTypeCursor, cfg.Outputs["test"].Target)
 	})
