@@ -91,12 +91,12 @@ func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
 			return err
 		}
 
-		bytes, err := os.ReadFile(path)
+		body, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		result, err := utils.ParseMarkdownWithMetadata[domain.PromptMetadata](bytes)
+		result, err := utils.ParseMarkdownWithMetadata[domain.PromptMetadata](body)
 		if err != nil {
 			return err
 		}
@@ -138,12 +138,12 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 			return err
 		}
 
-		bytes, err := os.ReadFile(path)
+		body, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
 
-		result, err := utils.ParseMarkdownWithMetadata[domain.RuleMetadata](bytes)
+		result, err := utils.ParseMarkdownWithMetadata[domain.RuleMetadata](body)
 		if err != nil {
 			return err
 		}
