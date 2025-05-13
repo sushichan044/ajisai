@@ -10,12 +10,12 @@ import (
 	"github.com/sushichan044/ajisai/internal/parser"
 )
 
-func TestParsePresetPackage(t *testing.T) {
+func TestParsePreset(t *testing.T) {
 	testCases := []struct {
 		name             string
 		presetName       string
 		config           *domain.Config
-		expectedPackage  *domain.PresetPackage
+		expectedPreset   *domain.AgentPreset
 		expectErr        bool
 		useElementsMatch bool
 		expectedErrorMsg string
@@ -29,7 +29,7 @@ func TestParsePresetPackage(t *testing.T) {
 					"empty_case": {Type: "local", Details: domain.LocalInputSourceDetails{Path: "empty_case"}},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name:    "empty_case",
 				Rules:   []*domain.RuleItem{},
 				Prompts: []*domain.PromptItem{},
@@ -48,7 +48,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "single_rule_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -76,7 +76,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "rule_no_frontmatter_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -101,7 +101,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "missing_attach_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -144,7 +144,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "ignore_files_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -178,7 +178,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "single_prompt_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -212,7 +212,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "prompt_no_frontmatter_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -245,7 +245,7 @@ func TestParsePresetPackage(t *testing.T) {
 				},
 			},
 			expectErr: false,
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "nested_rules_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -276,7 +276,7 @@ func TestParsePresetPackage(t *testing.T) {
 					},
 				},
 			},
-			expectedPackage: &domain.PresetPackage{
+			expectedPreset: &domain.AgentPreset{
 				Name: "both_git_subdir_case",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
@@ -344,7 +344,7 @@ func TestParsePresetPackage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actualPackage, err := parser.ParsePresetPackage(tc.config, tc.presetName)
+			actualPackage, err := parser.ParsePreset(tc.config, tc.presetName)
 
 			if tc.expectErr {
 				require.Error(t, err)
@@ -354,13 +354,13 @@ func TestParsePresetPackage(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				if tc.useElementsMatch {
-					assert.Equal(t, tc.expectedPackage.Name, actualPackage.Name, "InputKey mismatch")
+					assert.Equal(t, tc.expectedPreset.Name, actualPackage.Name, "InputKey mismatch")
 					// Compare Rule items
-					assert.ElementsMatch(t, tc.expectedPackage.Rules, actualPackage.Rules, "Rule items mismatch")
+					assert.ElementsMatch(t, tc.expectedPreset.Rules, actualPackage.Rules, "Rule items mismatch")
 					// Compare Prompt items
-					assert.ElementsMatch(t, tc.expectedPackage.Prompts, actualPackage.Prompts, "Prompt items mismatch")
+					assert.ElementsMatch(t, tc.expectedPreset.Prompts, actualPackage.Prompts, "Prompt items mismatch")
 				} else {
-					assert.Equal(t, tc.expectedPackage, actualPackage)
+					assert.Equal(t, tc.expectedPreset, actualPackage)
 				}
 			}
 		})

@@ -64,9 +64,9 @@ func NewPresetRepository(adapter AgentFileAdapter) (domain.PresetRepository, err
 }
 
 //gocognit:ignore
-func (repo *repositoryImpl) WritePackage(namespace string, pkg domain.PresetPackage) error {
+func (repo *repositoryImpl) WritePreset(namespace string, preset domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
-		rulePath, err := rule.GetInternalPath(pkg.Name, repo.adapter.RuleExtension())
+		rulePath, err := rule.GetInternalPath(preset.Name, repo.adapter.RuleExtension())
 		if err != nil {
 			return "", err
 		}
@@ -75,7 +75,7 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg domain.PresetPack
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
-		promptPath, err := prompt.GetInternalPath(pkg.Name, repo.adapter.PromptExtension())
+		promptPath, err := prompt.GetInternalPath(preset.Name, repo.adapter.PromptExtension())
 		if err != nil {
 			return "", err
 		}
@@ -85,7 +85,7 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg domain.PresetPack
 
 	eg := errgroup.Group{}
 
-	for _, rule := range pkg.Rules {
+	for _, rule := range preset.Rules {
 		eg.Go(func() error {
 			rulePath, err := resolveRulePath(rule)
 			if err != nil {
@@ -105,7 +105,7 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg domain.PresetPack
 		})
 	}
 
-	for _, prompt := range pkg.Prompts {
+	for _, prompt := range preset.Prompts {
 		eg.Go(func() error {
 			promptPath, err := resolvePromptPath(prompt)
 			if err != nil {
@@ -128,8 +128,8 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg domain.PresetPack
 	return eg.Wait()
 }
 
-func (repo *repositoryImpl) ReadPackage(_ string) (domain.PresetPackage, error) {
-	return domain.PresetPackage{}, nil
+func (repo *repositoryImpl) ReadPreset(_ string) (domain.AgentPreset, error) {
+	return domain.AgentPreset{}, nil
 }
 
 func (repo *repositoryImpl) Clean(namespace string) error {

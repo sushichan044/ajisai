@@ -27,15 +27,15 @@ func NewEngine(cfg *domain.Config) (*Engine, error) {
 }
 
 // Fetch fetches presets from inputs and persist them in the cache directory.
-// Returns the package names of the fetched presets.
+// Returns the preset names of the fetched presets.
 func (engine *Engine) Fetch() ([]string, error) {
 	eg := errgroup.Group{}
 
-	packageNames := make([]string, 0, len(engine.cfg.Inputs))
+	presetNames := make([]string, 0, len(engine.cfg.Inputs))
 
 	for identifier, input := range engine.cfg.Inputs {
 		eg.Go(func() error {
-			packageNames = append(packageNames, identifier)
+			presetNames = append(presetNames, identifier)
 
 			fetcher, err := getFetcher(input.Type)
 			if err != nil {
@@ -50,20 +50,20 @@ func (engine *Engine) Fetch() ([]string, error) {
 		return nil, err
 	}
 
-	return packageNames, nil
+	return presetNames, nil
 }
 
-// Parse parses the presets from the package names and returns the preset packages.
-func (engine *Engine) Parse(packageNames []string) ([]domain.PresetPackage, error) {
+// Parse parses the presets from the preset names and returns them.
+func (engine *Engine) Parse(presetNames []string) ([]domain.AgentPreset, error) {
 	eg := errgroup.Group{}
 
-	presets := make([]domain.PresetPackage, 0, len(packageNames))
+	presets := make([]domain.AgentPreset, 0, len(presetNames))
 
-	for _, pkgName := range packageNames {
+	for _, pkgName := range presetNames {
 		eg.Go(func() error {
-			parsedPkg, parseErr := parser.ParsePresetPackage(engine.cfg, pkgName)
+			parsedPkg, parseErr := parser.ParsePreset(engine.cfg, pkgName)
 			if parseErr != nil {
-				return fmt.Errorf("failed to parse preset package: %w", parseErr)
+				return fmt.Errorf("failed to parse preset: %w", parseErr)
 			}
 
 			presets = append(presets, *parsedPkg)
@@ -123,7 +123,7 @@ func (engine *Engine) CleanCache(force bool) error {
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			continue // Skip files, only interested in package directories
+			continue // Skip files, only interested in preset directories
 		}
 		entryName := entry.Name()
 
@@ -144,7 +144,7 @@ func (engine *Engine) CleanCache(force bool) error {
 }
 
 // Export exports the presets for specific agents configured in the outputs.
-func (engine *Engine) Export(presets []domain.PresetPackage) error {
+func (engine *Engine) Export(presets []domain.AgentPreset) error {
 	repos := make([]domain.PresetRepository, 0, len(engine.cfg.Outputs))
 	for _, output := range engine.cfg.Outputs {
 		if !output.Enabled {
@@ -163,7 +163,7 @@ func (engine *Engine) Export(presets []domain.PresetPackage) error {
 	for _, currentRepo := range repos {
 		for _, pkg := range presets {
 			eg.Go(func() error {
-				return currentRepo.WritePackage(engine.cfg.Settings.Namespace, pkg)
+				return currentRepo.WritePreset(engine.cfg.Settings.Namespace, pkg)
 			})
 		}
 	}

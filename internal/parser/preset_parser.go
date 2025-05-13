@@ -14,8 +14,8 @@ import (
 	"github.com/sushichan044/ajisai/utils"
 )
 
-// ParsePresetPackage scans the source directory for rules and prompts and returns a PresetPackage.
-func ParsePresetPackage(config *domain.Config, presetName string) (*domain.PresetPackage, error) {
+// ParsePreset scans the source directory for rules and prompts and returns a Preset.
+func ParsePreset(config *domain.Config, presetName string) (*domain.AgentPreset, error) {
 	if config == nil {
 		return nil, errors.New("config is nil")
 	}
@@ -60,7 +60,7 @@ func ParsePresetPackage(config *domain.Config, presetName string) (*domain.Prese
 		return nil, groupErr
 	}
 
-	return &domain.PresetPackage{
+	return &domain.AgentPreset{
 		Name:    presetName,
 		Rules:   rules,
 		Prompts: prompts,

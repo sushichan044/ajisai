@@ -21,10 +21,10 @@ type (
 	PresetType string
 	AttachType string
 
-	PresetPackage struct {
-		Name    string        // name of the preset package. This value is used as the directory name in the cache.
-		Rules   []*RuleItem   // rules in the preset package
-		Prompts []*PromptItem // prompts in the preset package
+	AgentPreset struct {
+		Name    string        // name of the preset. This value is used as the directory name in the cache.
+		Rules   []*RuleItem   // rules in the preset
+		Prompts []*PromptItem // prompts in the preset
 	}
 
 	RuleItem struct {
@@ -80,6 +80,6 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 	}
 }
 
-func (item *presetItem) GetInternalPath(packageName string, extension string) (string, error) {
-	return filepath.Join(packageName, item.Slug+extension), nil
+func (item *presetItem) GetInternalPath(presetName string, extension string) (string, error) {
+	return filepath.Join(presetName, item.Slug+extension), nil
 }
