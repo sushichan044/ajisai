@@ -59,8 +59,8 @@ Content only`),
 			input: []byte(`# No Frontmatter
 Just content`),
 			expectedMeta:    testMetadata{},
-			expectedContent: "",
-			expectError:     true,
+			expectedContent: "# No Frontmatter\nJust content",
+			expectError:     false,
 		},
 		{
 			name: "parsing with invalid frontmatter",
