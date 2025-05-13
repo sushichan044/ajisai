@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/adrg/frontmatter"
@@ -89,7 +88,7 @@ func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
 			return nil
 		}
 
-		slug, err := getPromptSlug(rootDir, path)
+		slug, err := utils.GetSlugFromBaseDir(promptRootDir, path)
 		if err != nil {
 			return err
 		}
@@ -138,7 +137,7 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 			return nil
 		}
 
-		slug, err := getRuleSlug(rootDir, path)
+		slug, err := utils.GetSlugFromBaseDir(ruleRootDir, path)
 		if err != nil {
 			return err
 		}
@@ -165,47 +164,6 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 	}
 
 	return items, nil
-}
-
-var (
-	ruleSlugRegex = regexp.MustCompile(
-		fmt.Sprintf("^%s/(.*)\\.%s$", domain.RulesPresetType, domain.RuleInternalExtension),
-	)
-
-	promptSlugRegex = regexp.MustCompile(
-		fmt.Sprintf("^%s/(.*)\\.%s$", domain.PromptsPresetType, domain.PromptInternalExtension),
-	)
-)
-
-func getRuleSlug(pkgRootDir string, fullPath string) (string, error) {
-	relPath, err := filepath.Rel(pkgRootDir, fullPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get relative path: %w", err)
-	}
-
-	// e.g. rules/react/my-rule.md -> matches[0] = "rules/react/my-rule.md", matches[1] = "react/my-rule"
-	expectMatches := 2
-	matches := ruleSlugRegex.FindStringSubmatch(relPath)
-	if len(matches) < expectMatches {
-		return "", fmt.Errorf("invalid rule path format: %s", relPath)
-	}
-
-	return matches[1], nil
-}
-
-func getPromptSlug(pkgRootDir string, fullPath string) (string, error) {
-	relPath, err := filepath.Rel(pkgRootDir, fullPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get relative path: %w", err)
-	}
-
-	expectMatches := 2
-	matches := promptSlugRegex.FindStringSubmatch(relPath)
-	if len(matches) < expectMatches {
-		return "", fmt.Errorf("invalid prompt path format: %s", relPath)
-	}
-
-	return matches[1], nil
 }
 
 func resolvePresetRootDir(config *domain.Config, presetName string) (string, error) {
