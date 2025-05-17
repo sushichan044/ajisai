@@ -1,10 +1,12 @@
 package domain
 
+import "github.com/sushichan044/ajisai/internal/config"
+
 type (
-	// ContentFetcher retrieves content from a source defined by InputSource.
-	ContentFetcher interface {
-		// Fetch retrieves content from the source and stores it in the destinationDir.
-		Fetch(source InputSource, destinationDir string) error
+	// PackageFetcher retrieves packages from a source and stores them in the destination directory.
+	PackageFetcher interface {
+		// Fetch retrieves packages from the source and stores them in the destination directory.
+		Fetch(source config.ImportedPackage, destinationDir string) error
 	}
 
 	// AgentBridge is a bridge between the domain and the agent.

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/domain"
 	"github.com/sushichan044/ajisai/utils"
 )
@@ -13,12 +14,12 @@ type GitFetcher struct {
 }
 
 // NewGitFetcher creates a new GitFetcherImpl with the default command runner.
-func NewGitFetcher() domain.ContentFetcher {
+func NewGitFetcher() domain.PackageFetcher {
 	return &GitFetcher{cmdRunner: &utils.DefaultCommandRunner{}}
 }
 
 // NewGitFetcherWithRunner creates a new GitFetcherImpl with a custom command runner (for testing).
-func NewGitFetcherWithRunner(runner utils.CommandRunner) domain.ContentFetcher {
+func NewGitFetcherWithRunner(runner utils.CommandRunner) domain.PackageFetcher {
 	return &GitFetcher{cmdRunner: runner}
 }
 
@@ -26,17 +27,17 @@ func NewGitFetcherWithRunner(runner utils.CommandRunner) domain.ContentFetcher {
 // It clones the repo if destinationDir doesn't exist, otherwise updates it.
 // If a specific revision is provided in the source, it checks out that revision.
 // Otherwise, it pulls the latest changes from the default branch.
-func (f *GitFetcher) Fetch(source domain.InputSource, destinationDir string) error {
-	gitSource, ok := domain.GetInputSourceDetails[domain.GitInputSourceDetails](source)
+func (f *GitFetcher) Fetch(source config.ImportedPackage, destinationDir string) error {
+	gitDetails, ok := config.GetImportDetails[config.GitImportDetails](source)
 	if !ok {
 		return &InvalidSourceTypeError{
-			expectedType: domain.PresetSourceTypeGit,
+			expectedType: config.ImportTypeGit,
 			actualType:   source.Type,
 			err:          fmt.Errorf("cannot fetch from source type: %s", source.Type),
 		}
 	}
 
-	if gitSource.Repository == "" {
+	if gitDetails.Repository == "" {
 		return errors.New("git repository URL cannot be empty")
 	}
 
@@ -51,11 +52,16 @@ func (f *GitFetcher) Fetch(source domain.InputSource, destinationDir string) err
 	}
 
 	if !shouldPull {
-		cmdArgs := []string{"clone", gitSource.Repository, destAbsDir}
+		cmdArgs := []string{"clone", gitDetails.Repository, destAbsDir}
 		return f.cmdRunner.Run("git", cmdArgs...)
 	}
 
-	if gitSource.Revision != "" {
+	// Reset hard to the latest commit
+	if cleanErr := f.cmdRunner.RunInDir(destAbsDir, "git", "checkout", "."); cleanErr != nil {
+		return fmt.Errorf("failed to clear dirty files in %s: %w", destAbsDir, cleanErr)
+	}
+
+	if gitDetails.Revision != "" {
 		// Checkout specific revision
 		fetchArgs := []string{"fetch", "origin"}
 		if err = f.cmdRunner.RunInDir(destAbsDir, "git", fetchArgs...); err != nil {
@@ -66,11 +72,11 @@ func (f *GitFetcher) Fetch(source domain.InputSource, destinationDir string) err
 			)
 		}
 
-		checkoutArgs := []string{"checkout", gitSource.Revision}
+		checkoutArgs := []string{"checkout", gitDetails.Revision}
 		return f.cmdRunner.RunInDir(destAbsDir, "git", checkoutArgs...)
 	}
 
 	// Pull latest changes from default branch
-	pullArgs := []string{"pull", "origin"}
+	pullArgs := []string{"pull", "--rebase", "origin"}
 	return f.cmdRunner.RunInDir(destAbsDir, "git", pullArgs...)
 }
