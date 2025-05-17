@@ -16,8 +16,10 @@
 
 <!-- /TOC -->
 
-> [!WARNING]
-> This software is still under development. Be careful.
+> [!CAUTION]
+> Please be aware that the current implementation poses difficulties for practical operation.
+> 
+> As a result, breaking changes are planned for the next few days.
 
 **ajisai** is a command-line tool designed to manage and synchronize AI coding agent configuration presets (like rules and prompts) from various sources to different environments.
 
