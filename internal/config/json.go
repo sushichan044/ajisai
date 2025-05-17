@@ -1,0 +1,207 @@
+package config
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/sushichan044/ajisai/utils"
+)
+
+type jsonLoader struct{}
+
+func NewJSONLoader() formatLoader[jsonConfig] {
+	return &jsonLoader{}
+}
+
+func (l *jsonLoader) Load(configPath string) (*Config, error) {
+	resolvedPath, err := utils.ResolveAbsPath(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve config path: %w", err)
+	}
+
+	if _, statErr := os.Stat(resolvedPath); statErr != nil {
+		return nil, fmt.Errorf("failed to get config file %s: %w", resolvedPath, statErr)
+	}
+
+	body, err := os.ReadFile(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file %s: %w", resolvedPath, err)
+	}
+
+	var jsonCfg jsonConfig
+	if jsonErr := json.Unmarshal(body, &jsonCfg); jsonErr != nil {
+		return nil, fmt.Errorf("failed to unmarshal config file %s: %w", resolvedPath, jsonErr)
+	}
+
+	return l.fromFormat(jsonCfg), nil
+}
+
+func (l *jsonLoader) Save(configPath string, cfg *Config) error {
+	resolvedPath, err := utils.ResolveAbsPath(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve config path: %w", err)
+	}
+
+	jsonCfg := l.toFormat(cfg)
+
+	body, jsonErr := json.MarshalIndent(jsonCfg, "", "  ")
+	if jsonErr != nil {
+		return fmt.Errorf("failed to marshal config: %w", jsonErr)
+	}
+
+	if writeErr := os.WriteFile(resolvedPath, body, 0600); writeErr != nil {
+		return fmt.Errorf("failed to write config file %s: %w", resolvedPath, writeErr)
+	}
+
+	return nil
+}
+
+func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
+	var jsonCfg jsonConfig
+
+	if cfg.Settings != nil {
+		jsonCfg.Settings = &jsonSettings{
+			CacheDir:     cfg.Settings.CacheDir,
+			Experimental: cfg.Settings.Experimental,
+			Namespace:    cfg.Settings.Namespace,
+		}
+	}
+
+	if cfg.Package != nil {
+		var pkg jsonPackage
+		pkg.Name = cfg.Package.Name
+		for _, export := range cfg.Package.Exports {
+			pkg.Exports = append(pkg.Exports, jsonExportedPresetDefinition(export))
+		}
+		jsonCfg.Package = &pkg
+	}
+
+	if cfg.Workspace != nil {
+		var workspace jsonWorkspace
+		workspace.Imports = make(map[string]jsonImportedPackage)
+		for name, imp := range cfg.Workspace.Imports {
+			switch imp.Type {
+			case ImportTypeLocal:
+				if details, ok := GetImportDetails[LocalImportDetails](imp); ok {
+					workspace.Imports[name] = jsonImportedPackage{
+						Type: string(imp.Type),
+						Path: details.Path,
+					}
+				}
+			case ImportTypeGit:
+				if details, ok := GetImportDetails[GitImportDetails](imp); ok {
+					workspace.Imports[name] = jsonImportedPackage{
+						Type:       string(imp.Type),
+						Repository: details.Repository,
+						Revision:   details.Revision,
+					}
+				}
+			}
+		}
+		for _, integration := range cfg.Workspace.Integrations {
+			workspace.Integrations = append(workspace.Integrations, jsonAgentIntegration{
+				Target:  string(integration.Target),
+				Enabled: integration.Enabled,
+			})
+		}
+		jsonCfg.Workspace = &workspace
+	}
+
+	return jsonCfg
+}
+
+func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
+	var settings Settings
+	if cfg.Settings != nil {
+		settings.CacheDir = cfg.Settings.CacheDir
+		settings.Experimental = cfg.Settings.Experimental
+		settings.Namespace = cfg.Settings.Namespace
+	}
+
+	var workspace Workspace
+	workspace.Imports = make(map[string]ImportedPackage)
+	if cfg.Workspace != nil {
+		for name, imp := range cfg.Workspace.Imports {
+			switch imp.Type {
+			case string(ImportTypeLocal):
+				workspace.Imports[name] = ImportedPackage{
+					Type: ImportTypeLocal,
+					Details: LocalImportDetails{
+						Path: imp.Path,
+					},
+				}
+			case string(ImportTypeGit):
+				workspace.Imports[name] = ImportedPackage{
+					Type: ImportTypeGit,
+					Details: GitImportDetails{
+						Repository: imp.Repository,
+						Revision:   imp.Revision,
+					},
+				}
+			}
+		}
+		for _, integration := range cfg.Workspace.Integrations {
+			workspace.Integrations = append(workspace.Integrations, AgentIntegration{
+				Target:  AgentIntegrationType(integration.Target),
+				Enabled: integration.Enabled,
+			})
+		}
+	}
+
+	var pkg Package
+	if cfg.Package != nil {
+		pkg.Name = cfg.Package.Name
+		for _, export := range cfg.Package.Exports {
+			pkg.Exports = append(pkg.Exports, ExportedPresetDefinition(export))
+		}
+	}
+
+	return &Config{
+		Settings:  &settings,
+		Package:   &pkg,
+		Workspace: &workspace,
+	}
+}
+
+type (
+	jsonConfig struct {
+		Settings  *jsonSettings  `json:"settings,omitempty"`
+		Package   *jsonPackage   `json:"package,omitempty"`
+		Workspace *jsonWorkspace `json:"workspace,omitempty"`
+	}
+
+	jsonSettings struct {
+		CacheDir     string `json:"cacheDir,omitempty"`
+		Experimental bool   `json:"experimental,omitempty"`
+		Namespace    string `json:"namespace,omitempty"`
+	}
+
+	jsonPackage struct {
+		Exports []jsonExportedPresetDefinition `json:"exports,omitempty"`
+		Name    string                         `json:"name"`
+	}
+
+	jsonExportedPresetDefinition struct {
+		Name    string   `json:"name"`
+		Prompts []string `json:"prompts,omitempty"`
+		Rules   []string `json:"rules,omitempty"`
+	}
+
+	jsonWorkspace struct {
+		Imports      map[string]jsonImportedPackage `json:"imports,omitempty"`
+		Integrations []jsonAgentIntegration         `json:"integrations,omitempty"`
+	}
+
+	jsonImportedPackage struct {
+		Type       string `json:"type"`
+		Path       string `json:"path,omitempty"`       // only for type: local
+		Repository string `json:"repository,omitempty"` // only for type: git
+		Revision   string `json:"revision,omitempty"`   // only for type: git
+	}
+
+	jsonAgentIntegration struct {
+		Target  string `json:"target"`
+		Enabled bool   `json:"enabled,omitempty"`
+	}
+)

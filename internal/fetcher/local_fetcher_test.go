@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/fetcher"
 )
 
@@ -17,9 +17,9 @@ func TestLocalFetcher_Fetch_WrongDetailsType(t *testing.T) {
 	tempDir := t.TempDir()
 	destPath := filepath.Join(tempDir, "dest")
 
-	gitSource := domain.InputSource{
+	gitSource := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "some-repo",
 		},
 	}
@@ -35,9 +35,9 @@ func TestLocalFetcher_Fetch_SourceNotExist(t *testing.T) {
 	nonExistentSourcePath := filepath.Join(tempDir, "non-existent-src")
 	destPath := filepath.Join(tempDir, "dest")
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "local",
-		Details: domain.LocalInputSourceDetails{
+		Details: config.LocalImportDetails{
 			Path: nonExistentSourcePath,
 		},
 	}
@@ -56,9 +56,9 @@ func TestLocalFetcher_Fetch_SourceIsFile(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(sourceFilePath, []byte("hello"), 0644))
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "local",
-		Details: domain.LocalInputSourceDetails{
+		Details: config.LocalImportDetails{
 			Path: sourceFilePath,
 		},
 	}
@@ -79,9 +79,9 @@ func TestLocalFetcher_Fetch_DestinationHandling(t *testing.T) {
 	require.NoError(t, os.MkdirAll(sourcePath, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(sourcePath, "file1.txt"), []byte("source"), 0644))
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type:    "local",
-		Details: domain.LocalInputSourceDetails{Path: sourcePath},
+		Details: config.LocalImportDetails{Path: sourcePath},
 	}
 
 	tests := []struct {
@@ -160,9 +160,9 @@ func TestLocalFetcher_Fetch_CopySuccess(t *testing.T) {
 
 	// --- Execute Fetch ---
 	fetcher := fetcher.NewLocalFetcher()
-	inputSource := domain.InputSource{
+	inputSource := config.ImportedPackage{
 		Type: "local",
-		Details: domain.LocalInputSourceDetails{
+		Details: config.LocalImportDetails{
 			Path: sourceDir,
 		},
 	}

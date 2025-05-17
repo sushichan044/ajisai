@@ -82,7 +82,7 @@ func parsePrompts(rootDir string) ([]*domain.PromptItem, error) {
 			return err
 		}
 
-		if d.IsDir() || !strings.HasSuffix(d.Name(), "."+domain.PromptInternalExtension) {
+		if d.IsDir() || !strings.HasSuffix(d.Name(), domain.PromptInternalExtension) {
 			return nil
 		}
 
@@ -129,7 +129,7 @@ func parseRules(rootDir string) ([]*domain.RuleItem, error) {
 			return err
 		}
 
-		if d.IsDir() || !strings.HasSuffix(d.Name(), "."+domain.RuleInternalExtension) {
+		if d.IsDir() || !strings.HasSuffix(d.Name(), domain.RuleInternalExtension) {
 			return nil
 		}
 

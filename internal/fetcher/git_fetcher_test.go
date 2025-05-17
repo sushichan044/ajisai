@@ -11,7 +11,7 @@ import (
 
 	gomock "go.uber.org/mock/gomock"
 
-	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/fetcher"
 	utils "github.com/sushichan044/ajisai/utils/mocks"
 )
@@ -26,9 +26,9 @@ func TestGitFetcher_Fetch_InitialClone(t *testing.T) {
 	require.NoError(t, err)
 
 	repoURL := "https://github.com/example/repo.git"
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type:    "git",
-		Details: domain.GitInputSourceDetails{Repository: repoURL},
+		Details: config.GitImportDetails{Repository: repoURL},
 	}
 
 	mockRunner := utils.NewMockCommandRunner(ctrl)
@@ -53,9 +53,9 @@ func TestGitFetcher_Fetch_InitialClone_Failure(t *testing.T) {
 	absoluteDestDir, err := filepath.Abs(destDir)
 	require.NoError(t, err)
 	repoURL := "invalid-url"
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type:    "git",
-		Details: domain.GitInputSourceDetails{Repository: repoURL},
+		Details: config.GitImportDetails{Repository: repoURL},
 	}
 
 	cloneErr := errors.New("git clone failed")
@@ -82,9 +82,9 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 	require.NoError(t, err)
 
 	revision := "v1.0.0"
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "https://irrelevant.for/this/test",
 			Revision:   revision,
 		},
@@ -92,11 +92,13 @@ func TestGitFetcher_Fetch_CheckoutRevision(t *testing.T) {
 
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
-	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedFetchArgs[1])).Return(nil)
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
 
-	expectedCheckoutArgs := []any{"git", []string{"checkout", revision}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedCheckoutArgs[1])).Return(nil)
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedFetchArgs).Return(nil)
+
+	expectedCheckoutArgs := []string{"checkout", revision}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedCheckoutArgs).Return(nil)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -116,9 +118,9 @@ func TestGitFetcher_Fetch_CheckoutRevision_FetchFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	revision := "v1.0.0"
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "https://irrelevant.for/this/test",
 			Revision:   revision,
 		},
@@ -126,9 +128,11 @@ func TestGitFetcher_Fetch_CheckoutRevision_FetchFailure(t *testing.T) {
 
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
+
 	fetchErr := errors.New("git fetch failed")
-	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedFetchArgs[1])).Return(fetchErr)
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedFetchArgs).Return(fetchErr)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -149,9 +153,9 @@ func TestGitFetcher_Fetch_CheckoutRevision_CheckoutFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	revision := "invalid-revision"
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "https://irrelevant.for/this/test",
 			Revision:   revision,
 		},
@@ -159,12 +163,14 @@ func TestGitFetcher_Fetch_CheckoutRevision_CheckoutFailure(t *testing.T) {
 
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
-	expectedFetchArgs := []any{"git", []string{"fetch", "origin"}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedFetchArgs[1])).Return(nil)
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
+
+	expectedFetchArgs := []string{"fetch", "origin"}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedFetchArgs).Return(nil)
 
 	checkoutErr := errors.New("git checkout failed")
-	expectedCheckoutArgs := []any{"git", []string{"checkout", revision}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedCheckoutArgs[1])).Return(checkoutErr)
+	expectedCheckoutArgs := []string{"checkout", revision}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedCheckoutArgs).Return(checkoutErr)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -183,17 +189,19 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 	absoluteDestDir, err := filepath.Abs(destDir)
 	require.NoError(t, err)
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "https://irrelevant.for/this/test",
 		},
 	}
 
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
-	expectedPullArgs := []any{"git", []string{"pull", "origin"}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedPullArgs[1])).Return(nil)
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
+
+	expectedPullArgs := []string{"pull", "--rebase", "origin"}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedPullArgs).Return(nil)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -212,18 +220,20 @@ func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
 	absoluteDestDir, err := filepath.Abs(destDir)
 	require.NoError(t, err)
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "https://irrelevant.for/this/test",
 		},
 	}
 
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
+
 	pullErr := errors.New("git pull failed")
-	expectedPullArgs := []any{"git", []string{"pull", "origin"}}
-	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", gomock.Eq(expectedPullArgs[1])).Return(pullErr)
+	expectedPullArgs := []string{"pull", "--rebase", "origin"}
+	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedPullArgs).Return(pullErr)
 
 	err = fetcherInstance.Fetch(source, destDir)
 
@@ -238,9 +248,9 @@ func TestGitFetcher_InvalidSourceType(t *testing.T) {
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 	destPath := "/tmp/dest"
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "local",
-		Details: domain.LocalInputSourceDetails{
+		Details: config.LocalImportDetails{
 			Path: "/some/path",
 		},
 	}
@@ -250,8 +260,8 @@ func TestGitFetcher_InvalidSourceType(t *testing.T) {
 	require.Error(t, err)
 	var invalidTypeErr *fetcher.InvalidSourceTypeError
 	require.ErrorAs(t, err, &invalidTypeErr)
-	assert.Equal(t, domain.PresetSourceTypeGit, invalidTypeErr.ExpectedType())
-	assert.Equal(t, domain.PresetSourceTypeLocal, invalidTypeErr.ActualType())
+	assert.Equal(t, config.ImportTypeGit, invalidTypeErr.ExpectedType())
+	assert.Equal(t, config.ImportTypeLocal, invalidTypeErr.ActualType())
 	assert.Contains(t, err.Error(), "expected source type: git, got: local")
 }
 
@@ -263,9 +273,9 @@ func TestGitFetcher_EmptyRepository(t *testing.T) {
 	fetcherInstance := fetcher.NewGitFetcherWithRunner(mockRunner)
 	destPath := "/tmp/dest"
 
-	source := domain.InputSource{
+	source := config.ImportedPackage{
 		Type: "git",
-		Details: domain.GitInputSourceDetails{
+		Details: config.GitImportDetails{
 			Repository: "",
 		},
 	}

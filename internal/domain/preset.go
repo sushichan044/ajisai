@@ -8,8 +8,8 @@ const (
 	RulesPresetType   PresetType = "rules"
 	PromptsPresetType PresetType = "prompts"
 
-	RuleInternalExtension   = "md"
-	PromptInternalExtension = "md"
+	RuleInternalExtension   = ".md"
+	PromptInternalExtension = ".md"
 
 	AttachTypeAlways         AttachType = "always"
 	AttachTypeGlob           AttachType = "glob"
