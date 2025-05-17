@@ -40,6 +40,11 @@ type (
 		Type ImportType `json:"type"`
 
 		/*
+			List of exported presets to include in the workspace.
+		*/
+		Include []string `json:"include,omitempty"`
+
+		/*
 			Type-specific configuration details.
 		*/
 		Details ImportDetails `json:"details"`

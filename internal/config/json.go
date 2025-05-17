@@ -85,8 +85,9 @@ func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 			case ImportTypeLocal:
 				if details, ok := GetImportDetails[LocalImportDetails](imp); ok {
 					workspace.Imports[name] = jsonImportedPackage{
-						Type: string(imp.Type),
-						Path: details.Path,
+						Type:    string(imp.Type),
+						Path:    details.Path,
+						Include: imp.Include,
 					}
 				}
 			case ImportTypeGit:
@@ -95,6 +96,7 @@ func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 						Type:       string(imp.Type),
 						Repository: details.Repository,
 						Revision:   details.Revision,
+						Include:    imp.Include,
 					}
 				}
 			}
@@ -130,6 +132,7 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 					Details: LocalImportDetails{
 						Path: imp.Path,
 					},
+					Include: imp.Include,
 				}
 			case string(ImportTypeGit):
 				workspace.Imports[name] = ImportedPackage{
@@ -138,6 +141,7 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 						Repository: imp.Repository,
 						Revision:   imp.Revision,
 					},
+					Include: imp.Include,
 				}
 			}
 		}
@@ -194,10 +198,11 @@ type (
 	}
 
 	jsonImportedPackage struct {
-		Type       string `json:"type"`
-		Path       string `json:"path,omitempty"`       // only for type: local
-		Repository string `json:"repository,omitempty"` // only for type: git
-		Revision   string `json:"revision,omitempty"`   // only for type: git
+		Type       string   `json:"type"`
+		Include    []string `json:"include,omitempty"`
+		Path       string   `json:"path,omitempty"`       // only for type: local
+		Repository string   `json:"repository,omitempty"` // only for type: git
+		Revision   string   `json:"revision,omitempty"`   // only for type: git
 	}
 
 	jsonAgentIntegration struct {

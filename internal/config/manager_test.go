@@ -28,6 +28,10 @@ func TestManagerLoad(t *testing.T) {
 				Imports: map[string]config.ImportedPackage{
 					"test-import": {
 						Type: "git",
+						Include: []string{
+							"test-export",
+							"typescript-react",
+						},
 						Details: config.GitImportDetails{
 							Repository: "https://github.com/sushichan044/ajisai.git",
 						},
