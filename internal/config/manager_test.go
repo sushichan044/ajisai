@@ -1,122 +1,266 @@
 package config_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/sushichan044/ajisai/internal/config"
-	"github.com/sushichan044/ajisai/internal/domain"
 )
 
-func TestLoad(t *testing.T) {
-	t.Run("non-existent config returns fallback config", func(t *testing.T) {
-		nonExistentPath := filepath.Join(t.TempDir(), "non-existent.toml")
+func TestManagerLoad(t *testing.T) {
+	tempDir := t.TempDir()
 
-		cfg, err := config.NewManager().Load(nonExistentPath)
+	t.Run("successfully loads JSON config", func(t *testing.T) {
+		// Create a test config file
+		configPath := filepath.Join(tempDir, "config.json")
+		testConfig := &config.Config{
+			Settings: &config.Settings{
+				CacheDir:     "/custom/cache/dir",
+				Experimental: true,
+				Namespace:    "test-namespace",
+			},
+			Workspace: &config.Workspace{
+				Imports: map[string]config.ImportedPackage{
+					"test-import": {
+						Type: "git",
+						Details: config.GitImportDetails{
+							Repository: "https://github.com/sushichan044/ajisai.git",
+						},
+					},
+				},
+				Integrations: []config.AgentIntegration{
+					{
+						Target:  "cursor",
+						Enabled: true,
+					},
+				},
+			},
+			Package: &config.Package{
+				Name: "test-package",
+				Exports: []config.ExportedPresetDefinition{
+					{
+						Name: "test-export",
+					},
+				},
+			},
+		}
 
-		// Non-existent path does not return an error, but returns a fallback config
-		require.NoError(t, err)
+		manager := config.NewManager()
 
-		assert.Equal(t, "ajisai", cfg.Settings.Namespace)
-		assert.Empty(t, cfg.Inputs)
-		assert.Empty(t, cfg.Outputs)
+		if writeErr := manager.Save(configPath, testConfig); writeErr != nil {
+			t.Fatalf("Failed to save config: %v", writeErr)
+		}
+
+		// Try to load the config
+		loadedConfig, err := manager.Load(configPath)
+		if err != nil {
+			t.Fatalf("Failed to load config: %v", err)
+		}
+
+		assert.True(t, cmp.Equal(loadedConfig, testConfig))
 	})
 
-	t.Run("unsupported extension returns error", func(t *testing.T) {
-		unsupportedPath := filepath.Join(t.TempDir(), "config.txt")
-		err := os.WriteFile(unsupportedPath, []byte("test content"), 0644)
-		require.NoError(t, err)
+	t.Run("fails with unsupported extension", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "config.unsupported")
+		if writeErr := os.WriteFile(configPath, []byte("{}"), 0600); writeErr != nil {
+			t.Fatalf("Failed to write test config: %v", writeErr)
+		}
 
-		_, err = config.NewManager().Load(unsupportedPath)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "unsupported config file extension")
+		manager := config.NewManager()
+		_, err := manager.Load(configPath)
+		if err == nil {
+			t.Error("Expected error for unsupported extension, but got nil")
+		}
 	})
 
-	t.Run("valid toml file loads successfully", func(t *testing.T) {
-		validTomlPath := filepath.Join(t.TempDir(), "valid.toml")
-		tomlContent := `
-[settings]
-namespace = "test-namespace"
-cacheDir = "./test-cache"
+	t.Run("fails with non-existent file", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "non-existent.json")
 
-[inputs.test]
-type = "local"
-path = "./test-path"
-
-[outputs.test]
-target = "cursor"
-`
-		err := os.WriteFile(validTomlPath, []byte(tomlContent), 0644)
-		require.NoError(t, err)
-
-		cfg, err := config.NewManager().Load(validTomlPath)
-		require.NoError(t, err)
-
-		assert.Equal(t, "test-namespace", cfg.Settings.Namespace)
-		assert.Contains(t, cfg.Inputs, "test")
-		assert.Equal(t, domain.PresetSourceTypeLocal, cfg.Inputs["test"].Type)
-		assert.Contains(t, cfg.Outputs, "test")
-		assert.Equal(t, domain.SupportedAgentTypeCursor, cfg.Outputs["test"].Target)
-	})
-
-	t.Run("invalid toml file returns error", func(t *testing.T) {
-		invalidTomlPath := filepath.Join(t.TempDir(), "invalid.toml")
-		invalidContent := `
-[settings
-namespace = "test" # No closing bracket! Syntax error!
-`
-		err := os.WriteFile(invalidTomlPath, []byte(invalidContent), 0644)
-		require.NoError(t, err)
-
-		_, err = config.NewManager().Load(invalidTomlPath)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to unmarshal TOML")
+		manager := config.NewManager()
+		_, err := manager.Load(configPath)
+		if err == nil {
+			t.Error("Expected error for non-existent file, but got nil")
+		}
 	})
 }
 
-type MockConfigManager struct {
-	LoadFunc func(configPath string) (*domain.Config, error)
-	SaveFunc func(configPath string, cfg *domain.Config) error
+func TestManagerSave(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("successfully saves JSON config", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "config.json")
+		testConfig := &config.Config{
+			Settings: &config.Settings{
+				CacheDir:     "/custom/cache/dir",
+				Experimental: true,
+				Namespace:    "test-namespace",
+			},
+		}
+
+		manager := config.NewManager()
+		if err := manager.Save(configPath, testConfig); err != nil {
+			t.Fatalf("Failed to save config: %v", err)
+		}
+
+		// Read the saved file and verify its contents
+		savedBytes, err := os.ReadFile(configPath)
+		if err != nil {
+			t.Fatalf("Failed to read saved config: %v", err)
+		}
+
+		var savedConfig config.Config
+		if jsonErr := json.Unmarshal(savedBytes, &savedConfig); jsonErr != nil {
+			t.Fatalf("Failed to unmarshal saved config: %v", jsonErr)
+		}
+
+		if savedConfig.Settings.CacheDir != testConfig.Settings.CacheDir {
+			t.Errorf(
+				"Expected saved CacheDir %q, but got %q",
+				testConfig.Settings.CacheDir,
+				savedConfig.Settings.CacheDir,
+			)
+		}
+		if savedConfig.Settings.Experimental != testConfig.Settings.Experimental {
+			t.Errorf(
+				"Expected saved Experimental %v, but got %v",
+				testConfig.Settings.Experimental,
+				savedConfig.Settings.Experimental,
+			)
+		}
+		if savedConfig.Settings.Namespace != testConfig.Settings.Namespace {
+			t.Errorf(
+				"Expected saved Namespace %q, but got %q",
+				testConfig.Settings.Namespace,
+				savedConfig.Settings.Namespace,
+			)
+		}
+	})
+
+	t.Run("fails with unsupported extension", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "config.unsupported")
+		testConfig := &config.Config{}
+
+		manager := config.NewManager()
+		err := manager.Save(configPath, testConfig)
+		if err == nil {
+			t.Error("Expected error for unsupported extension, but got nil")
+		}
+	})
 }
 
-func (m *MockConfigManager) Load(configPath string) (*domain.Config, error) {
-	return m.LoadFunc(configPath)
+//gocognit:ignore
+func TestManagerApplyDefaults(t *testing.T) {
+	t.Run("applies defaults to nil config", func(t *testing.T) {
+		manager := config.NewManager()
+		cfg, err := manager.ApplyDefaults(nil)
+		if err != nil {
+			t.Fatalf("Failed to apply defaults: %v", err)
+		}
+
+		// Check settings defaults
+		if cfg.Settings == nil {
+			t.Fatal("Expected Settings to be initialized, but it's nil")
+		}
+		if cfg.Settings.CacheDir != "./.ajisai/cache" {
+			t.Errorf("Expected default CacheDir %q, but got %q", "./.ajisai/cache", cfg.Settings.CacheDir)
+		}
+		if cfg.Settings.Namespace != "ajisai" {
+			t.Errorf("Expected default Namespace %q, but got %q", "ajisai", cfg.Settings.Namespace)
+		}
+
+		// Check package defaults
+		if cfg.Package == nil {
+			t.Fatal("Expected Package to be initialized, but it's nil")
+		}
+		if cfg.Package.Exports == nil {
+			t.Fatal("Expected Exports to be initialized, but it's nil")
+		}
+
+		// Check workspace defaults
+		if cfg.Workspace == nil {
+			t.Fatal("Expected Workspace to be initialized, but it's nil")
+		}
+		if cfg.Workspace.Imports == nil {
+			t.Fatal("Expected Imports to be initialized, but it's nil")
+		}
+		if cfg.Workspace.Integrations == nil {
+			t.Fatal("Expected Integrations to be initialized, but it's nil")
+		}
+	})
+
+	t.Run("preserves existing values while applying defaults", func(t *testing.T) {
+		inputConfig := &config.Config{
+			Settings: &config.Settings{
+				CacheDir:     "/custom/cache",
+				Experimental: true,
+				// Namespace left empty to test default
+			},
+			// Package and Workspace left nil to test default initialization
+		}
+
+		manager := config.NewManager()
+		cfg, err := manager.ApplyDefaults(inputConfig)
+		if err != nil {
+			t.Fatalf("Failed to apply defaults: %v", err)
+		}
+
+		// Verify original values are preserved
+		if cfg.Settings.CacheDir != "/custom/cache" {
+			t.Errorf("Expected CacheDir to be preserved as %q, but got %q", "/custom/cache", cfg.Settings.CacheDir)
+		}
+		if !cfg.Settings.Experimental {
+			t.Error("Expected Experimental to be preserved as true, but it's false")
+		}
+
+		// Verify defaults are applied
+		if cfg.Settings.Namespace != "ajisai" {
+			t.Errorf("Expected default Namespace %q, but got %q", "ajisai", cfg.Settings.Namespace)
+		}
+		if cfg.Package == nil {
+			t.Error("Expected Package to be initialized, but it's nil")
+		}
+		if cfg.Workspace == nil {
+			t.Error("Expected Workspace to be initialized, but it's nil")
+		}
+	})
 }
 
-func (m *MockConfigManager) Save(configPath string, cfg *domain.Config) error {
-	return m.SaveFunc(configPath, cfg)
-}
+func TestManagerGetDefaultConfig(t *testing.T) {
+	manager := config.NewManager()
+	cfg := manager.GetDefaultConfig()
 
-func TestMockConfigManager(t *testing.T) {
-	mockCfg := &domain.Config{
-		Settings: domain.Settings{
-			Namespace: "mock-namespace",
-			CacheDir:  "./mock-cache",
-		},
+	// Check settings defaults
+	if cfg.Settings == nil {
+		t.Fatal("Expected Settings to be initialized, but it's nil")
+	}
+	if cfg.Settings.CacheDir != "./.ajisai/cache" {
+		t.Errorf("Expected default CacheDir %q, but got %q", "./.ajisai/cache", cfg.Settings.CacheDir)
+	}
+	if cfg.Settings.Namespace != "ajisai" {
+		t.Errorf("Expected default Namespace %q, but got %q", "ajisai", cfg.Settings.Namespace)
 	}
 
-	mock := &MockConfigManager{
-		LoadFunc: func(configPath string) (*domain.Config, error) {
-			assert.Equal(t, "test-path", configPath)
-			return mockCfg, nil
-		},
-		SaveFunc: func(configPath string, cfg *domain.Config) error {
-			assert.Equal(t, "test-path", configPath)
-			assert.Equal(t, mockCfg, cfg)
-			return nil
-		},
+	// Check package defaults
+	if cfg.Package == nil {
+		t.Fatal("Expected Package to be initialized, but it's nil")
+	}
+	if cfg.Package.Exports == nil {
+		t.Fatal("Expected Exports to be initialized, but it's nil")
 	}
 
-	// Verify that LoadFunc behaves as expected
-	loadedCfg, err := mock.Load("test-path")
-	require.NoError(t, err)
-	assert.Equal(t, mockCfg, loadedCfg)
-
-	// Verify that SaveFunc behaves as expected
-	err = mock.Save("test-path", mockCfg)
-	require.NoError(t, err)
+	// Check workspace defaults
+	if cfg.Workspace == nil {
+		t.Fatal("Expected Workspace to be initialized, but it's nil")
+	}
+	if cfg.Workspace.Imports == nil {
+		t.Fatal("Expected Imports to be initialized, but it's nil")
+	}
+	if cfg.Workspace.Integrations == nil {
+		t.Fatal("Expected Integrations to be initialized, but it's nil")
+	}
 }
