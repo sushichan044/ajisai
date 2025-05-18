@@ -26,12 +26,12 @@ func NewAgentPresetPackageLoader(config *config.Config) domain.AgentPresetPackag
 func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.AgentPresetPackage, error) {
 	importedPkgCfg, isImported := l.cfg.Workspace.Imports[packageName]
 	if !isImported {
-		return nil, fmt.Errorf("package %s is not imported", packageName)
+		return nil, fmt.Errorf("could not load package %s: not imported", packageName)
 	}
 
 	pkgManifest, manifestErr := l.resolvePackageManifest(packageName)
 	if manifestErr != nil {
-		return nil, fmt.Errorf("failed to resolve package manifest: %w", manifestErr)
+		return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
 	}
 
 	eg := errgroup.Group{}
@@ -47,7 +47,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 			preset, buildErr := l.buildPreset(pkgManifest, includedPresetName)
 
 			if buildErr != nil {
-				return fmt.Errorf("failed to build preset %s: %w", includedPresetName, buildErr)
+				return fmt.Errorf("build preset %s: %w", includedPresetName, buildErr)
 			}
 			importedPresets = append(importedPresets, preset)
 			return nil
@@ -55,7 +55,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 	}
 
 	if groupErr := eg.Wait(); groupErr != nil {
-		return nil, fmt.Errorf("failed to build agent preset package: %w", groupErr)
+		return nil, fmt.Errorf("build agent preset package %s: %w", packageName, groupErr)
 	}
 
 	return &domain.AgentPresetPackage{
@@ -69,14 +69,14 @@ func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.
 
 	cacheDir, err := l.cfg.GetImportedPackageCacheRoot(packageName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cache directory: %w", err)
+		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
 	}
 
 	expectedManifestPath := filepath.Join(cacheDir, "ajisai.json")
 	if _, statErr := os.Stat(expectedManifestPath); statErr == nil {
 		rawManifest, manifestErr := config.NewManager().Load(expectedManifestPath)
 		if manifestErr != nil {
-			return nil, fmt.Errorf("failed to load package manifest: %w", manifestErr)
+			return nil, manifestErr
 		}
 
 		resolvedManifest = &config.Package{
@@ -102,7 +102,7 @@ func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.
 func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName string) (*domain.AgentPreset, error) {
 	rootDir, err := l.cfg.GetImportedPackageCacheRoot(pkgManifest.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cache directory: %w", err)
+		return nil, fmt.Errorf("build preset %s: %w", presetName, err)
 	}
 	exports, isExported := pkgManifest.Exports[presetName]
 	if !isExported {
@@ -120,7 +120,7 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 		eg.Go(func() error {
 			loadedPrompts, loadErr := l.loadPromptItems(rootDir, promptGlob)
 			if loadErr != nil {
-				return fmt.Errorf("failed to load prompts for glob %s: %w", promptGlob, loadErr)
+				return fmt.Errorf("glob failed for prompt %s: %w", promptGlob, loadErr)
 			}
 			prompts = append(prompts, loadedPrompts...)
 			return nil
@@ -131,7 +131,7 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 		eg.Go(func() error {
 			loadedRules, loadErr := l.loadRuleItems(rootDir, ruleGlob)
 			if loadErr != nil {
-				return fmt.Errorf("failed to load rules for glob %s: %w", ruleGlob, loadErr)
+				return fmt.Errorf("glob failed for rule %s: %w", ruleGlob, loadErr)
 			}
 			rules = append(rules, loadedRules...)
 			return nil
@@ -166,17 +166,17 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 
 		slug, slugErr := utils.GetSlugFromBaseDir(filepath.Join(rootDir, base), fullPath)
 		if slugErr != nil {
-			return fmt.Errorf("failed to get slug for %s: %w", fullPath, slugErr)
+			return fmt.Errorf("failed to get slug for prompt %s: %w", fullPath, slugErr)
 		}
 
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {
-			return fmt.Errorf("failed to read file %s: %w", fullPath, readErr)
+			return fmt.Errorf("failed to read prompt file %s: %w", fullPath, readErr)
 		}
 
 		result, parseErr := utils.ParseMarkdownWithMetadata[domain.PromptMetadata](body)
 		if parseErr != nil {
-			return fmt.Errorf("failed to parse markdown for %s: %w", fullPath, parseErr)
+			return fmt.Errorf("failed to parse prompt markdown %s: %w", fullPath, parseErr)
 		}
 
 		promptItem := domain.NewPromptItem(slug, result.Content, result.FrontMatter)
@@ -207,17 +207,17 @@ func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain
 
 		slug, slugErr := utils.GetSlugFromBaseDir(filepath.Join(rootDir, base), fullPath)
 		if slugErr != nil {
-			return fmt.Errorf("failed to get slug for %s: %w", fullPath, slugErr)
+			return fmt.Errorf("failed to get slug for rule %s: %w", fullPath, slugErr)
 		}
 
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {
-			return fmt.Errorf("failed to read file %s: %w", fullPath, readErr)
+			return fmt.Errorf("failed to read rule file %s: %w", fullPath, readErr)
 		}
 
 		result, parseErr := utils.ParseMarkdownWithMetadata[domain.RuleMetadata](body)
 		if parseErr != nil {
-			return fmt.Errorf("failed to parse markdown for %s: %w", fullPath, parseErr)
+			return fmt.Errorf("failed to parse rule markdown %s: %w", fullPath, parseErr)
 		}
 
 		ruleItem := domain.NewRuleItem(slug, result.Content, result.FrontMatter)
