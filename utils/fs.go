@@ -16,7 +16,10 @@ func AtomicWriteFile(path string, reader io.Reader) error {
 
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
-	defer tmp.Close()
+	defer func() {
+		// ignore any errors from second close
+		_ = tmp.Close()
+	}()
 
 	if _, err := io.Copy(tmp, reader); err != nil {
 		return fmt.Errorf("failed to write to temporary file: %w", err)
