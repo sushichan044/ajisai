@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/sushichan044/ajisai/internal/config"
 )
@@ -119,9 +120,7 @@ func TestManagerApplyDefaults(t *testing.T) {
 	t.Run("applies defaults to nil config", func(t *testing.T) {
 		manager := config.NewManager()
 		cfg, err := manager.ApplyDefaults(nil)
-		if err != nil {
-			t.Fatalf("Failed to apply defaults: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Check settings defaults
 		if cfg.Settings == nil {
@@ -166,9 +165,7 @@ func TestManagerApplyDefaults(t *testing.T) {
 
 		manager := config.NewManager()
 		cfg, err := manager.ApplyDefaults(inputConfig)
-		if err != nil {
-			t.Fatalf("Failed to apply defaults: %v", err)
-		}
+		require.NoError(t, err)
 
 		// Verify original values are preserved
 		if cfg.Settings.CacheDir != "/custom/cache" {
