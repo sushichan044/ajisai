@@ -11,14 +11,14 @@ import (
 	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/domain"
 	"github.com/sushichan044/ajisai/internal/fetcher"
+	"github.com/sushichan044/ajisai/internal/integration"
 	"github.com/sushichan044/ajisai/internal/loader"
-	"github.com/sushichan044/ajisai/internal/repository"
 )
 
 type Engine struct {
 	cfg *config.Config
 
-	activeRepos []domain.PresetRepository
+	activeIntegrations []domain.AgentIntegration
 }
 
 func NewEngine(cfg *config.Config) (*Engine, error) {
@@ -26,12 +26,12 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 		return nil, errors.New("internal error: config is nil")
 	}
 
-	activeRepos, repoErr := getEnabledRepositories(cfg)
-	if repoErr != nil {
-		return nil, fmt.Errorf("failed to get enabled repositories: %w", repoErr)
+	activeIntegrations, integErr := getEnabledIntegrations(cfg)
+	if integErr != nil {
+		return nil, fmt.Errorf("failed to get enabled integrations: %w", integErr)
 	}
 
-	return &Engine{cfg: cfg, activeRepos: activeRepos}, nil
+	return &Engine{cfg: cfg, activeIntegrations: activeIntegrations}, nil
 }
 
 func (engine *Engine) ApplyPackage(packageName string) error {
@@ -57,9 +57,9 @@ func (engine *Engine) ApplyPackage(packageName string) error {
 func (engine *Engine) CleanOutputs() error {
 	eg := errgroup.Group{}
 
-	for _, repo := range engine.activeRepos {
+	for _, integration := range engine.activeIntegrations {
 		eg.Go(func() error {
-			return repo.Clean(engine.cfg.Settings.Namespace)
+			return integration.Clean(engine.cfg.Settings.Namespace)
 		})
 	}
 
@@ -140,9 +140,9 @@ func (engine *Engine) loadPackage(packageName string) (*domain.AgentPresetPackag
 func (engine *Engine) exportPackage(pkg *domain.AgentPresetPackage) error {
 	eg := errgroup.Group{}
 
-	for _, repo := range engine.activeRepos {
+	for _, integration := range engine.activeIntegrations {
 		eg.Go(func() error {
-			return repo.WritePackage(engine.cfg.Settings.Namespace, pkg)
+			return integration.WritePackage(engine.cfg.Settings.Namespace, pkg)
 		})
 	}
 
@@ -160,46 +160,46 @@ func getFetcher(inputType config.ImportType) (domain.PackageFetcher, error) {
 	}
 }
 
-func getEnabledRepositories(cfg *config.Config) ([]domain.PresetRepository, error) {
-	maxRepos := 3
-	repos := make([]domain.PresetRepository, 0, maxRepos)
+func getEnabledIntegrations(cfg *config.Config) ([]domain.AgentIntegration, error) {
+	maxIntegrations := 3
+	integrations := make([]domain.AgentIntegration, 0, maxIntegrations)
 
 	if cfg.Workspace.Integrations.Cursor.Enabled {
-		cursorRepo, cursorErr := getRepository(config.AgentIntegrationTypeCursor)
+		cursorRepo, cursorErr := getIntegration(config.AgentIntegrationTypeCursor)
 		if cursorErr != nil {
 			return nil, fmt.Errorf("failed to get cursor repository: %w", cursorErr)
 		}
-		repos = append(repos, cursorRepo)
+		integrations = append(integrations, cursorRepo)
 	}
 
 	if cfg.Workspace.Integrations.GitHubCopilot.Enabled {
-		githubCopilotRepo, githubCopilotErr := getRepository(config.AgentIntegrationTypeGitHubCopilot)
+		githubCopilotRepo, githubCopilotErr := getIntegration(config.AgentIntegrationTypeGitHubCopilot)
 		if githubCopilotErr != nil {
 			return nil, fmt.Errorf("failed to get github copilot repository: %w", githubCopilotErr)
 		}
-		repos = append(repos, githubCopilotRepo)
+		integrations = append(integrations, githubCopilotRepo)
 	}
 
 	if cfg.Workspace.Integrations.Windsurf.Enabled {
-		windsurfRepo, windsurfErr := getRepository(config.AgentIntegrationTypeWindsurf)
+		windsurfRepo, windsurfErr := getIntegration(config.AgentIntegrationTypeWindsurf)
 		if windsurfErr != nil {
 			return nil, fmt.Errorf("failed to get windsurf repository: %w", windsurfErr)
 		}
-		repos = append(repos, windsurfRepo)
+		integrations = append(integrations, windsurfRepo)
 	}
 
-	return repos, nil
+	return integrations, nil
 }
 
-func getRepository(target config.AgentIntegrationType) (domain.PresetRepository, error) {
+func getIntegration(target config.AgentIntegrationType) (domain.AgentIntegration, error) {
 	switch target {
 	case config.AgentIntegrationTypeCursor:
-		return repository.NewPresetRepository(repository.NewCursorAdapter())
+		return integration.New(integration.NewCursorAdapter())
 	case config.AgentIntegrationTypeGitHubCopilot:
-		return repository.NewPresetRepository(repository.NewGitHubCopilotAdapter())
+		return integration.New(integration.NewGitHubCopilotAdapter())
 	case config.AgentIntegrationTypeWindsurf:
-		return repository.NewPresetRepository(repository.NewWindsurfAdapter())
+		return integration.New(integration.NewWindsurfAdapter())
 	default:
-		return nil, fmt.Errorf("unknown output type: %s", target)
+		return nil, fmt.Errorf("unknown agent integration type: %s", target)
 	}
 }

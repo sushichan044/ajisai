@@ -1,4 +1,4 @@
-package repository
+package integration
 
 import (
 	"github.com/sushichan044/ajisai/internal/bridge"
@@ -17,7 +17,7 @@ const (
 	windsurfPromptsDir = ".windsurf/prompts"
 )
 
-func NewWindsurfAdapter() AgentFileAdapter {
+func NewWindsurfAdapter() agentSpecificationAdapter {
 	return &windsurfAdapter{
 		bridge: bridge.NewWindsurfBridge(),
 	}

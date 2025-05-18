@@ -1,4 +1,4 @@
-package repository_test
+package integration_test
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/sushichan044/ajisai/internal/domain"
-	"github.com/sushichan044/ajisai/internal/repository"
+	"github.com/sushichan044/ajisai/internal/integration"
 )
 
 type mockFileAdapter struct {
@@ -59,7 +59,7 @@ func TestWritePreset(t *testing.T) {
 	t.Chdir(tempDir)
 
 	adapter := newMockFileAdapter()
-	repo, err := repository.NewPresetRepository(adapter)
+	repo, err := integration.New(adapter)
 	require.NoError(t, err)
 
 	preset := domain.AgentPreset{
@@ -119,7 +119,7 @@ func TestClean(t *testing.T) {
 	t.Chdir(tempDir)
 
 	adapter := newMockFileAdapter()
-	repo, err := repository.NewPresetRepository(adapter)
+	repo, err := integration.New(adapter)
 	require.NoError(t, err)
 
 	testNamespace := "test-namespace"

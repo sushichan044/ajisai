@@ -25,11 +25,10 @@ type (
 		DeserializeAgentPrompt(slug string, promptBody string) (TPrompt, error)
 	}
 
-	// PresetRepository is a repository for read / write Preset into a specific agent format.
-	PresetRepository interface {
+	// AgentIntegration is an adapter for file operations for agent integrations.
+	AgentIntegration interface {
 		WritePackage(namespace string, pkg *AgentPresetPackage) error
 
-		// Clean removes all presets from the repository.
 		Clean(namespace string) error
 	}
 

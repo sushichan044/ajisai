@@ -1,4 +1,4 @@
-package repository
+package integration
 
 import (
 	"github.com/sushichan044/ajisai/internal/bridge"
@@ -17,7 +17,7 @@ const (
 	githubCopilotPromptsDir      = ".github/prompts"
 )
 
-func NewGitHubCopilotAdapter() AgentFileAdapter {
+func NewGitHubCopilotAdapter() agentSpecificationAdapter {
 	return &gitHubCopilotAdapter{
 		bridge: bridge.NewGitHubCopilotBridge(),
 	}

@@ -1,4 +1,4 @@
-package repository
+package integration
 
 import (
 	"github.com/sushichan044/ajisai/internal/bridge"
@@ -17,7 +17,7 @@ const (
 	cursorPromptsDir = ".cursor/prompts"
 )
 
-func NewCursorAdapter() AgentFileAdapter {
+func NewCursorAdapter() agentSpecificationAdapter {
 	return &cursorAdapter{
 		bridge: bridge.NewCursorBridge(),
 	}

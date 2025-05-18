@@ -525,15 +525,15 @@ linters:
         text: 'GitHubCopilotInstructionApplyToAll is a global variable'
         linters:
           - gochecknoglobals
+      - path: 'internal/integration/cursor.go'
+        linters:
+          - dupl
+      - path: 'internal/integration/github-copilot.go'
+        linters:
+          - dupl
+      - path: 'internal/integration/windsurf.go'
+        linters:
+          - dupl
       - path: 'internal/loader/loader.go'
-        linters:
-          - dupl
-      - path: 'internal/repository/cursor.go'
-        linters:
-          - dupl
-      - path: 'internal/repository/github-copilot.go'
-        linters:
-          - dupl
-      - path: 'internal/repository/windsurf.go'
         linters:
           - dupl

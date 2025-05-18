@@ -1,4 +1,4 @@
-package repository
+package integration
 
 import (
 	"bytes"
@@ -12,43 +12,41 @@ import (
 	"github.com/sushichan044/ajisai/utils"
 )
 
-type (
-	AgentFileAdapter interface {
-		/*
-			Returns the extension for rules. (e.g. `.instructions.md`)
-		*/
-		RuleExtension() string
+type agentSpecificationAdapter interface {
+	/*
+		Returns the extension for rules. (e.g. `.instructions.md`)
+	*/
+	RuleExtension() string
 
-		/*
-			Returns the extension for prompts. (e.g. `.prompt.md`)
-		*/
-		PromptExtension() string
+	/*
+		Returns the extension for prompts. (e.g. `.prompt.md`)
+	*/
+	PromptExtension() string
 
-		/*
-			Returns the directory path for rules. (e.g. `.github/instructions`)
+	/*
+		Returns the directory path for rules. (e.g. `.github/instructions`)
 
-		*/
-		RulesDir() string
+	*/
+	RulesDir() string
 
-		/*
-			Returns the directory path for prompts. (e.g. `.github/prompts`)
-		*/
-		PromptsDir() string
+	/*
+		Returns the directory path for prompts. (e.g. `.github/prompts`)
+	*/
+	PromptsDir() string
 
-		SerializeRule(rule *domain.RuleItem) (string, error)
+	SerializeRule(rule *domain.RuleItem) (string, error)
 
-		SerializePrompt(prompt *domain.PromptItem) (string, error)
-	}
-)
+	SerializePrompt(prompt *domain.PromptItem) (string, error)
+}
 
-type repositoryImpl struct {
-	adapter AgentFileAdapter
+type integrationImpl struct {
+	adapter agentSpecificationAdapter
 
 	resolvedRulesRootDir   string
 	resolvedPromptsRootDir string
 }
 
-func NewPresetRepository(adapter AgentFileAdapter) (domain.PresetRepository, error) {
+func New(adapter agentSpecificationAdapter) (domain.AgentIntegration, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -57,14 +55,14 @@ func NewPresetRepository(adapter AgentFileAdapter) (domain.PresetRepository, err
 	resolvedRulesRootDir := filepath.Join(cwd, filepath.FromSlash(adapter.RulesDir()))
 	resolvedPromptsRootDir := filepath.Join(cwd, filepath.FromSlash(adapter.PromptsDir()))
 
-	return &repositoryImpl{
+	return &integrationImpl{
 		adapter:                adapter,
 		resolvedRulesRootDir:   resolvedRulesRootDir,
 		resolvedPromptsRootDir: resolvedPromptsRootDir,
 	}, nil
 }
 
-func (repo *repositoryImpl) WritePackage(namespace string, pkg *domain.AgentPresetPackage) error {
+func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPresetPackage) error {
 	eg := errgroup.Group{}
 
 	for _, preset := range pkg.Presets {
@@ -77,7 +75,7 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg *domain.AgentPres
 }
 
 //gocognit:ignore
-func (repo *repositoryImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
+func (repo *integrationImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(packageName, preset.Name, repo.adapter.RuleExtension())
 		if err != nil {
@@ -141,7 +139,7 @@ func (repo *repositoryImpl) writePreset(namespace string, packageName string, pr
 	return eg.Wait()
 }
 
-func (repo *repositoryImpl) Clean(namespace string) error {
+func (repo *integrationImpl) Clean(namespace string) error {
 	ruleDir := filepath.Join(repo.resolvedRulesRootDir, namespace)
 	promptDir := filepath.Join(repo.resolvedPromptsRootDir, namespace)
 
