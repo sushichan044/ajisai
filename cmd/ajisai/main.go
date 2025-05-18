@@ -39,7 +39,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "ajisai.toml",
+				Value:   "ajisai.json",
 				Usage:   "Load configuration from `FILE`",
 				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
@@ -123,19 +123,11 @@ func doApply(c context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to clean: %w", cleanErr)
 	}
 
-	packageNames, fetchErr := engine.Fetch()
-	if fetchErr != nil {
-		return fmt.Errorf("failed to fetch inputs: %w", fetchErr)
-	}
-
-	presets, parseErr := engine.Parse(packageNames)
-	if parseErr != nil {
-		return fmt.Errorf("failed to parse presets: %w", parseErr)
-	}
-
-	exportErr := engine.Export(presets)
-	if exportErr != nil {
-		return fmt.Errorf("failed to export presets: %w", exportErr)
+	for packageName := range cfg.Workspace.Imports {
+		applyErr := engine.ApplyPackage(packageName)
+		if applyErr != nil {
+			return fmt.Errorf("failed to apply package %s: %w", packageName, applyErr)
+		}
 	}
 
 	return nil

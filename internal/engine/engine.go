@@ -8,88 +8,58 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/domain"
 	"github.com/sushichan044/ajisai/internal/fetcher"
-	"github.com/sushichan044/ajisai/internal/parser"
+	"github.com/sushichan044/ajisai/internal/loader"
 	"github.com/sushichan044/ajisai/internal/repository"
 )
 
 type Engine struct {
-	cfg *domain.Config
+	cfg *config.Config
+
+	activeRepos []domain.PresetRepository
 }
 
-func NewEngine(cfg *domain.Config) (*Engine, error) {
+func NewEngine(cfg *config.Config) (*Engine, error) {
 	if cfg == nil {
 		return nil, errors.New("internal error: config is nil")
 	}
 
-	return &Engine{cfg: cfg}, nil
+	activeRepos, repoErr := getEnabledRepositories(cfg)
+	if repoErr != nil {
+		return nil, fmt.Errorf("failed to get enabled repositories: %w", repoErr)
+	}
+
+	return &Engine{cfg: cfg, activeRepos: activeRepos}, nil
 }
 
-// Fetch fetches presets from inputs and persist them in the cache directory.
-// Returns the preset names of the fetched presets.
-func (engine *Engine) Fetch() ([]string, error) {
-	eg := errgroup.Group{}
-
-	presetNames := make([]string, 0, len(engine.cfg.Inputs))
-
-	for identifier, input := range engine.cfg.Inputs {
-		eg.Go(func() error {
-			presetNames = append(presetNames, identifier)
-
-			fetcher, err := getFetcher(input.Type)
-			if err != nil {
-				return fmt.Errorf("unknown input type: %s", input.Type)
-			}
-
-			return fetcher.Fetch(input, filepath.Join(engine.cfg.Settings.CacheDir, identifier))
-		})
+func (engine *Engine) ApplyPackage(packageName string) error {
+	fetchErr := engine.fetchPackage(packageName)
+	if fetchErr != nil {
+		return fmt.Errorf("failed to fetch package %s: %w", packageName, fetchErr)
 	}
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
+	pkg, buildErr := engine.loadPackage(packageName)
+
+	if buildErr != nil {
+		return fmt.Errorf("failed to build package %s: %w", packageName, buildErr)
 	}
 
-	return presetNames, nil
-}
-
-// Parse parses the presets from the preset names and returns them.
-func (engine *Engine) Parse(presetNames []string) ([]domain.AgentPreset, error) {
-	eg := errgroup.Group{}
-
-	presets := make([]domain.AgentPreset, 0, len(presetNames))
-
-	for _, presetName := range presetNames {
-		eg.Go(func() error {
-			parsedPkg, parseErr := parser.ParsePreset(engine.cfg, presetName)
-			if parseErr != nil {
-				return fmt.Errorf("failed to parse preset: %w", parseErr)
-			}
-
-			presets = append(presets, *parsedPkg)
-
-			return nil
-		})
+	exportErr := engine.exportPackage(pkg)
+	if exportErr != nil {
+		return fmt.Errorf("failed to export package %s: %w", packageName, exportErr)
 	}
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-
-	return presets, nil
+	return nil
 }
 
 func (engine *Engine) CleanOutputs() error {
 	eg := errgroup.Group{}
 
-	for _, output := range engine.cfg.Outputs {
-		repository, err := getRepository(output.Target)
-		if err != nil {
-			return fmt.Errorf("unknown output type: %s", output.Target)
-		}
-
+	for _, repo := range engine.activeRepos {
 		eg.Go(func() error {
-			return repository.Clean(engine.cfg.Settings.Namespace)
+			return repo.Clean(engine.cfg.Settings.Namespace)
 		})
 	}
 
@@ -128,7 +98,7 @@ func (engine *Engine) CleanCache(force bool) error {
 		entryName := entry.Name()
 
 		eg.Go(func() error {
-			if _, isConfigured := engine.cfg.Inputs[entryName]; !isConfigured {
+			if _, isConfigured := engine.cfg.Workspace.Imports[entryName]; !isConfigured {
 				// This entry is not configured in inputs, so we don't need it.
 				pathToRemove := filepath.Join(cacheDir, entryName)
 				if removeErr := os.RemoveAll(pathToRemove); removeErr != nil {
@@ -143,56 +113,91 @@ func (engine *Engine) CleanCache(force bool) error {
 	return eg.Wait()
 }
 
-// Export exports the presets for specific agents configured in the outputs.
-func (engine *Engine) Export(presets []domain.AgentPreset) error {
-	repos := make([]domain.PresetRepository, 0, len(engine.cfg.Outputs))
-	for _, output := range engine.cfg.Outputs {
-		if !output.Enabled {
-			continue
-		}
-
-		repo, err := getRepository(output.Target)
-		if err != nil {
-			return err
-		}
-		repos = append(repos, repo)
+func (engine *Engine) fetchPackage(packageName string) error {
+	pkgImport, imported := engine.cfg.Workspace.Imports[packageName]
+	if !imported {
+		return fmt.Errorf("package %s is not imported", packageName)
 	}
 
-	eg := errgroup.Group{}
-
-	for _, currentRepo := range repos {
-		for _, preset := range presets {
-			eg.Go(func() error {
-				return currentRepo.WritePreset(engine.cfg.Settings.Namespace, preset)
-			})
-		}
+	fetcher, fetcherBuildErr := getFetcher(pkgImport.Type)
+	if fetcherBuildErr != nil {
+		return fmt.Errorf("failed to get fetcher: %w", fetcherBuildErr)
 	}
 
-	if err := eg.Wait(); err != nil {
-		return err
+	cacheDestination, cacheErr := engine.cfg.GetImportedPackageCacheRoot(packageName)
+	if cacheErr != nil {
+		return fmt.Errorf("failed to get cache root for package %s: %w", packageName, cacheErr)
 	}
 
-	return nil
+	return fetcher.Fetch(pkgImport, cacheDestination)
 }
 
-func getFetcher(inputType domain.PresetSourceType) (domain.ContentFetcher, error) {
+func (engine *Engine) loadPackage(packageName string) (*domain.AgentPresetPackage, error) {
+	loader := loader.NewAgentPresetPackageLoader(engine.cfg)
+	return loader.LoadAgentPresetPackage(packageName)
+}
+
+func (engine *Engine) exportPackage(pkg *domain.AgentPresetPackage) error {
+	eg := errgroup.Group{}
+
+	for _, repo := range engine.activeRepos {
+		eg.Go(func() error {
+			return repo.WritePackage(engine.cfg.Settings.Namespace, pkg)
+		})
+	}
+
+	return eg.Wait()
+}
+
+func getFetcher(inputType config.ImportType) (domain.PackageFetcher, error) {
 	switch inputType {
-	case domain.PresetSourceTypeLocal:
+	case config.ImportTypeLocal:
 		return fetcher.NewLocalFetcher(), nil
-	case domain.PresetSourceTypeGit:
+	case config.ImportTypeGit:
 		return fetcher.NewGitFetcher(), nil
 	default:
 		return nil, fmt.Errorf("unknown input type: %s", inputType)
 	}
 }
 
-func getRepository(target domain.SupportedAgentType) (domain.PresetRepository, error) {
+func getEnabledRepositories(cfg *config.Config) ([]domain.PresetRepository, error) {
+	maxRepos := 3
+	repos := make([]domain.PresetRepository, 0, maxRepos)
+
+	if cfg.Workspace.Integrations.Cursor.Enabled {
+		cursorRepo, cursorErr := getRepository(config.AgentIntegrationTypeCursor)
+		if cursorErr != nil {
+			return nil, fmt.Errorf("failed to get cursor repository: %w", cursorErr)
+		}
+		repos = append(repos, cursorRepo)
+	}
+
+	if cfg.Workspace.Integrations.GitHubCopilot.Enabled {
+		githubCopilotRepo, githubCopilotErr := getRepository(config.AgentIntegrationTypeGitHubCopilot)
+		if githubCopilotErr != nil {
+			return nil, fmt.Errorf("failed to get github copilot repository: %w", githubCopilotErr)
+		}
+		repos = append(repos, githubCopilotRepo)
+	}
+
+	if cfg.Workspace.Integrations.Windsurf.Enabled {
+		windsurfRepo, windsurfErr := getRepository(config.AgentIntegrationTypeWindsurf)
+		if windsurfErr != nil {
+			return nil, fmt.Errorf("failed to get windsurf repository: %w", windsurfErr)
+		}
+		repos = append(repos, windsurfRepo)
+	}
+
+	return repos, nil
+}
+
+func getRepository(target config.AgentIntegrationType) (domain.PresetRepository, error) {
 	switch target {
-	case domain.SupportedAgentTypeCursor:
+	case config.AgentIntegrationTypeCursor:
 		return repository.NewPresetRepository(repository.NewCursorAdapter())
-	case domain.SupportedAgentTypeGitHubCopilot:
+	case config.AgentIntegrationTypeGitHubCopilot:
 		return repository.NewPresetRepository(repository.NewGitHubCopilotAdapter())
-	case domain.SupportedAgentTypeWindsurf:
+	case config.AgentIntegrationTypeWindsurf:
 		return repository.NewPresetRepository(repository.NewWindsurfAdapter())
 	default:
 		return nil, fmt.Errorf("unknown output type: %s", target)
