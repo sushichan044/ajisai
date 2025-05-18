@@ -34,7 +34,7 @@ func (c *Config) GetImportedPackageCacheRoot(packageName string) (string, error)
 
 	_, isConfigured := c.Workspace.Imports[packageName]
 	if !isConfigured {
-		return "", fmt.Errorf("preset %s not found", packageName)
+		return "", fmt.Errorf("package %s not found", packageName)
 	}
 
 	return filepath.Join(cacheDir, packageName), nil
