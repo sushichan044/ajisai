@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -113,7 +114,7 @@ func (repo *repositoryImpl) writePreset(namespace string, packageName string, pr
 				return fmt.Errorf("failed to create directory for rule %s: %w", rulePath, dirErr)
 			}
 
-			return os.WriteFile(rulePath, []byte(serialized), 0600)
+			return utils.AtomicWriteFile(rulePath, bytes.NewReader([]byte(serialized)))
 		})
 	}
 
@@ -133,7 +134,7 @@ func (repo *repositoryImpl) writePreset(namespace string, packageName string, pr
 				return fmt.Errorf("failed to create directory for prompt %s: %w", promptPath, dirErr)
 			}
 
-			return os.WriteFile(promptPath, []byte(serialized), 0600)
+			return utils.AtomicWriteFile(promptPath, bytes.NewReader([]byte(serialized)))
 		})
 	}
 
