@@ -75,6 +75,7 @@ func (repo *repositoryImpl) WritePackage(namespace string, pkg *domain.AgentPres
 	return eg.Wait()
 }
 
+//gocognit:ignore
 func (repo *repositoryImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
 		rulePath, err := rule.GetInternalPath(packageName, preset.Name, repo.adapter.RuleExtension())
