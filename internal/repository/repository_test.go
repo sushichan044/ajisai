@@ -63,7 +63,7 @@ func TestWritePreset(t *testing.T) {
 	require.NoError(t, err)
 
 	preset := domain.AgentPreset{
-		Name: "test-package",
+		Name: "test-preset",
 		Rules: []*domain.RuleItem{
 			domain.NewRuleItem("test-rule", "Rule content", domain.RuleMetadata{
 				Description: "Test rule",
@@ -77,7 +77,12 @@ func TestWritePreset(t *testing.T) {
 		},
 	}
 
-	err = repo.WritePreset("test-namespace", preset)
+	pkg := domain.AgentPresetPackage{
+		PackageName: "test-package",
+		Presets:     []*domain.AgentPreset{&preset},
+	}
+
+	err = repo.WritePackage("test-namespace", &pkg)
 	require.NoError(t, err)
 
 	rulePath := filepath.Join(
@@ -85,6 +90,7 @@ func TestWritePreset(t *testing.T) {
 		adapter.RulesDir(),
 		"test-namespace",
 		"test-package",
+		"test-preset",
 		"test-rule"+adapter.RuleExtension(),
 	)
 	promptPath := filepath.Join(
@@ -92,6 +98,7 @@ func TestWritePreset(t *testing.T) {
 		adapter.PromptsDir(),
 		"test-namespace",
 		"test-package",
+		"test-preset",
 		"test-prompt"+adapter.PromptExtension(),
 	)
 
@@ -140,16 +147,4 @@ func TestClean(t *testing.T) {
 
 	_, err = os.Stat(promptsDir)
 	assert.ErrorIs(t, err, os.ErrNotExist, "Prompts directory should be removed")
-}
-
-func TestReadPreset(t *testing.T) {
-	adapter := newMockFileAdapter()
-	repo, err := repository.NewPresetRepository(adapter)
-	require.NoError(t, err)
-
-	preset, err := repo.ReadPreset("test-namespace")
-	require.NoError(t, err)
-	assert.Empty(t, preset.Name)
-	assert.Empty(t, preset.Rules)
-	assert.Empty(t, preset.Prompts)
 }

@@ -1,10 +1,12 @@
 package domain
 
+import "github.com/sushichan044/ajisai/internal/config"
+
 type (
-	// ContentFetcher retrieves content from a source defined by InputSource.
-	ContentFetcher interface {
-		// Fetch retrieves content from the source and stores it in the destinationDir.
-		Fetch(source InputSource, destinationDir string) error
+	// PackageFetcher retrieves packages from a source and stores them in the destination directory.
+	PackageFetcher interface {
+		// Fetch retrieves packages from the source and stores them in the destination directory.
+		Fetch(source config.ImportedPackage, destinationDir string) error
 	}
 
 	// AgentBridge is a bridge between the domain and the agent.
@@ -25,13 +27,17 @@ type (
 
 	// PresetRepository is a repository for read / write Preset into a specific agent format.
 	PresetRepository interface {
-		// ReadPreset reads a preset from the given namespace.
-		ReadPreset(namespace string) (AgentPreset, error)
-
-		// WritePreset writes a preset to the given namespace.
-		WritePreset(namespace string, preset AgentPreset) error
+		WritePackage(namespace string, pkg *AgentPresetPackage) error
 
 		// Clean removes all presets from the repository.
 		Clean(namespace string) error
+	}
+
+	// AgentPresetPackageLoader loads AgentPresetPackage from the cache directory.
+	AgentPresetPackageLoader interface {
+		// LoadAgentPresetPackage loads an AgentPresetPackage from the cache directory.
+		//
+		// packageName is the name of the package to load.
+		LoadAgentPresetPackage(packageName string) (*AgentPresetPackage, error)
 	}
 )

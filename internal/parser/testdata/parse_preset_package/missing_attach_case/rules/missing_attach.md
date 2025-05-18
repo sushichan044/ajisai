@@ -1,4 +1,0 @@
----
-globs: ["*.txt"]
----
-Content

@@ -8,8 +8,8 @@ const (
 	RulesPresetType   PresetType = "rules"
 	PromptsPresetType PresetType = "prompts"
 
-	RuleInternalExtension   = "md"
-	PromptInternalExtension = "md"
+	RuleInternalExtension   = ".md"
+	PromptInternalExtension = ".md"
 
 	AttachTypeAlways         AttachType = "always"
 	AttachTypeGlob           AttachType = "glob"
@@ -20,6 +20,11 @@ const (
 type (
 	PresetType string
 	AttachType string
+
+	AgentPresetPackage struct {
+		PackageName string
+		Presets     []*AgentPreset
+	}
 
 	AgentPreset struct {
 		Name    string        // name of the preset. This value is used as the directory name in the cache.
@@ -80,6 +85,6 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 	}
 }
 
-func (item *presetItem) GetInternalPath(presetName string, extension string) (string, error) {
-	return filepath.Join(presetName, item.Slug+extension), nil
+func (item *presetItem) GetInternalPath(packageName, presetName, extension string) (string, error) {
+	return filepath.Join(packageName, presetName, item.Slug+extension), nil
 }

@@ -1,39 +1,14 @@
 # ajisai
 
-<!-- TOC -->
-
-- [ajisai](#ajisai)
-  - [Features](#features)
-  - [AI Coding Agents support status](#ai-coding-agents-support-status)
-  - [Installation](#installation)
-  - [Usage](#usage)
-    - [Commands](#commands)
-  - [Defining preset](#defining-preset)
-    - [Rule File (`*.md` in `rules/`)](#rule-file-md-in-rules)
-    - [Prompt File (`*.md` in `prompts/`)](#prompt-file-md-in-prompts)
-  - [Configuration](#configuration)
-  - [Contributing](#contributing)
-
-<!-- /TOC -->
-
-> [!CAUTION]
-> Please be aware that the current implementation poses difficulties for practical operation.
-> 
-> As a result, breaking changes are planned for the next few days.
-
-**ajisai** is a command-line tool designed to manage and synchronize AI coding agent configuration presets (like rules and prompts) from various sources to different environments.
-
-It helps you keep your AI assistant\'s behavior consistent across platforms or easily share and version control your configurations.
+**Ajisai** is a simple preset manager for AI Coding Agents.
 
 ## Features
 
-- Manage all your AI preset sources and destinations from a single `ajisai.toml` file.
-- Fetch presets from local directories or remote Git repositories (specific branches, tags, or commits).
-- Export presets to formats and locations suitable for different AI coding agents (e.g., Cursor, GitHub Copilot).
-- *(Upcoming)* `import` command to import presets from existing agent formats.
-- *(Upcoming)* `doctor` command to validate preset directory structures and configurations.
+- **Interoperability 🤖** - Simply by writing rules and prompts in a single format, they are automatically deployed to the appropriate format and directory for each supported AI Coding Agent.
+- **Reuse 📤** - You can import AI presets not only from local directories but also from remote Git repositories.
+- **Gradual Introduction ⏩**: Enables adoption without conflicting with existing rules.
 
-## AI Coding Agents support status
+<!-- ## Supported AI Coding Agents
 
 - [x] GitHub Copilot in VSCode
   - Update VSCode to 1.100 or later
@@ -45,7 +20,7 @@ It helps you keep your AI assistant\'s behavior consistent across platforms or e
 - [x] Windsurf
   - Update Windsurf to Wave 8 or later
 - [ ] Cline
-- [ ] Roo Code
+- [ ] Roo Code -->
 
 ## Installation
 
@@ -76,31 +51,13 @@ Download the latest release from the [GitHub releases page](https://github.com/s
 
 ## Usage
 
-`ajisai` is controlled via command-line arguments and flags.
+`ajisai` is controlled via CLI.
 
-The default configuration file is `ajisai.toml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
+The default configuration file is `ajisai.json` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
 
 ### Commands
 
-- **`ajisai apply`**: Fetches presets from all configured input sources, parses them, cleans the output directories, and then exports them to the configured output targets.
-
-    ```bash
-    ajisai apply
-    ajisai apply --config /path/to/your/custom-config.toml
-    ```
-
-- **`ajisai clean`**: Cleans the cache directory used by `ajisai` to store fetched presets. By default, it cleans the cache specified in the configuration. The `--force` flag can be used to ensure cleaning even if errors occur during the process.
-
-    ```bash
-    ajisai clean
-    ajisai clean --force
-    ```
-
-To see all available commands and options, use:
-
-```bash
-ajisai --help
-```
+- **`ajisai apply`**: Fetch all imported packages and deploy to integrated agents.
 
 ## Defining preset
 
@@ -161,48 +118,6 @@ description: A prompt to help refactor Go code for better readability.
 Please refactor the following Go code to improve its readability and maintainability, keeping in mind our company's Go coding standards.
 ```
 
-## Configuration
-
-`ajisai` is configured using a TOML file, by default named `ajisai.toml`. Here is an example configuration:
-
-```toml
-[settings]
-# Specifies the directory where `ajisai` will store cached data of inputs.
-cacheDir = "./.cache/ajisai" # Optional: Defaults to `./.cache/ajisai`.
-
-# A namespace string that can be used by output targets to organize or prefix the imported presets.
-# For example, ajisai might place presets under `~/.cursor/prompts/<namespace>/` or `~/.cursor/rules/<namespace>/`.
-namespace = "ajisai"      # Optional: Defaults to `ajisai`.
-
-experimental = false # Optional: Defaults to false. Set to true to enable experimental features.
-
-[inputs.local_rules]
-# Input presets from a local directory.
-type = "local"
-path = "./.ai" # Required: Path to the directory containing presets
-
-[inputs.my_ai_presets_example1]
-# Input presets from a Git repository.
-type = "git"
-repository = "https://github.com/sushichan044/ai-presets.git" # Required: URL of the Git repository
-revision = "main" # Optional: Specify a branch, tag, or commit SHA. Defaults to the repo's default branch.
-directory = "my-company-requirements" # Optional: import from subdirectory.
-
-[outputs.cursor]
-target = "cursor"  # Export presets for the Cursor editor.
-enabled = true     # Optional, default: true. Set false to disable this output.
-
-[outputs.github_copilot]
-target = "github-copilot"
-enabled = true
-
-[outputs.windsurf]
-target = "windsurf"
-enabled = true
-```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests or open issues on the [GitHub repository](https://github.com/sushichan044/ajisai).
-
-(Further details on development setup, coding standards, and the contribution process can be added here.)

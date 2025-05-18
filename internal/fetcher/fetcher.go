@@ -3,20 +3,20 @@ package fetcher
 import (
 	"fmt"
 
-	"github.com/sushichan044/ajisai/internal/domain"
+	"github.com/sushichan044/ajisai/internal/config"
 )
 
 type InvalidSourceTypeError struct {
-	expectedType domain.PresetSourceType
-	actualType   domain.PresetSourceType
+	expectedType config.ImportType
+	actualType   config.ImportType
 	err          error
 }
 
-func (e *InvalidSourceTypeError) ExpectedType() domain.PresetSourceType {
+func (e *InvalidSourceTypeError) ExpectedType() config.ImportType {
 	return e.expectedType
 }
 
-func (e *InvalidSourceTypeError) ActualType() domain.PresetSourceType {
+func (e *InvalidSourceTypeError) ActualType() config.ImportType {
 	return e.actualType
 }
 
