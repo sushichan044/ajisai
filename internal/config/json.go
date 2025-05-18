@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -38,28 +39,19 @@ func (l *jsonLoader) Load(configPath string) (*Config, error) {
 }
 
 func (l *jsonLoader) Save(configPath string, cfg *Config) error {
-	resolvedPath, err := utils.ResolveAbsPath(configPath)
-	if err != nil {
-		return fmt.Errorf("failed to resolve config path: %w", err)
+	resolvedPath, pathErr := utils.ResolveAbsPath(configPath)
+	if pathErr != nil {
+		return fmt.Errorf("failed to resolve config path: %w", pathErr)
 	}
 	jsonCfg := l.toFormat(cfg)
 
-	tempFile, tempErr := os.CreateTemp("", "ajisai-*.json.tmp")
-	if tempErr != nil {
-		return fmt.Errorf("failed to create temporary file: %w", tempErr)
+	jsonData, marshalErr := json.MarshalIndent(jsonCfg, "", "  ")
+	if marshalErr != nil {
+		return fmt.Errorf("failed to marshal config to JSON: %w", marshalErr)
 	}
 
-	tmpFileName := tempFile.Name()
-	defer os.Remove(tmpFileName)
-	defer tempFile.Close()
-
-	encoder := json.NewEncoder(tempFile)
-	if encodeErr := encoder.Encode(jsonCfg); encodeErr != nil {
-		return fmt.Errorf("failed to encode config: %w", encodeErr)
-	}
-
-	if renameErr := os.Rename(tmpFileName, resolvedPath); renameErr != nil {
-		return fmt.Errorf("failed to rename temporary file to target file %s: %w", resolvedPath, renameErr)
+	if err := utils.AtomicWriteFile(resolvedPath, bytes.NewReader(jsonData)); err != nil {
+		return fmt.Errorf("failed to save config file atomically: %w", err)
 	}
 
 	return nil
