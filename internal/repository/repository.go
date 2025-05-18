@@ -63,10 +63,21 @@ func NewPresetRepository(adapter AgentFileAdapter) (domain.PresetRepository, err
 	}, nil
 }
 
-//gocognit:ignore
-func (repo *repositoryImpl) WritePreset(namespace string, preset domain.AgentPreset) error {
+func (repo *repositoryImpl) WritePackage(namespace string, pkg *domain.AgentPresetPackage) error {
+	eg := errgroup.Group{}
+
+	for _, preset := range pkg.Presets {
+		eg.Go(func() error {
+			return repo.writePreset(namespace, pkg.PackageName, preset)
+		})
+	}
+
+	return eg.Wait()
+}
+
+func (repo *repositoryImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
-		rulePath, err := rule.GetInternalPath(preset.Name, repo.adapter.RuleExtension())
+		rulePath, err := rule.GetInternalPath(packageName, preset.Name, repo.adapter.RuleExtension())
 		if err != nil {
 			return "", err
 		}
@@ -75,7 +86,7 @@ func (repo *repositoryImpl) WritePreset(namespace string, preset domain.AgentPre
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
-		promptPath, err := prompt.GetInternalPath(preset.Name, repo.adapter.PromptExtension())
+		promptPath, err := prompt.GetInternalPath(packageName, preset.Name, repo.adapter.PromptExtension())
 		if err != nil {
 			return "", err
 		}
@@ -126,10 +137,6 @@ func (repo *repositoryImpl) WritePreset(namespace string, preset domain.AgentPre
 	}
 
 	return eg.Wait()
-}
-
-func (repo *repositoryImpl) ReadPreset(_ string) (domain.AgentPreset, error) {
-	return domain.AgentPreset{}, nil
 }
 
 func (repo *repositoryImpl) Clean(namespace string) error {

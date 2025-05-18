@@ -27,11 +27,7 @@ type (
 
 	// PresetRepository is a repository for read / write Preset into a specific agent format.
 	PresetRepository interface {
-		// ReadPreset reads a preset from the given namespace.
-		ReadPreset(namespace string) (AgentPreset, error)
-
-		// WritePreset writes a preset to the given namespace.
-		WritePreset(namespace string, preset AgentPreset) error
+		WritePackage(namespace string, pkg *AgentPresetPackage) error
 
 		// Clean removes all presets from the repository.
 		Clean(namespace string) error
