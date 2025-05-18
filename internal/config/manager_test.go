@@ -12,10 +12,12 @@ import (
 	"github.com/sushichan044/ajisai/internal/config"
 )
 
-func TestManagerLoad(t *testing.T) {
+func TestManager_SaveAndLoad(t *testing.T) {
 	tempDir := t.TempDir()
 
-	t.Run("successfully loads JSON config", func(t *testing.T) {
+	// Always fill all properties in the config.
+	// Checking save-and-load is enough to check if the config is saved correctly.
+	t.Run("successfully loads full-filled JSON config", func(t *testing.T) {
 		// Create a test config file
 		configPath := filepath.Join(tempDir, "config.json")
 		testConfig := &config.Config{
@@ -37,9 +39,14 @@ func TestManagerLoad(t *testing.T) {
 						},
 					},
 				},
-				Integrations: []config.AgentIntegration{
-					{
-						Target:  "cursor",
+				Integrations: &config.AgentIntegrations{
+					Cursor: &config.CursorIntegration{
+						Enabled: true,
+					},
+					GitHubCopilot: &config.GitHubCopilotIntegration{
+						Enabled: true,
+					},
+					Windsurf: &config.WindsurfIntegration{
 						Enabled: true,
 					},
 				},

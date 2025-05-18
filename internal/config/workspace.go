@@ -29,7 +29,7 @@ type (
 		/*
 			Agents to integrate imported presets into.
 		*/
-		Integrations []AgentIntegration `json:"integrations,omitempty"`
+		Integrations *AgentIntegrations `json:"integrations,omitempty"`
 	}
 
 	// ImportedPackage defines a package that will be imported into the workspace.
@@ -65,10 +65,23 @@ type (
 		Revision   string // Optional branch, tag, or commit SHA (defaults to latest)
 	}
 
-	// AgentIntegration defines a configured agent to transform the presets into.
-	AgentIntegration struct {
-		Target  AgentIntegrationType `json:"target"`            // Type of agent (e.g., "cursor", "github-copilot")
-		Enabled bool                 `json:"enabled,omitempty"` // Whether to enable the integration
+	// AgentIntegrations defines specific integrations for each agent.
+	AgentIntegrations struct {
+		Cursor        *CursorIntegration        `json:"cursor,omitempty"`
+		GitHubCopilot *GitHubCopilotIntegration `json:"github-copilot,omitempty"`
+		Windsurf      *WindsurfIntegration      `json:"windsurf,omitempty"`
+	}
+
+	CursorIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
+	}
+
+	GitHubCopilotIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
+	}
+
+	WindsurfIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
 	}
 )
 
@@ -91,9 +104,27 @@ func applyDefaultsToWorkspace(workspace *Workspace) *Workspace {
 		workspace.Imports = map[string]ImportedPackage{}
 	}
 
-	if workspace.Integrations == nil {
-		workspace.Integrations = []AgentIntegration{}
-	}
+	workspace.Integrations = applyDefaultsToAgentIntegrations(workspace.Integrations)
 
 	return workspace
+}
+
+func applyDefaultsToAgentIntegrations(integrations *AgentIntegrations) *AgentIntegrations {
+	if integrations == nil {
+		integrations = &AgentIntegrations{}
+	}
+
+	if integrations.Cursor == nil {
+		integrations.Cursor = &CursorIntegration{}
+	}
+
+	if integrations.GitHubCopilot == nil {
+		integrations.GitHubCopilot = &GitHubCopilotIntegration{}
+	}
+
+	if integrations.Windsurf == nil {
+		integrations.Windsurf = &WindsurfIntegration{}
+	}
+
+	return integrations
 }

@@ -101,11 +101,12 @@ func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 				}
 			}
 		}
-		for _, integration := range cfg.Workspace.Integrations {
-			workspace.Integrations = append(workspace.Integrations, jsonAgentIntegration{
-				Target:  string(integration.Target),
-				Enabled: integration.Enabled,
-			})
+		if cfg.Workspace.Integrations != nil {
+			workspace.Integrations = &jsonAgentIntegration{
+				Cursor:        &jsonCursorIntegration{Enabled: cfg.Workspace.Integrations.Cursor.Enabled},
+				GitHubCopilot: &jsonGitHubCopilotIntegration{Enabled: cfg.Workspace.Integrations.GitHubCopilot.Enabled},
+				Windsurf:      &jsonWindsurfIntegration{Enabled: cfg.Workspace.Integrations.Windsurf.Enabled},
+			}
 		}
 		jsonCfg.Workspace = &workspace
 	}
@@ -145,11 +146,12 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 				}
 			}
 		}
-		for _, integration := range cfg.Workspace.Integrations {
-			workspace.Integrations = append(workspace.Integrations, AgentIntegration{
-				Target:  AgentIntegrationType(integration.Target),
-				Enabled: integration.Enabled,
-			})
+		if cfg.Workspace.Integrations != nil {
+			workspace.Integrations = &AgentIntegrations{
+				Cursor:        &CursorIntegration{Enabled: cfg.Workspace.Integrations.Cursor.Enabled},
+				GitHubCopilot: &GitHubCopilotIntegration{Enabled: cfg.Workspace.Integrations.GitHubCopilot.Enabled},
+				Windsurf:      &WindsurfIntegration{Enabled: cfg.Workspace.Integrations.Windsurf.Enabled},
+			}
 		}
 	}
 
@@ -194,7 +196,7 @@ type (
 
 	jsonWorkspace struct {
 		Imports      map[string]jsonImportedPackage `json:"imports,omitempty"`
-		Integrations []jsonAgentIntegration         `json:"integrations,omitempty"`
+		Integrations *jsonAgentIntegration          `json:"integrations,omitempty"`
 	}
 
 	jsonImportedPackage struct {
@@ -206,7 +208,20 @@ type (
 	}
 
 	jsonAgentIntegration struct {
-		Target  string `json:"target"`
-		Enabled bool   `json:"enabled,omitempty"`
+		Cursor        *jsonCursorIntegration        `json:"cursor,omitempty"`
+		GitHubCopilot *jsonGitHubCopilotIntegration `json:"github-copilot,omitempty"`
+		Windsurf      *jsonWindsurfIntegration      `json:"windsurf,omitempty"`
+	}
+
+	jsonCursorIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
+	}
+
+	jsonGitHubCopilotIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
+	}
+
+	jsonWindsurfIntegration struct {
+		Enabled bool `json:"enabled,omitempty"`
 	}
 )
