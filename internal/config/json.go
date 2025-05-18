@@ -11,7 +11,7 @@ import (
 
 type jsonLoader struct{}
 
-func NewJSONLoader() formatLoader[jsonConfig] {
+func newJSONLoader() formatLoader[jsonConfig] {
 	return &jsonLoader{}
 }
 
