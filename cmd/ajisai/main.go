@@ -19,6 +19,13 @@ var (
 )
 
 func main() {
+	if err := run(os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(args []string) error {
 	// reassign error is suppressed by golangci-lint.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
@@ -95,10 +102,7 @@ func main() {
 		},
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
+	return app.Run(context.Background(), args)
 }
 
 func doApply(c context.Context, _ *cli.Command) error {
@@ -107,18 +111,18 @@ func doApply(c context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
-	engine, err := engine.NewEngine(cfg)
+	eng, err := engine.NewEngine(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
-	cleanErr := engine.CleanOutputs()
+	cleanErr := eng.CleanOutputs()
 	if cleanErr != nil {
 		return fmt.Errorf("failed to clean: %w", cleanErr)
 	}
 
 	for packageName := range cfg.Workspace.Imports {
-		applyErr := engine.ApplyPackage(packageName)
+		applyErr := eng.ApplyPackage(packageName)
 		if applyErr != nil {
 			return fmt.Errorf("failed to apply package %s: %w", packageName, applyErr)
 		}
@@ -133,13 +137,13 @@ func doClean(c context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
-	engine, err := engine.NewEngine(cfg)
+	eng, err := engine.NewEngine(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
 	force := cmd.Bool("force")
-	cleanErr := engine.CleanCache(force)
+	cleanErr := eng.CleanCache(force)
 	if cleanErr != nil {
 		return fmt.Errorf("failed to clean cache: %w", cleanErr)
 	}
