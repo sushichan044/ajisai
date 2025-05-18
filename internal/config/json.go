@@ -42,16 +42,24 @@ func (l *jsonLoader) Save(configPath string, cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to resolve config path: %w", err)
 	}
-
 	jsonCfg := l.toFormat(cfg)
 
-	body, jsonErr := json.MarshalIndent(jsonCfg, "", "  ")
-	if jsonErr != nil {
-		return fmt.Errorf("failed to marshal config: %w", jsonErr)
+	tempFile, tempErr := os.CreateTemp("", "ajisai-*.json.tmp")
+	if tempErr != nil {
+		return fmt.Errorf("failed to create temporary file: %w", tempErr)
 	}
 
-	if writeErr := os.WriteFile(resolvedPath, body, 0600); writeErr != nil {
-		return fmt.Errorf("failed to write config file %s: %w", resolvedPath, writeErr)
+	tmpFileName := tempFile.Name()
+	defer os.Remove(tmpFileName)
+	defer tempFile.Close()
+
+	encoder := json.NewEncoder(tempFile)
+	if encodeErr := encoder.Encode(jsonCfg); encodeErr != nil {
+		return fmt.Errorf("failed to encode config: %w", encodeErr)
+	}
+
+	if renameErr := os.Rename(tmpFileName, resolvedPath); renameErr != nil {
+		return fmt.Errorf("failed to rename temporary file to target file %s: %w", resolvedPath, renameErr)
 	}
 
 	return nil
