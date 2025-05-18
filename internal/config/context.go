@@ -5,10 +5,10 @@ import (
 	"errors"
 )
 
-type ContextKey string
+type contextKey string
 
 const (
-	configContextKey ContextKey = "config"
+	configContextKey contextKey = "config"
 )
 
 func StoreInContext(ctx context.Context, cfg *Config) context.Context {
