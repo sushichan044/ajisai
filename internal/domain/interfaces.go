@@ -36,4 +36,12 @@ type (
 		// Clean removes all presets from the repository.
 		Clean(namespace string) error
 	}
+
+	// AgentPresetPackageLoader loads AgentPresetPackage from the cache directory.
+	AgentPresetPackageLoader interface {
+		// LoadAgentPresetPackage loads an AgentPresetPackage from the cache directory.
+		//
+		// packageName is the name of the package to load.
+		LoadAgentPresetPackage(packageName string) (*AgentPresetPackage, error)
+	}
 )

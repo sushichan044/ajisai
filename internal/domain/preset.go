@@ -21,6 +21,11 @@ type (
 	PresetType string
 	AttachType string
 
+	AgentPresetPackage struct {
+		PackageName string
+		Presets     []*AgentPreset
+	}
+
 	AgentPreset struct {
 		Name    string        // name of the preset. This value is used as the directory name in the cache.
 		Rules   []*RuleItem   // rules in the preset
