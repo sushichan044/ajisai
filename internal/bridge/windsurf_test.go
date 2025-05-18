@@ -33,7 +33,6 @@ func TestWindsurfRule_String(t *testing.T) {
 			expected: `---
 trigger: always_on
 ---
-
 Always
 `,
 		},
@@ -52,7 +51,6 @@ Always
 trigger: glob
 globs: **/*.go,**/*.yaml
 ---
-
 You should print "GOGO!"
 `,
 		},
@@ -70,7 +68,6 @@ You should print "GOGO!"
 			expected: `---
 trigger: manual
 ---
-
 Content
 `,
 		},
@@ -89,7 +86,6 @@ Content
 trigger: model_decision
 description: Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hello!Hell
 ---
-
 HeyHeyHey
 `,
 		},
@@ -106,7 +102,6 @@ HeyHeyHey
 			expected: `---
 trigger: always_on
 ---
-
 No trailing newline
 `,
 		},
@@ -123,7 +118,6 @@ No trailing newline
 			expected: `---
 trigger: always_on
 ---
-
 Multiple trailing newlines
 `,
 		},
@@ -140,7 +134,6 @@ Multiple trailing newlines
 			expected: `---
 trigger: always_on
 ---
-
 `,
 		},
 	}
@@ -424,7 +417,6 @@ func TestWindsurfBridge_SerializeAndDeserializeRule(t *testing.T) {
 			expectedString: `---
 trigger: always_on
 ---
-
 This is an always-on rule
 `,
 		},
@@ -443,7 +435,6 @@ This is an always-on rule
 trigger: glob
 globs: *.go,*.md
 ---
-
 This is a glob rule
 `,
 		},
@@ -462,7 +453,6 @@ This is a glob rule
 trigger: model_decision
 description: This is a description for the rule
 ---
-
 This rule has a description
 `,
 		},
@@ -480,7 +470,6 @@ This rule has a description
 			expectedString: `---
 trigger: manual
 ---
-
 `,
 		},
 	}

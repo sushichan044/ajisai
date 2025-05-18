@@ -162,13 +162,14 @@ func (bridge *GitHubCopilotBridge) SerializeAgentRule(rule GitHubCopilotInstruct
 	}
 
 	metadata := string(frontMatterBytes)
+	tidyContent := strings.TrimRight(rule.Content, "\n")
 
 	if strings.TrimSpace(metadata) == "{}" {
 		// If the metadata is empty, return the content only.
-		return rule.Content, nil
+		return tidyContent, nil
 	}
 
-	return fmt.Sprintf("---\n%s---\n\n%s", metadata, rule.Content), nil
+	return "---\n" + metadata + "---\n" + tidyContent + "\n", nil
 }
 
 func (bridge *GitHubCopilotBridge) DeserializeAgentRule(
@@ -197,9 +198,9 @@ func (bridge *GitHubCopilotBridge) SerializeAgentPrompt(prompt GitHubCopilotProm
 
 	if strings.TrimSpace(metadata) == "{}" {
 		// If the metadata is empty, return the content only.
-		return prompt.Content, nil
+		return strings.TrimRight(prompt.Content, "\n") + "\n", nil
 	}
-	return fmt.Sprintf("---\n%s---\n\n%s", metadata, prompt.Content), nil
+	return strings.TrimRight("---\n"+metadata+"---\n"+prompt.Content, "\n") + "\n", nil
 }
 
 func (bridge *GitHubCopilotBridge) DeserializeAgentPrompt(
