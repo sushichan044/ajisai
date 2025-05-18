@@ -155,9 +155,8 @@ func getFetcher(inputType config.ImportType) (domain.PackageFetcher, error) {
 		return fetcher.NewLocalFetcher(), nil
 	case config.ImportTypeGit:
 		return fetcher.NewGitFetcher(), nil
-	default:
-		return nil, fmt.Errorf("unknown input type: %s", inputType)
 	}
+	return nil, fmt.Errorf("unknown import type: %s", inputType)
 }
 
 func getEnabledIntegrations(cfg *config.Config) ([]domain.AgentIntegration, error) {
@@ -199,7 +198,6 @@ func getIntegration(target config.AgentIntegrationType) (domain.AgentIntegration
 		return integration.New(integration.NewGitHubCopilotAdapter())
 	case config.AgentIntegrationTypeWindsurf:
 		return integration.New(integration.NewWindsurfAdapter())
-	default:
-		return nil, fmt.Errorf("unknown agent integration type: %s", target)
 	}
+	return nil, fmt.Errorf("unknown agent integration type: %s", target)
 }

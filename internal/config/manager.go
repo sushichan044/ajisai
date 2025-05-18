@@ -12,8 +12,8 @@ type formatLoader[T any] interface {
 	Load(configPath string) (*Config, error)
 	Save(configPath string, cfg *Config) error
 
-	toFormat(cfg *Config) T
-	fromFormat(cfg T) *Config
+	toFormat(cfg *Config) (T, error)
+	fromFormat(cfg T) (*Config, error)
 }
 
 type Manager struct{}
