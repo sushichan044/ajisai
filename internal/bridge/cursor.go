@@ -75,9 +75,9 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 				Globs:       "",
 			},
 		}, nil
-	default:
-		return CursorRule{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
 	}
+
+	return CursorRule{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
 }
 
 func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, error) {

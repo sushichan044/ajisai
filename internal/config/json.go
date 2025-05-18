@@ -11,7 +11,7 @@ import (
 
 type jsonLoader struct{}
 
-func NewJSONLoader() formatLoader[jsonConfig] {
+func newJSONLoader() formatLoader[jsonConfig] {
 	return &jsonLoader{}
 }
 
@@ -35,7 +35,7 @@ func (l *jsonLoader) Load(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config file %s: %w", resolvedPath, jsonErr)
 	}
 
-	return l.fromFormat(jsonCfg), nil
+	return l.fromFormat(jsonCfg)
 }
 
 func (l *jsonLoader) Save(configPath string, cfg *Config) error {
@@ -43,7 +43,10 @@ func (l *jsonLoader) Save(configPath string, cfg *Config) error {
 	if pathErr != nil {
 		return fmt.Errorf("failed to resolve config path: %w", pathErr)
 	}
-	jsonCfg := l.toFormat(cfg)
+	jsonCfg, jsonErr := l.toFormat(cfg)
+	if jsonErr != nil {
+		return fmt.Errorf("failed to marshal config to JSON: %w", jsonErr)
+	}
 
 	jsonData, marshalErr := json.MarshalIndent(jsonCfg, "", "  ")
 	if marshalErr != nil {
@@ -58,7 +61,7 @@ func (l *jsonLoader) Save(configPath string, cfg *Config) error {
 }
 
 //gocognit:ignore
-func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
+func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 	var jsonCfg jsonConfig
 
 	if cfg.Settings != nil {
@@ -115,10 +118,10 @@ func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 		jsonCfg.Workspace = &workspace
 	}
 
-	return jsonCfg
+	return jsonCfg, nil
 }
 
-func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
+func (l *jsonLoader) fromFormat(cfg jsonConfig) (*Config, error) {
 	var settings Settings
 	if cfg.Settings != nil {
 		settings.CacheDir = cfg.Settings.CacheDir
@@ -130,8 +133,8 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 	workspace.Imports = make(map[string]ImportedPackage)
 	if cfg.Workspace != nil {
 		for name, imp := range cfg.Workspace.Imports {
-			switch imp.Type {
-			case string(ImportTypeLocal):
+			switch ImportType(imp.Type) {
+			case ImportTypeLocal:
 				workspace.Imports[name] = ImportedPackage{
 					Type: ImportTypeLocal,
 					Details: LocalImportDetails{
@@ -139,7 +142,8 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 					},
 					Include: imp.Include,
 				}
-			case string(ImportTypeGit):
+				continue
+			case ImportTypeGit:
 				workspace.Imports[name] = ImportedPackage{
 					Type: ImportTypeGit,
 					Details: GitImportDetails{
@@ -148,7 +152,10 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 					},
 					Include: imp.Include,
 				}
+				continue
 			}
+
+			return nil, fmt.Errorf("unsupported import type: %s", imp.Type)
 		}
 		if cfg.Workspace.Integrations != nil {
 			workspace.Integrations = &AgentIntegrations{
@@ -174,7 +181,7 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 		Settings:  &settings,
 		Package:   &pkg,
 		Workspace: &workspace,
-	}
+	}, nil
 }
 
 type (

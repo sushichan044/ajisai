@@ -89,9 +89,9 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 			Content:  rule.Content,
 			Metadata: GitHubCopilotInstructionMetadata{},
 		}, nil
-	default:
-		return GitHubCopilotInstruction{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
 	}
+
+	return GitHubCopilotInstruction{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
 }
 
 func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) (domain.RuleItem, error) {

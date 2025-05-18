@@ -18,12 +18,6 @@ var (
 	revision = "dev"
 )
 
-type ContextKey string
-
-const (
-	ConfigContextKey ContextKey = "config" // Key for storing loaded config
-)
-
 func main() {
 	// reassign error is suppressed by golangci-lint.
 	cli.VersionPrinter = func(cmd *cli.Command) {

@@ -24,12 +24,12 @@ type (
 
 			Key is used to identify the preset package.
 		*/
-		Imports map[string]ImportedPackage `json:"imports,omitempty"`
+		Imports map[string]ImportedPackage
 
 		/*
 			Agents to integrate imported presets into.
 		*/
-		Integrations *AgentIntegrations `json:"integrations,omitempty"`
+		Integrations *AgentIntegrations
 	}
 
 	// ImportedPackage defines a package that will be imported into the workspace.
@@ -37,17 +37,17 @@ type (
 		/*
 			Type identifier (e.g., "local", "git").
 		*/
-		Type ImportType `json:"type"`
+		Type ImportType
 
 		/*
 			List of exported presets to include in the workspace.
 		*/
-		Include []string `json:"include,omitempty"`
+		Include []string
 
 		/*
 			Type-specific configuration details.
 		*/
-		Details ImportDetails `json:"details"`
+		Details ImportDetails
 	}
 
 	// ImportDetails is an interface for type-specific input source configurations.
@@ -67,21 +67,21 @@ type (
 
 	// AgentIntegrations defines specific integrations for each agent.
 	AgentIntegrations struct {
-		Cursor        *CursorIntegration        `json:"cursor,omitempty"`
-		GitHubCopilot *GitHubCopilotIntegration `json:"github-copilot,omitempty"`
-		Windsurf      *WindsurfIntegration      `json:"windsurf,omitempty"`
+		Cursor        *CursorIntegration
+		GitHubCopilot *GitHubCopilotIntegration
+		Windsurf      *WindsurfIntegration
 	}
 
 	CursorIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
+		Enabled bool
 	}
 
 	GitHubCopilotIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
+		Enabled bool
 	}
 
 	WindsurfIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
+		Enabled bool
 	}
 )
 

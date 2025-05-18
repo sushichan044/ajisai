@@ -12,8 +12,8 @@ type formatLoader[T any] interface {
 	Load(configPath string) (*Config, error)
 	Save(configPath string, cfg *Config) error
 
-	toFormat(cfg *Config) T
-	fromFormat(cfg T) *Config
+	toFormat(cfg *Config) (T, error)
+	fromFormat(cfg T) (*Config, error)
 }
 
 type Manager struct{}
@@ -31,7 +31,7 @@ func (m *Manager) Load(configPath string) (*Config, error) {
 	var loadCfg *Config
 	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".json":
-		loadCfg, err = NewJSONLoader().Load(resolvedPath)
+		loadCfg, err = newJSONLoader().Load(resolvedPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load config file %s: %w", resolvedPath, err)
 		}
@@ -50,7 +50,7 @@ func (m *Manager) Save(configPath string, cfg *Config) error {
 
 	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".json":
-		return NewJSONLoader().Save(resolvedPath, cfg)
+		return newJSONLoader().Save(resolvedPath, cfg)
 	default:
 		return fmt.Errorf("unsupported config file extension: %s", extension)
 	}
