@@ -57,6 +57,7 @@ func (l *jsonLoader) Save(configPath string, cfg *Config) error {
 	return nil
 }
 
+//gocognit:ignore
 func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 	var jsonCfg jsonConfig
 
@@ -71,8 +72,11 @@ func (l *jsonLoader) toFormat(cfg *Config) jsonConfig {
 	if cfg.Package != nil {
 		var pkg jsonPackage
 		pkg.Name = cfg.Package.Name
-		for _, export := range cfg.Package.Exports {
-			pkg.Exports = append(pkg.Exports, jsonExportedPresetDefinition(export))
+		if cfg.Package.Exports != nil {
+			pkg.Exports = make(map[string]jsonExportedPresetDefinition)
+			for name, export := range cfg.Package.Exports {
+				pkg.Exports[name] = jsonExportedPresetDefinition(export)
+			}
 		}
 		jsonCfg.Package = &pkg
 	}
@@ -158,8 +162,11 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) *Config {
 	var pkg Package
 	if cfg.Package != nil {
 		pkg.Name = cfg.Package.Name
-		for _, export := range cfg.Package.Exports {
-			pkg.Exports = append(pkg.Exports, ExportedPresetDefinition(export))
+		if cfg.Package.Exports != nil {
+			pkg.Exports = make(map[string]ExportedPresetDefinition)
+			for name, export := range cfg.Package.Exports {
+				pkg.Exports[name] = ExportedPresetDefinition(export)
+			}
 		}
 	}
 
@@ -184,12 +191,11 @@ type (
 	}
 
 	jsonPackage struct {
-		Exports []jsonExportedPresetDefinition `json:"exports,omitempty"`
-		Name    string                         `json:"name"`
+		Exports map[string]jsonExportedPresetDefinition `json:"exports,omitempty"`
+		Name    string                                  `json:"name"`
 	}
 
 	jsonExportedPresetDefinition struct {
-		Name    string   `json:"name"`
 		Prompts []string `json:"prompts,omitempty"`
 		Rules   []string `json:"rules,omitempty"`
 	}

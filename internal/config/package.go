@@ -3,16 +3,15 @@ package config
 type (
 	Package struct {
 		// Exported preset definitions.
-		Exports []ExportedPresetDefinition `json:"exports,omitempty"`
+		//
+		// Key is the exported preset name.
+		Exports map[string]ExportedPresetDefinition `json:"exports,omitempty"`
 
 		// Package name.
 		Name string `json:"name"`
 	}
 
 	ExportedPresetDefinition struct {
-		// Preset name.
-		Name string `json:"name"`
-
 		// Prompts to export.
 		//
 		// You can use glob patterns supported by
@@ -33,7 +32,7 @@ func applyDefaultsToPackage(pkg *Package) *Package {
 	}
 
 	if pkg.Exports == nil {
-		pkg.Exports = []ExportedPresetDefinition{}
+		pkg.Exports = map[string]ExportedPresetDefinition{}
 	}
 
 	return pkg

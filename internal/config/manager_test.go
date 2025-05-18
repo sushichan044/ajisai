@@ -53,9 +53,10 @@ func TestManager_SaveAndLoad(t *testing.T) {
 			},
 			Package: &config.Package{
 				Name: "test-package",
-				Exports: []config.ExportedPresetDefinition{
-					{
-						Name: "test-export",
+				Exports: map[string]config.ExportedPresetDefinition{
+					"go-guide": {
+						Prompts: []string{"go-guide/prompts/**/*.md"},
+						Rules:   []string{"go-guide/rules/**/*.md"},
 					},
 				},
 			},
