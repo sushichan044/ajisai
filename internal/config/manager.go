@@ -50,7 +50,11 @@ func (m *Manager) Save(configPath string, cfg *Config) error {
 
 	switch extension := filepath.Ext(resolvedPath); extension {
 	case ".json":
-		return newJSONLoader().Save(resolvedPath, cfg)
+		err = newJSONLoader().Save(resolvedPath, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to save config to %s: %w", resolvedPath, err)
+		}
+		return nil
 	default:
 		return fmt.Errorf("unsupported config file extension: %s", extension)
 	}

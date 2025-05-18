@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/sushichan044/ajisai/internal/domain"
@@ -158,42 +159,31 @@ func (bridge *WindsurfBridge) FromAgentPrompt(prompt WindsurfPrompt) (domain.Pro
 }
 
 func (bridge *WindsurfBridge) SerializeAgentRule(rule WindsurfRule) (string, error) {
+	// Windsurf does not accept quoted front matters, so we need to write custom marshaler
 	metaKeys := 3 // trigger, description, globs
-	metaValues := make([]string, 0, metaKeys)
+	metaContent := make([]string, 0, metaKeys)
 
-	metaValues = append(metaValues, fmt.Sprintf("trigger: %s", rule.Metadata.Trigger))
+	metaContent = append(metaContent, "trigger: "+string(rule.Metadata.Trigger))
 
-	// omit description if empty
-	if rule.Metadata.Description != "" {
-		description := strings.TrimSpace(rule.Metadata.Description)
-		metaValues = append(metaValues, fmt.Sprintf("description: %s", description))
+	// omit description property if empty
+	if desc := strings.TrimSpace(rule.Metadata.Description); desc != "" {
+		metaContent = append(metaContent, "description: "+desc)
 	}
 
-	// omit globs if empty
-	if rule.Metadata.Globs != "" {
-		globs := strings.TrimSpace(rule.Metadata.Globs)
-		metaValues = append(metaValues, fmt.Sprintf("globs: %s", globs))
+	// omit globs property if empty
+	if globs := strings.TrimSpace(rule.Metadata.Globs); globs != "" {
+		metaContent = append(metaContent, "globs: "+globs)
 	}
 
-	frontMatter := fmt.Sprintf("---\n%s\n---\n", strings.Join(metaValues, "\n"))
-
-	// Special case: if the content is empty, we need to return just the front matter
-	if rule.Content == "" {
-		return frontMatter + "\n", nil
-	}
-
-	// Remove trailing newlines from the content, then add one newline at the end
-	normalizedContent := strings.TrimRight(rule.Content, "\n")
-	result := fmt.Sprintf("%s\n%s", frontMatter, normalizedContent)
-	return result + "\n", nil
+	return strings.TrimRight("---\n"+strings.Join(metaContent, "\n")+"\n---\n"+rule.Content, "\n") + "\n", nil
 }
 
 func (bridge *WindsurfBridge) DeserializeAgentRule(slug string, ruleBody string) (WindsurfRule, error) {
-	// we need to add quotes around the globs
 	lines := strings.Split(ruleBody, "\n")
 	for i, line := range lines {
 		if strings.HasPrefix(line, "globs: ") {
-			lines[i] = fmt.Sprintf("globs: '%s'", strings.TrimSpace(line[7:]))
+			// we need to add quotes around the glob patterns to avoid parsing errors
+			lines[i] = "globs: " + strconv.Quote(strings.TrimSpace(line[7:]))
 		}
 	}
 	ruleBody = strings.Join(lines, "\n")

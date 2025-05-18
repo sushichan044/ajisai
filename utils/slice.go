@@ -12,7 +12,7 @@ func ContainsAny[T comparable](source []T, values []T) bool {
 }
 
 func RemoveZeroValues[T comparable](source []T) []T {
-	filtered := make([]T, 0)
+	filtered := make([]T, 0, len(source))
 	zero := getZero[T]()
 
 	for _, value := range source {

@@ -109,7 +109,13 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 			}
 
 			if dirErr := utils.EnsureDir(filepath.Dir(rulePath)); dirErr != nil {
-				return fmt.Errorf("failed to create directory for rule %s: %w", rulePath, dirErr)
+				return fmt.Errorf(
+					"could not ensure dir for rule %s in preset %s, package %s: %w",
+					rulePath,
+					preset.Name,
+					packageName,
+					dirErr,
+				)
 			}
 
 			return utils.AtomicWriteFile(rulePath, bytes.NewReader([]byte(serialized)))
@@ -129,7 +135,13 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 			}
 
 			if dirErr := utils.EnsureDir(filepath.Dir(promptPath)); dirErr != nil {
-				return fmt.Errorf("failed to create directory for prompt %s: %w", promptPath, dirErr)
+				return fmt.Errorf(
+					"could not ensure dir for prompt %s in preset %s, package %s: %w",
+					promptPath,
+					preset.Name,
+					packageName,
+					dirErr,
+				)
 			}
 
 			return utils.AtomicWriteFile(promptPath, bytes.NewReader([]byte(serialized)))

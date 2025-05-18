@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/sushichan044/ajisai/internal/domain"
@@ -150,41 +151,29 @@ func (bridge *CursorBridge) SerializeAgentRule(rule CursorRule) (string, error) 
 	metaKeys := 3 // alwaysApply, description, globs
 	metaContent := make([]string, 0, metaKeys)
 
-	metaContent = append(metaContent, fmt.Sprintf("alwaysApply: %t", rule.Metadata.AlwaysApply))
+	metaContent = append(metaContent, "alwaysApply: "+strconv.FormatBool(rule.Metadata.AlwaysApply))
 
-	if rule.Metadata.Description == "" {
+	if desc := strings.TrimSpace(rule.Metadata.Description); desc != "" {
+		metaContent = append(metaContent, "description: "+desc)
+	} else {
 		metaContent = append(metaContent, "description:")
-	} else {
-		description := strings.TrimSpace(rule.Metadata.Description)
-		metaContent = append(metaContent, fmt.Sprintf("description: %s", description))
 	}
 
-	if rule.Metadata.Globs == "" {
+	if globs := strings.TrimSpace(rule.Metadata.Globs); globs != "" {
+		metaContent = append(metaContent, "globs: "+globs)
+	} else {
 		metaContent = append(metaContent, "globs:")
-	} else {
-		globs := strings.TrimSpace(rule.Metadata.Globs)
-		metaContent = append(metaContent, fmt.Sprintf("globs: %s", globs))
 	}
 
-	frontMatter := fmt.Sprintf("---\n%s\n---", strings.Join(metaContent, "\n"))
-
-	// Special case: if the content is empty, we need to return just the front matter
-	if rule.Content == "" {
-		return frontMatter + "\n", nil
-	}
-
-	// Remove trailing newlines from the content, then add one newline at the end
-	normalizedContent := strings.TrimRight(rule.Content, "\n")
-	result := fmt.Sprintf("%s\n%s", frontMatter, normalizedContent)
-	return result + "\n", nil
+	return strings.TrimRight("---\n"+strings.Join(metaContent, "\n")+"\n---\n"+rule.Content, "\n") + "\n", nil
 }
 
 func (bridge *CursorBridge) DeserializeAgentRule(slug string, ruleBody string) (CursorRule, error) {
-	// we need to add quotes around the globs
 	lines := strings.Split(ruleBody, "\n")
 	for i, line := range lines {
 		if strings.HasPrefix(line, "globs: ") {
-			lines[i] = fmt.Sprintf("globs: '%s'", strings.TrimSpace(line[7:]))
+			// we need to add quotes around the glob patterns to avoid parsing errors
+			lines[i] = "globs: " + strconv.Quote(strings.TrimSpace(line[7:]))
 		}
 	}
 	ruleBody = strings.Join(lines, "\n")
