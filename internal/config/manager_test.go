@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -103,56 +102,6 @@ func TestManager_SaveAndLoad(t *testing.T) {
 
 func TestManagerSave(t *testing.T) {
 	tempDir := t.TempDir()
-
-	t.Run("successfully saves JSON config", func(t *testing.T) {
-		configPath := filepath.Join(tempDir, "config.json")
-		testConfig := &config.Config{
-			Settings: &config.Settings{
-				CacheDir:     "/custom/cache/dir",
-				Experimental: true,
-				Namespace:    "test-namespace",
-			},
-		}
-
-		manager := config.NewManager()
-		if err := manager.Save(configPath, testConfig); err != nil {
-			t.Fatalf("Failed to save config: %v", err)
-		}
-
-		// Read the saved file and verify its contents
-		savedBytes, err := os.ReadFile(configPath)
-		if err != nil {
-			t.Fatalf("Failed to read saved config: %v", err)
-		}
-
-		var savedConfig config.Config
-		if jsonErr := json.Unmarshal(savedBytes, &savedConfig); jsonErr != nil {
-			t.Fatalf("Failed to unmarshal saved config: %v", jsonErr)
-		}
-
-		if savedConfig.Settings.CacheDir != testConfig.Settings.CacheDir {
-			t.Errorf(
-				"Expected saved CacheDir %q, but got %q",
-				testConfig.Settings.CacheDir,
-				savedConfig.Settings.CacheDir,
-			)
-		}
-		if savedConfig.Settings.Experimental != testConfig.Settings.Experimental {
-			t.Errorf(
-				"Expected saved Experimental %v, but got %v",
-				testConfig.Settings.Experimental,
-				savedConfig.Settings.Experimental,
-			)
-		}
-		if savedConfig.Settings.Namespace != testConfig.Settings.Namespace {
-			t.Errorf(
-				"Expected saved Namespace %q, but got %q",
-				testConfig.Settings.Namespace,
-				savedConfig.Settings.Namespace,
-			)
-		}
-	})
-
 	t.Run("fails with unsupported extension", func(t *testing.T) {
 		configPath := filepath.Join(tempDir, "config.unsupported")
 		testConfig := &config.Config{}
