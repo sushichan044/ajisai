@@ -5,10 +5,10 @@ type (
 		// Exported preset definitions.
 		//
 		// Key is the exported preset name.
-		Exports map[string]ExportedPresetDefinition `json:"exports,omitempty"`
+		Exports map[string]ExportedPresetDefinition
 
 		// Package name.
-		Name string `json:"name"`
+		Name string
 	}
 
 	ExportedPresetDefinition struct {
@@ -16,13 +16,13 @@ type (
 		//
 		// You can use glob patterns supported by
 		// [bmatcuk/doublestart](https://github.com/bmatcuk/doublestar)
-		Prompts []string `json:"prompts,omitempty"`
+		Prompts []string
 
 		// Rules to export.
 		//
 		// You can use glob patterns supported by
 		// [bmatcuk/doublestart](https://github.com/bmatcuk/doublestar)
-		Rules []string `json:"rules,omitempty"`
+		Rules []string
 	}
 )
 

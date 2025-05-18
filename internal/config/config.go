@@ -13,17 +13,17 @@ type Config struct {
 
 		Has no effect for package definition.
 	*/
-	Settings *Settings `json:"settings,omitempty"`
+	Settings *Settings
 
 	/*
 		Definition to treat this workspace as a preset package.
 	*/
-	Package *Package `json:"package,omitempty"`
+	Package *Package
 
 	/*
 		Definition to use various presets in this workspace.
 	*/
-	Workspace *Workspace `json:"workspace,omitempty"`
+	Workspace *Workspace
 }
 
 func (c *Config) GetImportedPackageCacheRoot(packageName string) (string, error) {
