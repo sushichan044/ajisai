@@ -76,7 +76,8 @@ func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 		var pkg jsonPackage
 		pkg.Name = cfg.Package.Name
 		if cfg.Package.Exports != nil {
-			pkg.Exports = make(map[string]jsonExportedPresetDefinition)
+			pkg.Exports = make(map[string]jsonExportedPresetDefinition, len(cfg.Package.Exports))
+
 			for name, export := range cfg.Package.Exports {
 				pkg.Exports[name] = jsonExportedPresetDefinition(export)
 			}
@@ -86,7 +87,8 @@ func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 
 	if cfg.Workspace != nil {
 		var workspace jsonWorkspace
-		workspace.Imports = make(map[string]jsonImportedPackage)
+		workspace.Imports = make(map[string]jsonImportedPackage, len(cfg.Workspace.Imports))
+
 		for name, imp := range cfg.Workspace.Imports {
 			switch imp.Type {
 			case ImportTypeLocal:
@@ -130,8 +132,9 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) (*Config, error) {
 	}
 
 	var workspace Workspace
-	workspace.Imports = make(map[string]ImportedPackage)
 	if cfg.Workspace != nil {
+		workspace.Imports = make(map[string]ImportedPackage, len(cfg.Workspace.Imports))
+
 		for name, imp := range cfg.Workspace.Imports {
 			switch ImportType(imp.Type) {
 			case ImportTypeLocal:
@@ -170,7 +173,8 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) (*Config, error) {
 	if cfg.Package != nil {
 		pkg.Name = cfg.Package.Name
 		if cfg.Package.Exports != nil {
-			pkg.Exports = make(map[string]ExportedPresetDefinition)
+			pkg.Exports = make(map[string]ExportedPresetDefinition, len(cfg.Package.Exports))
+
 			for name, export := range cfg.Package.Exports {
 				pkg.Exports[name] = ExportedPresetDefinition(export)
 			}
