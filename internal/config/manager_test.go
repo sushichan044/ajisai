@@ -178,8 +178,8 @@ func TestManagerApplyDefaults(t *testing.T) {
 		if cfg.Settings == nil {
 			t.Fatal("Expected Settings to be initialized, but it's nil")
 		}
-		if cfg.Settings.CacheDir != "./.ajisai/cache" {
-			t.Errorf("Expected default CacheDir %q, but got %q", "./.ajisai/cache", cfg.Settings.CacheDir)
+		if cfg.Settings.CacheDir != "./.cache/ajisai" {
+			t.Errorf("Expected default CacheDir %q, but got %q", "./.cache/ajisai", cfg.Settings.CacheDir)
 		}
 		if cfg.Settings.Namespace != "ajisai" {
 			t.Errorf("Expected default Namespace %q, but got %q", "ajisai", cfg.Settings.Namespace)
@@ -250,8 +250,8 @@ func TestManagerGetDefaultConfig(t *testing.T) {
 	if cfg.Settings == nil {
 		t.Fatal("Expected Settings to be initialized, but it's nil")
 	}
-	if cfg.Settings.CacheDir != "./.ajisai/cache" {
-		t.Errorf("Expected default CacheDir %q, but got %q", "./.ajisai/cache", cfg.Settings.CacheDir)
+	if cfg.Settings.CacheDir != "./.cache/ajisai" {
+		t.Errorf("Expected default CacheDir %q, but got %q", "./.cache/ajisai", cfg.Settings.CacheDir)
 	}
 	if cfg.Settings.Namespace != "ajisai" {
 		t.Errorf("Expected default Namespace %q, but got %q", "ajisai", cfg.Settings.Namespace)

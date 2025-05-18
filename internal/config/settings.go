@@ -21,7 +21,7 @@ func applyDefaultsToSettings(settings *Settings) *Settings {
 	}
 
 	if settings.CacheDir == "" {
-		settings.CacheDir = "./.ajisai/cache"
+		settings.CacheDir = "./.cache/ajisai"
 	}
 
 	if settings.Namespace == "" {
