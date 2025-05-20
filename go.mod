@@ -46,8 +46,6 @@ require (
 	gotest.tools/gotestsum v1.12.2 // indirect
 )
 
-replace github.com/sushichan044/ajisai => ./
-
 tool (
 	github.com/atombender/go-jsonschema
 	gotest.tools/gotestsum
