@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/engine"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 var (
@@ -40,7 +42,6 @@ func run(args []string) error {
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "ajisai.yml",
 				Usage:   "Load configuration from `FILE`",
 				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
@@ -48,8 +49,18 @@ func run(args []string) error {
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
 			cfgPath := c.String("config")
 
-			loadedCfg, err := config.New().Load(cfgPath)
+			manager, err := prepareConfigManager(cfgPath)
 			if err != nil {
+				return ctx, fmt.Errorf("failed to prepare loading configuration: %w", err)
+			}
+
+			loadedCfg, err := manager.Load()
+			if err != nil {
+				var configFileNotFound *config.NoFileToReadError
+				if errors.As(err, &configFileNotFound) {
+					return config.StoreNotFoundInContext(ctx), nil
+				}
+
 				return ctx, fmt.Errorf("failed to load configuration from %s: %w", cfgPath, err)
 			}
 
@@ -106,11 +117,16 @@ func run(args []string) error {
 }
 
 func doApply(c context.Context, _ *cli.Command) error {
-	cfg, err := config.RetrieveFromContext(c)
+	cfgCtx, err := config.RetrieveFromContext(c)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
+	if cfgCtx.NotFound {
+		return errors.New("apply command requires an existing config file")
+	}
+
+	cfg := cfgCtx.Config
 	eng, err := engine.NewEngine(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create engine: %w", err)
@@ -132,10 +148,16 @@ func doApply(c context.Context, _ *cli.Command) error {
 }
 
 func doClean(c context.Context, cmd *cli.Command) error {
-	cfg, err := config.RetrieveFromContext(c)
+	cfgCtx, err := config.RetrieveFromContext(c)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
+
+	if cfgCtx.NotFound {
+		return errors.New("clean command requires an existing config file")
+	}
+
+	cfg := cfgCtx.Config
 
 	eng, err := engine.NewEngine(cfg)
 	if err != nil {
@@ -149,4 +171,23 @@ func doClean(c context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
+}
+
+func prepareConfigManager(cfgPath string) (*config.Manager, error) {
+	if cfgPath == "" {
+		// init with default file since user didn't specify a config file via -c.
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get current working directory: %w", err)
+		}
+
+		return config.NewDefaultManagerInDir(cwd)
+	}
+
+	absPath, err := utils.ResolveAbsPath(cfgPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve config path: %w", err)
+	}
+
+	return config.NewManager(absPath)
 }

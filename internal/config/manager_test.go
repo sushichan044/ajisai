@@ -62,63 +62,58 @@ func TestManager_SaveAndLoad(t *testing.T) {
 			},
 		}
 
-		manager := config.New()
+		manager, err := config.NewManager(configPath)
+		require.NoError(t, err)
 
-		if writeErr := manager.Save(configPath, testConfig); writeErr != nil {
-			t.Fatalf("Failed to save config: %v", writeErr)
-		}
+		writeErr := manager.Save(testConfig)
+		require.NoError(t, writeErr)
 
-		// Try to load the config
-		loadedConfig, err := manager.Load(configPath)
-		if err != nil {
-			t.Fatalf("Failed to load config: %v", err)
-		}
+		loadedConfig, loadErr := manager.Load()
+		require.NoError(t, loadErr)
 
 		assert.True(t, cmp.Equal(loadedConfig, testConfig))
 	})
 
-	t.Run("fails with unsupported extension", func(t *testing.T) {
-		configPath := filepath.Join(tempDir, "config.unsupported")
-		if writeErr := os.WriteFile(configPath, []byte("{}"), 0600); writeErr != nil {
-			t.Fatalf("Failed to write test config: %v", writeErr)
-		}
+	t.Run("returns ConfigFileNotFoundError when non-existent file is given", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "non-existent.yaml")
 
-		manager := config.New()
-		_, err := manager.Load(configPath)
-		if err == nil {
-			t.Error("Expected error for unsupported extension, but got nil")
-		}
+		manager, err := config.NewManager(configPath)
+		require.NoError(t, err)
+
+		_, loadErr := manager.Load()
+		var noFileToReadErr *config.NoFileToReadError
+		require.ErrorAs(t, loadErr, &noFileToReadErr)
 	})
 
-	t.Run("fails with non-existent file", func(t *testing.T) {
-		configPath := filepath.Join(tempDir, "non-existent.json")
+	t.Run("fails with unsupported extension", func(t *testing.T) {
+		configPath := filepath.Join(tempDir, "config.unsupported")
+		writeErr := os.WriteFile(configPath, []byte("{}"), 0600)
+		require.NoError(t, writeErr)
 
-		manager := config.New()
-		_, err := manager.Load(configPath)
-		if err == nil {
-			t.Error("Expected error for non-existent file, but got nil")
-		}
+		_, err := config.NewManager(configPath)
+		var unsupportedConfigFile *config.UnsupportedConfigFileError
+		require.ErrorAs(t, err, &unsupportedConfigFile)
+		assert.Equal(t, configPath, unsupportedConfigFile.Path)
 	})
 }
 
-func TestManagerSave(t *testing.T) {
-	tempDir := t.TempDir()
-	t.Run("fails with unsupported extension", func(t *testing.T) {
-		configPath := filepath.Join(tempDir, "config.unsupported")
-		testConfig := &config.Config{}
+func TestManager_Save(t *testing.T) {
+	t.Run("fails when no config file path is given", func(t *testing.T) {
+		manager, err := config.NewManager()
+		require.NoError(t, err)
 
-		manager := config.New()
-		err := manager.Save(configPath, testConfig)
-		if err == nil {
-			t.Error("Expected error for unsupported extension, but got nil")
-		}
+		saveErr := manager.Save(&config.Config{})
+		var noFileToWrite *config.NoFileToWriteError
+		require.ErrorAs(t, saveErr, &noFileToWrite)
 	})
 }
 
 //gocognit:ignore
 func TestManagerApplyDefaults(t *testing.T) {
 	t.Run("applies defaults to nil config", func(t *testing.T) {
-		manager := config.New()
+		manager, err := config.NewManager()
+		require.NoError(t, err)
+
 		cfg, err := manager.ApplyDefaults(nil)
 		require.NoError(t, err)
 
@@ -163,9 +158,11 @@ func TestManagerApplyDefaults(t *testing.T) {
 			// Package and Workspace left nil to test default initialization
 		}
 
-		manager := config.New()
-		cfg, err := manager.ApplyDefaults(inputConfig)
+		manager, err := config.NewManager()
 		require.NoError(t, err)
+
+		cfg, defaultErr := manager.ApplyDefaults(inputConfig)
+		require.NoError(t, defaultErr)
 
 		// Verify original values are preserved
 		if cfg.Settings.CacheDir != "/custom/cache" {
@@ -189,7 +186,9 @@ func TestManagerApplyDefaults(t *testing.T) {
 }
 
 func TestManagerGetDefaultConfig(t *testing.T) {
-	manager := config.New()
+	manager, err := config.NewManager()
+	require.NoError(t, err)
+
 	cfg := manager.GetDefaultConfig()
 
 	// Check settings defaults
