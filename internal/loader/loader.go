@@ -72,9 +72,9 @@ func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.
 		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
 	}
 
-	expectedManifestPath := filepath.Join(cacheDir, "ajisai.json")
+	expectedManifestPath := filepath.Join(cacheDir, config.DefaultConfigFile)
 	if _, statErr := os.Stat(expectedManifestPath); statErr == nil {
-		rawManifest, manifestErr := config.NewManager().Load(expectedManifestPath)
+		rawManifest, manifestErr := config.New().Load(expectedManifestPath)
 		if manifestErr != nil {
 			return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
 		}
@@ -87,7 +87,7 @@ func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.
 		resolvedManifest = &config.Package{
 			Name: packageName,
 			Exports: map[string]config.ExportedPresetDefinition{
-				packageName + "_default": {
+				config.DefaultPresetName: {
 					Prompts: []string{"prompts/**/*.md"},
 					Rules:   []string{"rules/**/*.md"},
 				},

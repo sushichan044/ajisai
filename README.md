@@ -8,7 +8,7 @@
 - **Reuse 📤** - You can import AI presets not only from local directories but also from remote Git repositories.
 - **Gradual Introduction ⏩**: Enables adoption without conflicting with existing rules.
 
-<!-- ## Supported AI Coding Agents
+## Supported AI Coding Agents
 
 - [x] GitHub Copilot in VSCode
   - Update VSCode to 1.100 or later
@@ -20,7 +20,8 @@
 - [x] Windsurf
   - Update Windsurf to Wave 8 or later
 - [ ] Cline
-- [ ] Roo Code -->
+- [ ] Roo Code
+- [ ] Devin
 
 ## Installation
 
@@ -49,36 +50,47 @@ Download the latest release from the [GitHub releases page](https://github.com/s
 
 </details>
 
-## Usage
+## Getting Started
 
 `ajisai` is controlled via CLI.
 
-The default configuration file is `ajisai.json` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
+The default configuration file is `ajisai.yml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
 
-### Commands
+> [!NOTE]
+> `ajisai.yaml` will be supported soon.
 
-- **`ajisai apply`**: Fetch all imported packages and deploy to integrated agents.
+### 1. Write Config
+
+```yaml
+workspace:
+  imports:
+    local_rules:
+      type: local
+      path: "./.ai"
+      include:
+      - default # Just HACK, will be documented soon.
+  integrations:
+    cursor:
+      enabled: true
+    github-copilot:
+      enabled: true
+    windsurf:
+      enabled: true
+```
+
+### 2. Write your rules
+
+Write your rules under `.ai/rules/**/*.md`.
+
+Refer [Defining Preset](#defining-preset) for supported syntax.
+
+### 3. Deploy your rules
+
+Just run `ajisai apply`.
 
 ## Defining preset
 
-A preset is a directory containing rules and prompts that `ajisai` can manage. The expected directory structure for a preset is as follows:
-
-```
-your-preset-name/
-├── rules/
-│   ├── rule1.md
-│   └── rule2.md
-└── prompts/
-    ├── prompt1.md
-    └── prompt2.md
-```
-
-- **`rules/`**: This directory contains Markdown files defining rules. Each file represents a single rule.
-- **`prompts/`**: This directory contains Markdown files defining prompts. Each file represents a single prompt.
-
-The filename (without the `.md` extension) serves as the unique ID for that rule or prompt.
-
-### Rule File (`*.md` in `rules/`)
+### Rule File (`*.md`)
 
 Each rule Markdown file can have the following metadata in its frontmatter:
 
@@ -102,7 +114,7 @@ This is the main content of the rule.
 It describes the coding standard in detail...
 ```
 
-### Prompt File (`*.md` in `prompts/`)
+### Prompt File (`*.md`)
 
 | Key           | Type    | Required | Description                                                                                                   |
 |---------------|---------|----------|---------------------------------------------------------------------------------------------------------------|

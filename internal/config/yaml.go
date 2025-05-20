@@ -2,20 +2,21 @@ package config
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/goccy/go-yaml"
 
 	"github.com/sushichan044/ajisai/utils"
 )
 
-type jsonLoader struct{}
+type yamlLoader struct{}
 
-func newJSONLoader() formatLoader[jsonConfig] {
-	return &jsonLoader{}
+func newYAMLLoader() formatLoader[serializableConfig] {
+	return &yamlLoader{}
 }
 
-func (l *jsonLoader) Load(configPath string) (*Config, error) {
+func (l *yamlLoader) Load(configPath string) (*Config, error) {
 	resolvedPath, err := utils.ResolveAbsPath(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config path: %w", err)
@@ -30,30 +31,30 @@ func (l *jsonLoader) Load(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file %s: %w", resolvedPath, err)
 	}
 
-	var jsonCfg jsonConfig
-	if jsonErr := json.Unmarshal(body, &jsonCfg); jsonErr != nil {
+	var cfgData serializableConfig
+	if jsonErr := yaml.Unmarshal(body, &cfgData); jsonErr != nil {
 		return nil, fmt.Errorf("failed to unmarshal config file %s: %w", resolvedPath, jsonErr)
 	}
 
-	return l.fromFormat(jsonCfg)
+	return l.fromFormat(cfgData)
 }
 
-func (l *jsonLoader) Save(configPath string, cfg *Config) error {
+func (l *yamlLoader) Save(configPath string, cfg *Config) error {
 	resolvedPath, pathErr := utils.ResolveAbsPath(configPath)
 	if pathErr != nil {
 		return fmt.Errorf("failed to resolve config path: %w", pathErr)
 	}
-	jsonCfg, jsonErr := l.toFormat(cfg)
-	if jsonErr != nil {
-		return fmt.Errorf("failed to marshal config to JSON: %w", jsonErr)
+	cfgData, convErr := l.toFormat(cfg)
+	if convErr != nil {
+		return fmt.Errorf("failed to convert config to serializable format: %w", convErr)
 	}
 
-	jsonData, marshalErr := json.MarshalIndent(jsonCfg, "", "  ")
+	yamlData, marshalErr := yaml.Marshal(cfgData)
 	if marshalErr != nil {
-		return fmt.Errorf("failed to marshal config to JSON: %w", marshalErr)
+		return fmt.Errorf("failed to marshal config to YAML: %w", marshalErr)
 	}
 
-	if err := utils.AtomicWriteFile(resolvedPath, bytes.NewReader(jsonData)); err != nil {
+	if err := utils.AtomicWriteFile(resolvedPath, bytes.NewReader(yamlData)); err != nil {
 		return fmt.Errorf("failed to save config file atomically: %w", err)
 	}
 
@@ -61,11 +62,11 @@ func (l *jsonLoader) Save(configPath string, cfg *Config) error {
 }
 
 //gocognit:ignore
-func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
-	var jsonCfg jsonConfig
+func (l *yamlLoader) toFormat(cfg *Config) (serializableConfig, error) {
+	var serializableCfg serializableConfig
 
 	if cfg.Settings != nil {
-		jsonCfg.Settings = &jsonSettings{
+		serializableCfg.Settings = &serializableSettings{
 			CacheDir:     cfg.Settings.CacheDir,
 			Experimental: cfg.Settings.Experimental,
 			Namespace:    cfg.Settings.Namespace,
@@ -73,27 +74,27 @@ func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 	}
 
 	if cfg.Package != nil {
-		var pkg jsonPackage
+		var pkg serializablePackage
 		pkg.Name = cfg.Package.Name
 		if cfg.Package.Exports != nil {
-			pkg.Exports = make(map[string]jsonExportedPresetDefinition, len(cfg.Package.Exports))
+			pkg.Exports = make(map[string]serializableExportedPresetDefinition, len(cfg.Package.Exports))
 
 			for name, export := range cfg.Package.Exports {
-				pkg.Exports[name] = jsonExportedPresetDefinition(export)
+				pkg.Exports[name] = serializableExportedPresetDefinition(export)
 			}
 		}
-		jsonCfg.Package = &pkg
+		serializableCfg.Package = &pkg
 	}
 
 	if cfg.Workspace != nil {
-		var workspace jsonWorkspace
-		workspace.Imports = make(map[string]jsonImportedPackage, len(cfg.Workspace.Imports))
+		var workspace serializableWorkspace
+		workspace.Imports = make(map[string]serializableImportedPackage, len(cfg.Workspace.Imports))
 
 		for name, imp := range cfg.Workspace.Imports {
 			switch imp.Type {
 			case ImportTypeLocal:
 				if details, ok := GetImportDetails[LocalImportDetails](imp); ok {
-					workspace.Imports[name] = jsonImportedPackage{
+					workspace.Imports[name] = serializableImportedPackage{
 						Type:    string(imp.Type),
 						Path:    details.Path,
 						Include: imp.Include,
@@ -101,7 +102,7 @@ func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 				}
 			case ImportTypeGit:
 				if details, ok := GetImportDetails[GitImportDetails](imp); ok {
-					workspace.Imports[name] = jsonImportedPackage{
+					workspace.Imports[name] = serializableImportedPackage{
 						Type:       string(imp.Type),
 						Repository: details.Repository,
 						Revision:   details.Revision,
@@ -111,19 +112,21 @@ func (l *jsonLoader) toFormat(cfg *Config) (jsonConfig, error) {
 			}
 		}
 		if cfg.Workspace.Integrations != nil {
-			workspace.Integrations = &jsonAgentIntegration{
-				Cursor:        &jsonCursorIntegration{Enabled: cfg.Workspace.Integrations.Cursor.Enabled},
-				GitHubCopilot: &jsonGitHubCopilotIntegration{Enabled: cfg.Workspace.Integrations.GitHubCopilot.Enabled},
-				Windsurf:      &jsonWindsurfIntegration{Enabled: cfg.Workspace.Integrations.Windsurf.Enabled},
+			workspace.Integrations = &serializableAgentIntegration{
+				Cursor: &serializableCursorIntegration{Enabled: cfg.Workspace.Integrations.Cursor.Enabled},
+				GitHubCopilot: &serializableGitHubCopilotIntegration{
+					Enabled: cfg.Workspace.Integrations.GitHubCopilot.Enabled,
+				},
+				Windsurf: &serializableWindsurfIntegration{Enabled: cfg.Workspace.Integrations.Windsurf.Enabled},
 			}
 		}
-		jsonCfg.Workspace = &workspace
+		serializableCfg.Workspace = &workspace
 	}
 
-	return jsonCfg, nil
+	return serializableCfg, nil
 }
 
-func (l *jsonLoader) fromFormat(cfg jsonConfig) (*Config, error) {
+func (l *yamlLoader) fromFormat(cfg serializableConfig) (*Config, error) {
 	var settings Settings
 	if cfg.Settings != nil {
 		settings.CacheDir = cfg.Settings.CacheDir
@@ -187,58 +190,3 @@ func (l *jsonLoader) fromFormat(cfg jsonConfig) (*Config, error) {
 		Workspace: &workspace,
 	}, nil
 }
-
-type (
-	jsonConfig struct {
-		Settings  *jsonSettings  `json:"settings,omitempty"`
-		Package   *jsonPackage   `json:"package,omitempty"`
-		Workspace *jsonWorkspace `json:"workspace,omitempty"`
-	}
-
-	jsonSettings struct {
-		CacheDir     string `json:"cacheDir,omitempty"`
-		Experimental bool   `json:"experimental,omitempty"`
-		Namespace    string `json:"namespace,omitempty"`
-	}
-
-	jsonPackage struct {
-		Exports map[string]jsonExportedPresetDefinition `json:"exports,omitempty"`
-		Name    string                                  `json:"name"`
-	}
-
-	jsonExportedPresetDefinition struct {
-		Prompts []string `json:"prompts,omitempty"`
-		Rules   []string `json:"rules,omitempty"`
-	}
-
-	jsonWorkspace struct {
-		Imports      map[string]jsonImportedPackage `json:"imports,omitempty"`
-		Integrations *jsonAgentIntegration          `json:"integrations,omitempty"`
-	}
-
-	jsonImportedPackage struct {
-		Type       string   `json:"type"`
-		Include    []string `json:"include,omitempty"`
-		Path       string   `json:"path,omitempty"`       // only for type: local
-		Repository string   `json:"repository,omitempty"` // only for type: git
-		Revision   string   `json:"revision,omitempty"`   // only for type: git
-	}
-
-	jsonAgentIntegration struct {
-		Cursor        *jsonCursorIntegration        `json:"cursor,omitempty"`
-		GitHubCopilot *jsonGitHubCopilotIntegration `json:"github-copilot,omitempty"`
-		Windsurf      *jsonWindsurfIntegration      `json:"windsurf,omitempty"`
-	}
-
-	jsonCursorIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
-	}
-
-	jsonGitHubCopilotIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
-	}
-
-	jsonWindsurfIntegration struct {
-		Enabled bool `json:"enabled,omitempty"`
-	}
-)

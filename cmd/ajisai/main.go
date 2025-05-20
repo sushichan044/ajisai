@@ -40,7 +40,7 @@ func run(args []string) error {
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "ajisai.json",
+				Value:   "ajisai.yml",
 				Usage:   "Load configuration from `FILE`",
 				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
@@ -48,7 +48,7 @@ func run(args []string) error {
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
 			cfgPath := c.String("config")
 
-			loadedCfg, err := config.NewManager().Load(cfgPath)
+			loadedCfg, err := config.New().Load(cfgPath)
 			if err != nil {
 				return ctx, fmt.Errorf("failed to load configuration from %s: %w", cfgPath, err)
 			}

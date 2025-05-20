@@ -18,7 +18,7 @@ type formatLoader[T any] interface {
 
 type Manager struct{}
 
-func NewManager() *Manager {
+func New() *Manager {
 	return &Manager{}
 }
 
@@ -30,8 +30,8 @@ func (m *Manager) Load(configPath string) (*Config, error) {
 
 	var loadCfg *Config
 	switch extension := filepath.Ext(resolvedPath); extension {
-	case ".json":
-		loadCfg, err = newJSONLoader().Load(resolvedPath)
+	case ".yaml", ".yml":
+		loadCfg, err = newYAMLLoader().Load(resolvedPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load config file %s: %w", resolvedPath, err)
 		}
@@ -49,8 +49,8 @@ func (m *Manager) Save(configPath string, cfg *Config) error {
 	}
 
 	switch extension := filepath.Ext(resolvedPath); extension {
-	case ".json":
-		err = newJSONLoader().Save(resolvedPath, cfg)
+	case ".yaml", ".yml":
+		err = newYAMLLoader().Save(resolvedPath, cfg)
 		if err != nil {
 			return fmt.Errorf("failed to save config to %s: %w", resolvedPath, err)
 		}

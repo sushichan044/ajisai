@@ -537,3 +537,9 @@ linters:
       - path: 'internal/loader/loader.go'
         linters:
           - dupl
+      - path: 'internal/config/json.go'
+        linters:
+          - dupl
+      - path: 'internal/config/yaml.go'
+        linters:
+          - dupl
