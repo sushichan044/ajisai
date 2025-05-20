@@ -21,7 +21,7 @@ type NoFileToWriteError struct {
 }
 
 func (e *NoFileToWriteError) Error() string {
-	return "could not found config file to write"
+	return "could not find config file to write"
 }
 
 func (e *NoFileToWriteError) Unwrap() error {
