@@ -42,7 +42,7 @@
 - [ ] Cline
 - [ ] Roo Code
 - [x] Devin (Maybe partial support)
-  - Devin can pull rules from the Cursor format, so enabling Cursor integration and deploying them in Devin's environment would be effective.
+  - Devin can pull rules from the Cursor format, so enabling Cursor integration and run `ajisai apply` in Devin's environment would be effective.
     - <https://docs.devin.ai/onboard-devin/knowledge-onboarding#knowledge-101>
 
 ## Installation
