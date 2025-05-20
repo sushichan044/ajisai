@@ -253,6 +253,11 @@ workspace:
       repository: org-rules-repo-url # A repo with files in <root>/rules/ and/or <root>/prompts/
       include:
       - default # This 'default' refers to the special auto-detected preset
+    local-default:
+      type: local
+      path: "./.ai"
+      include:
+      - default
 ```
 
 ## File Reference
