@@ -7,6 +7,11 @@ import (
 	"github.com/sushichan044/ajisai/utils"
 )
 
+const (
+	DefaultConfigFile = "ajisai.yml"
+	DefaultPresetName = "default"
+)
+
 type Config struct {
 	/*
 		Tool-wide settings.

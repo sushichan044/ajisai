@@ -4,7 +4,7 @@ workspace:
       type: local
       path: "./.ai"
       include:
-      - local_rules_default
+      - default
     remote_rules:
       type: git
       repository: https://github.com/sushichan044/ai-presets.git
