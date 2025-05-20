@@ -130,6 +130,42 @@ description: A prompt to help refactor Go code for better readability.
 Please refactor the following Go code to improve its readability and maintainability, keeping in mind our company's Go coding standards.
 ```
 
+## Export your presets as a package
+
+You can export your rules as a package and share via Git.
+
+1. Write rules under `essential/rules/**/*.md` with [supported syntax](#defining-preset).
+2. Place `ajisai.yml` at repository root.
+
+      ```yaml
+      # ajisai.yml in your org's rule repository
+      package:
+        exports:
+          essential: # This means export rules and prompts below as `essential` preset.
+            rules:
+            - README.md
+            - essential/rules/**/*.md
+            prompts:
+            - essential/prompts/**/*.md
+      ```
+
+3. exported `essential` preset can be included from other workspace.
+
+      ```yaml
+      # ajisai.yml in your workspace
+      workspace:
+        imports:
+          org-essential:
+            type: git
+            repository: org-rules-repository-url
+            include:
+            - essential
+        integrations:
+          cursor:
+            enabled: true
+          # other integrations config...
+      ```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit pull requests or open issues on the [GitHub repository](https://github.com/sushichan044/ajisai).
