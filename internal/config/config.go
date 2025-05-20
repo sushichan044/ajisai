@@ -9,15 +9,12 @@ import (
 )
 
 var (
-	supportedConfigFileExtensions = []string{
-		// ".yaml",
-		".yml",
-	}
+	supportedConfigFileExtensions = []string{".yaml", ".yml"}
 )
 
 const (
-	defaultConfigFileYml = "ajisai.yml"
-	// defaultConfigFileYaml = "ajisai.yaml"
+	defaultConfigFileYml  = "ajisai.yml"
+	defaultConfigFileYaml = "ajisai.yaml"
 
 	DefaultPresetName = "default"
 )

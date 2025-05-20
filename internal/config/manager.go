@@ -47,12 +47,9 @@ func NewDefaultManagerInDir(dir string) (*Manager, error) {
 	}
 
 	defaultYml := filepath.Join(absDir, defaultConfigFileYml)
-	// defaultYaml := filepath.Join(absDir, defaultConfigFileYaml)
+	defaultYaml := filepath.Join(absDir, defaultConfigFileYaml)
 
-	return NewManager(
-		defaultYml,
-		// defaultYaml
-	)
+	return NewManager(defaultYaml, defaultYml)
 }
 
 // Load loads the config from the config paths. It returns the first valid config file.
@@ -95,8 +92,6 @@ func (m *Manager) getFileToRead() (string, error) {
 
 // getFileToWrite returns a writable config file path.
 // It returns the first existing file path or falls back to the first candidate path.
-//
-// If no writable file is found, it returns a NoFileToWriteError.
 func (m *Manager) getFileToWrite() (string, error) {
 	if len(m.candidateConfigPaths) == 0 {
 		return "", &NoFileToWriteError{}
