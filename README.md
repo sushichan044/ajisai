@@ -67,6 +67,23 @@ brew install sushichan044/tap/ajisai
 go install [github.com/sushichan044/ajisai@latest](https://github.com/sushichan044/ajisai@latest)
 ```
 
+> [!WARNING]
+> Because `ajisai` embeds its version information at **build time**, the **version** isn't displayed correctly when installed using `go install`.
+
+</details>
+
+<details>
+  <summary>mise</summary>
+
+```toml
+# mise.toml
+[tools]
+"go:github.com/sushichan044/ajisai/cmd/ajisai" = "latest"
+```
+
+> [!WARNING]
+> Because `ajisai` embeds its version information at **build time**, the **version** isn't displayed correctly when installed using `go install`.
+
 </details>
 
 <details>
