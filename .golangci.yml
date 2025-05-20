@@ -543,3 +543,7 @@ linters:
       - path: 'internal/config/yaml.go'
         linters:
           - dupl
+      - path: 'internal/config/config.go'
+        text: 'supportedConfigFileExtensions is a global variable'
+        linters:
+          - gochecknoglobals
