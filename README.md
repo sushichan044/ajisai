@@ -2,6 +2,26 @@
 
 **Ajisai** is a simple preset manager for AI Coding Agents.
 
+<!-- TOC -->
+
+- [ajisai](#ajisai)
+  - [Features](#features)
+  - [Supported AI Coding Agents](#supported-ai-coding-agents)
+  - [Installation](#installation)
+  - [Getting Started](#getting-started)
+    - [1. Write Config](#1-write-config)
+    - [2. Write your rules](#2-write-your-rules)
+    - [3. Deploy your rules](#3-deploy-your-rules)
+  - [Defining preset](#defining-preset)
+    - [Rule File (`*.md`)](#rule-file-md)
+    - [Prompt File (`*.md`)](#prompt-file-md)
+  - [Export your presets as a package](#export-your-presets-as-a-package)
+    - [Special `default` preset](#special-default-preset)
+  - [Config Reference](#config-reference)
+  - [Contributing](#contributing)
+
+<!-- /TOC -->
+
 ## Features
 
 - **Interoperability 🤖** - Simply by writing rules and prompts in a single format, they are automatically deployed to the appropriate format and directory for each supported AI Coding Agent.
@@ -183,6 +203,54 @@ workspace:
       repository: org-rules-repo-url
       include:
       - default
+```
+
+## Config Reference
+
+```yaml
+# Defines reusable preset packages that can be referenced from other workspaces.
+package:
+  name: "sushichan044/example" # Package name. currently has no effect.
+  exports: # Define exported presets.
+    essential: # This means export rules and prompts below as `essential` preset.
+      rules:
+      - README.md
+      - essential/rules/**/*.md
+      prompts:
+      - essential/prompts/**/*.md
+
+workspace:
+  # Defines the preset packages to be used in this workspace.
+  imports:
+    local_rules:
+      type: local
+      path: "./.ai"
+      include:
+      - default
+    remote_rules:
+      type: git
+      repository: https://github.com/sushichan044/ai-presets.git
+      include:
+      - example1
+  # Defines the AI Coding Agent that deploys preset packages in this workspace.
+  integrations:
+    cursor:
+      enabled: true
+    github-copilot:
+      enabled: true
+    windsurf:
+      enabled: true
+
+settings:
+  # Specifies the directory where ajisai temporarily caches the packages it imports.
+  cacheDir: "./.cache/ajisai" # default: ./.cache/ajisai
+
+  # Sets the namespace that ajisai uses when deploying imports.
+  # For example, if the default namespace is `ajisai`, Cursor Rules are deployed to `.cursor/rules/ajisai/**/*.mdc`.
+  namespace: ajisai # default: ajisai
+
+  # Whether to enable experimental features.
+  experimental: false # default: false
 ```
 
 ## Contributing
