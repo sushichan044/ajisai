@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -65,37 +66,39 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 }
 
 func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.Package, error) {
-	var resolvedManifest *config.Package
-
 	cacheDir, err := l.cfg.GetImportedPackageCacheRoot(packageName)
 	if err != nil {
 		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
 	}
 
-	expectedManifestPath := filepath.Join(cacheDir, config.DefaultConfigFile)
-	if _, statErr := os.Stat(expectedManifestPath); statErr == nil {
-		rawManifest, manifestErr := config.New().Load(expectedManifestPath)
-		if manifestErr != nil {
-			return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
-		}
-
-		resolvedManifest = &config.Package{
-			Name:    packageName,
-			Exports: rawManifest.Package.Exports,
-		}
-	} else {
-		resolvedManifest = &config.Package{
-			Name: packageName,
-			Exports: map[string]config.ExportedPresetDefinition{
-				config.DefaultPresetName: {
-					Prompts: []string{"prompts/**/*.md"},
-					Rules:   []string{"rules/**/*.md"},
-				},
-			},
-		}
+	manager, err := config.NewDefaultManagerInDir(cacheDir)
+	if err != nil {
+		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
 	}
 
-	return resolvedManifest, nil
+	rawManifest, err := manager.Load()
+	if err != nil {
+		var manifestNotFound *config.NoFileToReadError
+		if errors.As(err, &manifestNotFound) {
+			// manifest file not found, fallback to special `default` preset
+			return &config.Package{
+				Name: packageName,
+				Exports: map[string]config.ExportedPresetDefinition{
+					config.DefaultPresetName: {
+						Prompts: []string{"prompts/**/*.md"},
+						Rules:   []string{"rules/**/*.md"},
+					},
+				},
+			}, nil
+		}
+
+		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
+	}
+
+	return &config.Package{
+		Name:    packageName,
+		Exports: rawManifest.Package.Exports,
+	}, nil
 }
 
 // buildPreset scans the source directory for rules and prompts and returns a Preset.
