@@ -81,8 +81,8 @@ func TestManager_SaveAndLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		_, loadErr := manager.Load()
-		var configFileNotFound *config.NoFileToReadError
-		require.ErrorAs(t, loadErr, &configFileNotFound)
+		var noFileToReadErr *config.NoFileToReadError
+		require.ErrorAs(t, loadErr, &noFileToReadErr)
 	})
 
 	t.Run("fails with unsupported extension", func(t *testing.T) {
