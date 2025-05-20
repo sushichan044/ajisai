@@ -4,8 +4,6 @@
 
 You can package rule and prompt configurations and reuse them across multiple projects.
 
-<!-- TOC -->
-
 - [ajisai](#ajisai)
   - [Features](#features)
   - [Supported AI Coding Agents](#supported-ai-coding-agents)
@@ -14,15 +12,19 @@ You can package rule and prompt configurations and reuse them across multiple pr
     - [1. Write Config](#1-write-config)
     - [2. Write your rules](#2-write-your-rules)
     - [3. Deploy your rules](#3-deploy-your-rules)
-  - [Defining preset](#defining-preset)
+  - [User Guide](#user-guide)
+    - [Defining and Importing Local Preset Packages](#defining-and-importing-local-preset-packages)
+      - [1. Define Your Package's Exports](#1-define-your-packages-exports)
+      - [2. Structure Your Rule and Prompt Files](#2-structure-your-rule-and-prompt-files)
+      - [3. Import the Local Package into Your Workspace](#3-import-the-local-package-into-your-workspace)
+    - [Sharing and Exporting Packages via Git](#sharing-and-exporting-packages-via-git)
+    - [Import Preset Packages via Git](#import-preset-packages-via-git)
+    - [Tip: Special `default` preset](#tip-special-default-preset)
+  - [File Reference](#file-reference)
     - [Rule File (`*.md`)](#rule-file-md)
     - [Prompt File (`*.md`)](#prompt-file-md)
-  - [Export your presets as a package](#export-your-presets-as-a-package)
-    - [Special `default` preset](#special-default-preset)
   - [Config Reference](#config-reference)
   - [Contributing](#contributing)
-
-<!-- /TOC -->
 
 ## Features
 
@@ -62,7 +64,7 @@ brew install sushichan044/tap/ajisai
   <summary>go install</summary>
 
 ```bash
-go install github.com/sushichan044/ajisai@latest
+go install [github.com/sushichan044/ajisai@latest](https://github.com/sushichan044/ajisai@latest)
 ```
 
 </details>
@@ -103,13 +105,157 @@ workspace:
 
 Write your rules under `.ai/rules/**/*.md`.
 
-Refer [Defining Preset](#defining-preset) for supported syntax.
+Refer [Defining a Preset Package](#defining-and-importing-local-preset-packages) (specifically the file structure part) and [File Reference](#file-reference) for supported syntax and structure.
 
 ### 3. Deploy your rules
 
 Just run `ajisai apply`.
 
-## Defining preset
+## User Guide
+
+In ajisai, instructions for AI Coding Agents are handled using the following units:
+
+- **Preset**: A collection of specific Rules and reusable prompts.
+- **Package**: A unit for exporting multiple presets.
+
+When reusing packaged instructions, you specify the package to use and the presets to include from it.
+
+### Defining and Importing Local Preset Packages
+
+You can define reusable preset packages locally, for example, within a dedicated directory in your project (like `.ai/`) or in a separate local directory. This same package definition approach is fundamental, whether you intend to use the package only locally or later share it via Git.
+
+#### 1. Define Your Package's Exports
+
+Create an `ajisai.yml` or `ajisai.yaml` file in the root directory of your intended package (e.g., `<project root>/.ai/ajisai.yaml`). In this file, you define what presets your package will export using the `package.exports` field. Each key under `exports` becomes a named preset that can be imported.
+
+   ```yaml
+   # Example: <project root>/.ai/ajisai.yaml defining a package with an 'essential' preset
+   package:
+     exports:
+       # 'essential' is the name of the preset being exported from this package.
+       # Users will refer to this name when importing.
+       essential:
+         description: "Essential coding standards and prompts for the project." # Optional
+         rules:
+           # List of glob patterns for rule files relative to this ajisai.yaml
+           - README.md # You can include markdown files directly as rules
+           - essential/rules/**/*.md
+         prompts:
+           # List of glob patterns for prompt files relative to this ajisai.yaml
+           - essential/prompts/**/*.md
+       # You can define and export multiple presets from a single package file:
+       # project-specific-utils:
+       #   rules:
+       #     - utils/rules/**/*.md
+       #   prompts:
+       #     - utils/prompts/**/*.md
+   ```
+
+#### 2. Structure Your Rule and Prompt Files
+
+Organize your actual rule and prompt files according to the paths (glob patterns) you specified in the `package.exports` section. These paths are relative to the location of this package `ajisai.yaml` file.
+
+   For the `essential` preset example above, the directory structure within `.ai/` might look like this:
+
+   ```plaintext
+   <project root>
+   └── .ai/
+       ├── essential/
+       │   ├── rules/
+       │   │   ├── common-guidelines.md
+       │   │   └── go-specific.md      # Included by essential/rules/**/*.md
+       │   └── prompts/
+       │       └── refactor-prompt.md  # Included by essential/prompts/**/*.md
+       ├── README.md                   # Directly included as a rule
+       └── ajisai.yaml                 # The package definition file itself
+   ```
+
+   Any rule file created or matching the glob patterns (e.g., a new file in `.ai/essential/rules/`) will automatically become part of the `essential` preset. Refer to the [File Reference](#file-reference) for the specific format and frontmatter expected in rule and prompt files.
+
+#### 3. Import the Local Package into Your Workspace
+
+To use this locally defined package in your main project (or any other project that can access this path), modify your primary `ajisai.yml` (usually at the project root) to import it using `type: local`.
+
+   ```yaml
+   # <project root>/ajisai.yaml (Main workspace configuration)
+   workspace:
+     imports:
+       # 'my_local_essentials' is an arbitrary name for this import instance in your workspace.
+       my_local_essentials:
+         type: local
+         path: ./.ai  # Path to the directory containing the package's ajisai.yaml
+         include:
+           - essential # Specify the name of the preset(s) to import from that package.
+     # ... other workspace configurations like integrations
+     integrations:
+       cursor:
+         enabled: true
+       # ...
+   ```
+
+   This setup allows you to manage and version control your shared AI instructions within a subdirectory of your project or a dedicated local repository.
+
+### Sharing and Exporting Packages via Git
+
+To share your presets as a package via Git, allowing others (or yourself in different projects) to reuse them:
+
+1. Create an `ajisai.yml` or `ajisai.yaml` at repository root.
+
+2. Define exported preset in config file and place your preset content in the same way as [Defining and Importing Local Preset Packages](#defining-and-importing-local-preset-packages) section.
+
+3. Commit and push.
+
+Your package is now ready to be imported by others using its Git repository URL.
+
+### Import Preset Packages via Git
+
+For example, to import the `essential` preset from a package shared via Git (as defined in the "[Sharing and Exporting Packages via Git](#sharing-and-exporting-packages-via-git)" guide), add the following configuration to the `ajisai.yml` in the project root of the importing workspace:
+
+> [!NOTE]
+> You need to have access to the repository where the package definitions are stored.
+
+```yaml
+# ajisai.yml in your workspace
+workspace:
+  imports:
+    org-essential: # you can specify any name to identify imported preset packages.
+      type: git
+      repository: your-preset-package-repository-url # URL of the Git repository
+      # ref: main # Optional: specify a branch, tag, or commit hash
+      # subDir: some/path # Optional: if the package ajisai.yml is in a subdirectory of the repo
+      include:
+      - essential # deploy `essential` preset from that package.
+
+  # In `integrations`, you specify the AI Coding Agent that will actually utilize the imported preset package.
+  integrations:
+    cursor:
+      enabled: true
+    github-copilot:
+      enabled: true
+    windsurf:
+      enabled: true
+```
+
+### Tip: Special `default` preset
+
+If you do not have an `ajisai.yml` or `ajisai.yaml` file in your package root (e.g., a simple Git repository with just rules/prompts in a conventional structure), but your project adheres to a special directory structure as shown below, you can specify `default` in the `include` setting to have this structure recognized as a preset.
+
+- Write rules at `<package root>/rules/**/*.md`
+- Write prompts at `<package root>/rules/**/*.md` (Note: User's original text showed same path for prompts, maintained here)
+
+So you can import this to your workspace with:
+
+```yaml
+workspace:
+  imports:
+    org-default:
+      type: git
+      repository: org-rules-repo-url # A repo with files in <root>/rules/ and/or <root>/prompts/
+      include:
+      - default # This 'default' refers to the special auto-detected preset
+```
+
+## File Reference
 
 ### Rule File (`*.md`)
 
@@ -151,103 +297,60 @@ description: A prompt to help refactor Go code for better readability.
 Please refactor the following Go code to improve its readability and maintainability, keeping in mind our company's Go coding standards.
 ```
 
-## Export your presets as a package
-
-You can export your rules as a package and share via Git.
-
-1. Write rules under `essential/rules/**/*.md` with [supported syntax](#defining-preset).
-2. Place `ajisai.yml` at repository root.
-
-      ```yaml
-      # ajisai.yml in your org's rule repository
-      package:
-        exports:
-          essential: # This means export rules and prompts below as `essential` preset.
-            rules:
-            - README.md
-            - essential/rules/**/*.md
-            prompts:
-            - essential/prompts/**/*.md
-      ```
-
-3. exported `essential` preset can be included from other workspace.
-
-      ```yaml
-      # ajisai.yml in your workspace
-      workspace:
-        imports:
-          org-essential:
-            type: git
-            repository: org-rules-repository-url
-            include:
-            - essential
-        integrations:
-          cursor:
-            enabled: true
-          # other integrations config...
-      ```
-
-### Special `default` preset
-
-For both Local Import and Git Import, if you do not include an `ajisai.yml` file and instead arrange your files in the structure shown below, a special `default` preset will be automatically recognized:
-
-- Write rules at `<package root>/rules/**/*.md`
-- Write prompts at `<package root>/rules/**/*.md`
-
-So you can import this to your workspace with:
-
-```yaml
-workspace:
-  imports:
-    org-default:
-      type: git
-      repository: org-rules-repo-url
-      include:
-      - default
-```
-
 ## Config Reference
 
 ```yaml
-# Defines reusable preset packages that can be referenced from other workspaces.
+# This file (`ajisai.yml` or `ajisai.yaml`) can define EITHER a package OR a workspace, but not both.
+
+# To define a re-usable package (typically placed at the root of a package repository or a dedicated local directory):
 package:
-  name: "sushichan044/example" # Package name. currently has no effect.
-  exports: # Define exported presets.
-    essential: # This means export rules and prompts below as `essential` preset.
-      rules:
+  name: "sushichan044/example" # Optional: Package name. Currently has no major effect but can be used for identification.
+  exports: # Define presets exported by this package.
+    essential: # This is the preset name, e.g., 'essential'.
+      description: "Core set of rules and prompts." # Optional
+      rules: # Glob patterns for rule files, relative to this ajisai.yml
       - README.md
       - essential/rules/**/*.md
-      prompts:
+      prompts: # Glob patterns for prompt files, relative to this ajisai.yml
       - essential/prompts/**/*.md
+    # another-preset:
+    #   ...
 
+# To define a workspace configuration (typically placed at your project root):
 workspace:
   # Defines the preset packages to be used in this workspace.
   imports:
-    local_rules:
+    local_rules: # Arbitrary identifier for this import source
       type: local
-      path: "./.ai"
-      include:
-      - default
+      path: "./.ai" # Path to the directory containing the package's ajisai.yml
+      include: # List of preset names to import from that package
+      - default # e.g., 'default' if the local package exports a 'default' preset or uses the special default structure
     remote_rules:
       type: git
-      repository: https://github.com/sushichan044/ai-presets.git
+      repository: [https://github.com/sushichan044/ai-presets.git](https://github.com/sushichan044/ai-presets.git)
+      # ref: "main" # Optional: branch, tag, or commit
+      # subDir: "path/to/package/if/not/at/repo/root" # Optional
       include:
-      - example1
-  # Defines the AI Coding Agent that deploys preset packages in this workspace.
+      - example1 # Name of a preset exported by the package in the Git repository
+  # Defines which AI Coding Agent integrations will utilize the imported presets.
   integrations:
     cursor:
-      enabled: true
+      enabled: true # Set to true to deploy applicable presets for Cursor
     github-copilot:
       enabled: true
     windsurf:
       enabled: true
+    # my-custom-agent: # Example for a hypothetical agent
+    #   enabled: false
+    #   customSetting: value
 
-settings:
-  # Specifies the directory where ajisai temporarily caches the packages it imports.
+settings: # Global settings for ajisai behavior in this workspace
+  # Specifies the directory where ajisai temporarily caches imported packages.
   cacheDir: "./.cache/ajisai" # default: ./.cache/ajisai
 
   # Sets the namespace that ajisai uses when deploying imports.
-  # For example, if the default namespace is `ajisai`, Cursor Rules are deployed to `.cursor/rules/ajisai/**/*.mdc`.
+  # This helps avoid conflicts if multiple tools write to similar paths.
+  # For example, if the namespace is `ajisai`, Cursor Rules are deployed to `.cursor/rules/ajisai/**/*.mdc`.
   namespace: ajisai # default: ajisai
 
   # Whether to enable experimental features.
