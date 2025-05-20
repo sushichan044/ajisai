@@ -241,7 +241,7 @@ workspace:
 If you do not have an `ajisai.yml` or `ajisai.yaml` file in your package root (e.g., a simple Git repository with just rules/prompts in a conventional structure), but your project adheres to a special directory structure as shown below, you can specify `default` in the `include` setting to have this structure recognized as a preset.
 
 - Write rules at `<package root>/rules/**/*.md`
-- Write prompts at `<package root>/rules/**/*.md` (Note: User's original text showed same path for prompts, maintained here)
+- Write prompts at `<package root>/prompts/**/*.md`
 
 So you can import this to your workspace with:
 
