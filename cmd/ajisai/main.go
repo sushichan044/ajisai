@@ -40,7 +40,7 @@ func run(args []string) error {
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "ajisai.json",
+				Value:   "ajisai.yml",
 				Usage:   "Load configuration from `FILE`",
 				Sources: cli.EnvVars("AJISAI_CONFIG_LOCATION"),
 			},
