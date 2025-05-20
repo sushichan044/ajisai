@@ -9,7 +9,7 @@ workspace:
       type: git
       repository: https://github.com/sushichan044/ai-presets.git
       include:
-      - example1
+        - essentials
   integrations:
     cursor:
       enabled: true
