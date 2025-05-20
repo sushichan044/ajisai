@@ -2,6 +2,8 @@
 
 **Ajisai** is a simple preset manager for AI Coding Agents.
 
+You can package rule and prompt configurations and reuse them across multiple projects.
+
 <!-- TOC -->
 
 - [ajisai](#ajisai)
