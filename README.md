@@ -105,7 +105,7 @@ workspace:
 
 Write your rules under `.ai/rules/**/*.md`.
 
-Refer [Defining a Preset Package](#defining-and-importing-local-preset-packages) (specifically the file structure part) and [File Reference](#file-reference) for supported syntax and structure.
+Refer [Rule file - File Reference](#rule-file-md) for supported syntax and structure.
 
 ### 3. Deploy your rules
 
