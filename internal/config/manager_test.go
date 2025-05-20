@@ -17,9 +17,9 @@ func TestManager_SaveAndLoad(t *testing.T) {
 
 	// Always fill all properties in the config.
 	// Checking save-and-load is enough to check if the config is saved correctly.
-	t.Run("successfully loads full-filled JSON config", func(t *testing.T) {
+	t.Run("successfully loads full-filled YAML config", func(t *testing.T) {
 		// Create a test config file
-		configPath := filepath.Join(tempDir, "config.json")
+		configPath := filepath.Join(tempDir, "config.yml")
 		testConfig := &config.Config{
 			Settings: &config.Settings{
 				CacheDir:     "/custom/cache/dir",
