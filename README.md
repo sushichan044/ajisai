@@ -332,9 +332,7 @@ workspace:
       - default # e.g., 'default' if the local package exports a 'default' preset or uses the special default structure
     remote_rules:
       type: git
-      repository: [https://github.com/sushichan044/ai-presets.git](https://github.com/sushichan044/ai-presets.git)
-      # ref: "main" # Optional: branch, tag, or commit
-      # subDir: "path/to/package/if/not/at/repo/root" # Optional
+      repository: https://github.com/sushichan044/ai-presets.git
       include:
       - example1 # Name of a preset exported by the package in the Git repository
   # Defines which AI Coding Agent integrations will utilize the imported presets.
@@ -345,11 +343,8 @@ workspace:
       enabled: true
     windsurf:
       enabled: true
-    # my-custom-agent: # Example for a hypothetical agent
-    #   enabled: false
-    #   customSetting: value
 
-settings: # Global settings for ajisai behavior in this workspace
+settings:
   # Specifies the directory where ajisai temporarily caches imported packages.
   cacheDir: "./.cache/ajisai" # default: ./.cache/ajisai
 
