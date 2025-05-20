@@ -8,7 +8,7 @@
   - [Features](#features)
   - [Supported AI Coding Agents](#supported-ai-coding-agents)
   - [Installation](#installation)
-  - [Getting Started](#getting-started)
+  - [Quick Start](#quick-start)
     - [1. Write Config](#1-write-config)
     - [2. Write your rules](#2-write-your-rules)
     - [3. Deploy your rules](#3-deploy-your-rules)
@@ -70,14 +70,11 @@ Download the latest release from the [GitHub releases page](https://github.com/s
 
 </details>
 
-## Getting Started
+## Quick Start
 
 `ajisai` is controlled via CLI.
 
-The default configuration file is `ajisai.yml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
-
-> [!NOTE]
-> `ajisai.yaml` will be supported soon.
+The default configuration file is `ajisai.yml` or `ajisai.yaml` in the current directory, but a different file can be specified using the `--config` (or `-c`) flag.
 
 ### 1. Write Config
 
