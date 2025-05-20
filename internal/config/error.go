@@ -10,7 +10,7 @@ type NoFileToReadError struct {
 }
 
 func (e *NoFileToReadError) Error() string {
-	return fmt.Sprintf("could not found config file to read from candidates: %s", e.CandidateConfigPaths)
+	return fmt.Sprintf("could not find config file to read from candidates: %s", e.CandidateConfigPaths)
 }
 
 func (e *NoFileToReadError) Unwrap() error {
