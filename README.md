@@ -68,7 +68,7 @@ workspace:
       type: local
       path: "./.ai"
       include:
-      - default # Just HACK, will be documented soon.
+      - default # See Special `default` preset docs for details
   integrations:
     cursor:
       enabled: true
@@ -165,6 +165,25 @@ You can export your rules as a package and share via Git.
             enabled: true
           # other integrations config...
       ```
+
+### Special `default` preset
+
+For both Local Import and Git Import, if you do not include an `ajisai.yml` file and instead arrange your files in the structure shown below, a special `default` preset will be automatically recognized:
+
+- Write rules at `<package root>/rules/**/*.md`
+- Write prompts at `<package root>/rules/**/*.md`
+
+So you can import this to your workspace with:
+
+```yaml
+workspace:
+  imports:
+    org-default:
+      type: git
+      repository: org-rules-repo-url
+      include:
+      - default
+```
 
 ## Contributing
 
