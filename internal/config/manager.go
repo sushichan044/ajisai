@@ -18,7 +18,7 @@ type formatLoader[T any] interface {
 
 type Manager struct{}
 
-func NewManager() *Manager {
+func New() *Manager {
 	return &Manager{}
 }
 

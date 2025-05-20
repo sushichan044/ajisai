@@ -74,7 +74,7 @@ func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.
 
 	expectedManifestPath := filepath.Join(cacheDir, "ajisai.json")
 	if _, statErr := os.Stat(expectedManifestPath); statErr == nil {
-		rawManifest, manifestErr := config.NewManager().Load(expectedManifestPath)
+		rawManifest, manifestErr := config.New().Load(expectedManifestPath)
 		if manifestErr != nil {
 			return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
 		}

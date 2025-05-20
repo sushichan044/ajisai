@@ -62,7 +62,7 @@ func TestManager_SaveAndLoad(t *testing.T) {
 			},
 		}
 
-		manager := config.NewManager()
+		manager := config.New()
 
 		if writeErr := manager.Save(configPath, testConfig); writeErr != nil {
 			t.Fatalf("Failed to save config: %v", writeErr)
@@ -83,7 +83,7 @@ func TestManager_SaveAndLoad(t *testing.T) {
 			t.Fatalf("Failed to write test config: %v", writeErr)
 		}
 
-		manager := config.NewManager()
+		manager := config.New()
 		_, err := manager.Load(configPath)
 		if err == nil {
 			t.Error("Expected error for unsupported extension, but got nil")
@@ -93,7 +93,7 @@ func TestManager_SaveAndLoad(t *testing.T) {
 	t.Run("fails with non-existent file", func(t *testing.T) {
 		configPath := filepath.Join(tempDir, "non-existent.json")
 
-		manager := config.NewManager()
+		manager := config.New()
 		_, err := manager.Load(configPath)
 		if err == nil {
 			t.Error("Expected error for non-existent file, but got nil")
@@ -107,7 +107,7 @@ func TestManagerSave(t *testing.T) {
 		configPath := filepath.Join(tempDir, "config.unsupported")
 		testConfig := &config.Config{}
 
-		manager := config.NewManager()
+		manager := config.New()
 		err := manager.Save(configPath, testConfig)
 		if err == nil {
 			t.Error("Expected error for unsupported extension, but got nil")
@@ -118,7 +118,7 @@ func TestManagerSave(t *testing.T) {
 //gocognit:ignore
 func TestManagerApplyDefaults(t *testing.T) {
 	t.Run("applies defaults to nil config", func(t *testing.T) {
-		manager := config.NewManager()
+		manager := config.New()
 		cfg, err := manager.ApplyDefaults(nil)
 		require.NoError(t, err)
 
@@ -163,7 +163,7 @@ func TestManagerApplyDefaults(t *testing.T) {
 			// Package and Workspace left nil to test default initialization
 		}
 
-		manager := config.NewManager()
+		manager := config.New()
 		cfg, err := manager.ApplyDefaults(inputConfig)
 		require.NoError(t, err)
 
@@ -189,7 +189,7 @@ func TestManagerApplyDefaults(t *testing.T) {
 }
 
 func TestManagerGetDefaultConfig(t *testing.T) {
-	manager := config.NewManager()
+	manager := config.New()
 	cfg := manager.GetDefaultConfig()
 
 	// Check settings defaults
