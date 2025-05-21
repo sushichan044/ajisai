@@ -61,7 +61,7 @@ brew install sushichan044/tap/ajisai
 </details>
 
 <details>
-  <summary>go install</summary>
+  <summary>go install (requires Go 1.21+) </summary>
 
 ```bash
 go install https://github.com/sushichan044/ajisai@latest
