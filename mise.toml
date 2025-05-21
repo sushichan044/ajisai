@@ -23,7 +23,7 @@ run = "golangci-lint fmt"
 
 [tasks.test]
 description = "Run tests"
-run = "go tool gotestsum"
+run = "go run gotest.tools/gotestsum@v1.12.2"
 
 [tasks.build-snapshot]
 description = "Build the application with version info"
