@@ -1,5 +1,9 @@
 # ajisai
 
+[![ci](https://github.com/sushichan044/ajisai/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sushichan044/ajisai/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/sushichan044/ajisai.svg)](https://pkg.go.dev/github.com/sushichan044/ajisai)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sushichan044/ajisai)
+
 **Ajisai** is a simple preset manager for AI Coding Agents.
 
 You can package rule and prompt configurations and reuse them across multiple projects.
