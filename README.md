@@ -64,7 +64,7 @@ brew install sushichan044/tap/ajisai
   <summary>go install (requires Go 1.21+) </summary>
 
 ```bash
-go install https://github.com/sushichan044/ajisai@latest
+go install github.com/sushichan044/ajisai/cmd/ajisai@latest
 ```
 
 > [!WARNING]
