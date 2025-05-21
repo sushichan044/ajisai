@@ -1,6 +1,6 @@
 module github.com/sushichan044/ajisai
 
-go 1.24.0
+go 1.24
 
 require (
 	github.com/adrg/frontmatter v0.2.0
