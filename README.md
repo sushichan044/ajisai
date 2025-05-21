@@ -238,8 +238,6 @@ workspace:
     org-essential: # you can specify any name to identify imported preset packages.
       type: git
       repository: your-preset-package-repository-url # URL of the Git repository
-      # ref: main # Optional: specify a branch, tag, or commit hash
-      # subDir: some/path # Optional: if the package ajisai.yml is in a subdirectory of the repo
       include:
       - essential # deploy `essential` preset from that package.
 
