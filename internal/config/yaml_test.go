@@ -179,11 +179,12 @@ workspace:
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			cfgPath := filepath.Join(tmp, tc.name+".yaml")
-			os.WriteFile(cfgPath, []byte(tc.yamlBody), 0644)
+			writeErr := os.WriteFile(cfgPath, []byte(tc.yamlBody), 0644)
+			require.NoError(t, writeErr)
 
 			loader := config.NewYAMLLoader()
-			cfg, err := loader.Load(cfgPath)
-			require.NoError(t, err)
+			cfg, loadErr := loader.Load(cfgPath)
+			require.NoError(t, loadErr)
 
 			if res := cmp.Diff(tc.expected, cfg); res != "" {
 				t.Errorf("mismatch (-want +got):\n%s", res)
