@@ -12,9 +12,11 @@ import (
 type formatLoader[T any] interface {
 	Load(configPath string) (*Config, error)
 	Save(configPath string, cfg *Config) error
+}
 
-	toFormat(cfg *Config) (T, error)
-	fromFormat(cfg T) (*Config, error)
+type configSerializer interface {
+	Serialize(cfg *Config) (SerializableConfig, error)
+	Deserialize(cfg SerializableConfig) (*Config, error)
 }
 
 type Manager struct {
@@ -59,7 +61,7 @@ func (m *Manager) Load() (*Config, error) {
 		return nil, err
 	}
 
-	loadedCfg, err := newYAMLLoader().Load(targetPath)
+	loadedCfg, err := NewYAMLLoader().Load(targetPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config file %s: %w", targetPath, err)
 	}
@@ -73,7 +75,7 @@ func (m *Manager) Save(cfg *Config) error {
 		return err
 	}
 
-	return newYAMLLoader().Save(targetPath, cfg)
+	return NewYAMLLoader().Save(targetPath, cfg)
 }
 
 // getFileToRead returns a readable config file path.
