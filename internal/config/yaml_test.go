@@ -174,6 +174,68 @@ workspace:
 				},
 			},
 		},
+		{
+			name: "Ignores unknown properties",
+			yamlBody: `
+settings:
+  cacheDir: /tmp/ajisai_cache
+  experimental: true
+  namespace: my_namespace
+  unknown_setting: "should be ignored"
+package:
+  name: my_package
+  exports:
+    preset1:
+      prompts:
+        - prompts/prompt1.md
+      rules:
+        - rules/rule1.json
+  unknown_package_prop: "should be ignored"
+workspace:
+  imports:
+    import1:
+      type: local
+      path: path/to/import1
+      include:
+        - rule1
+  integrations:
+    cursor:
+      enabled: true
+    github-copilot:
+      enabled: false
+    windsurf:
+      enabled: true
+  unknown_workspace_prop: "should be ignored"
+unknown_top_level_prop: "also ignored"
+`,
+			expected: &config.Config{
+				Settings: &config.Settings{
+					CacheDir:     "/tmp/ajisai_cache",
+					Experimental: true,
+					Namespace:    "my_namespace",
+				},
+				Package: &config.Package{
+					Name: "my_package",
+					Exports: map[string]config.ExportedPresetDefinition{
+						"preset1": {Prompts: []string{"prompts/prompt1.md"}, Rules: []string{"rules/rule1.json"}},
+					},
+				},
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{
+						"import1": {
+							Type:    config.ImportTypeLocal,
+							Details: config.LocalImportDetails{Path: "path/to/import1"},
+							Include: []string{"rule1"},
+						},
+					},
+					Integrations: &config.AgentIntegrations{
+						Cursor:        &config.CursorIntegration{Enabled: true},
+						GitHubCopilot: &config.GitHubCopilotIntegration{Enabled: false},
+						Windsurf:      &config.WindsurfIntegration{Enabled: true},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tcs {
