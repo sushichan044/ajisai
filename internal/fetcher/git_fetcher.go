@@ -77,6 +77,5 @@ func (f *GitFetcher) Fetch(source config.ImportedPackage, destinationDir string)
 	}
 
 	// Pull latest changes from default branch
-	pullArgs := []string{"pull", "--rebase", "origin"}
-	return f.cmdRunner.RunInDir(destAbsDir, "git", pullArgs...)
+	return f.cmdRunner.RunInDir(destAbsDir, "git", "pull")
 }
