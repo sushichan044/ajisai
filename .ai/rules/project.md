@@ -7,12 +7,22 @@ attach: always
 - Always use English for codes, comments, and documentation.
 - Always prefer immutable data mutation.
 
-## Scripts
+## Local Workflow
 
-- `mise run lint-fix`: Run `golangci-lint` with the `--fix` option to automatically fix linting issues.
-- `mise run fmt`: Format the code.
-- `mise run test`: Run all tests.
-  - This is just a wrapper for `gotestsum`, so add arguments if you want to run specific tests.
+1. Lint / Format your changes by yourself:
+
+    ```bash
+    mise run lint-fix
+    mise run fmt
+    ```
+
+2. Run Test by your self:
+
+    ```bash
+    mise run test
+    ```
+
+    You can run specific tests. e.g. `mise run test ./internal/config/...`
 
 ## Testing
 
