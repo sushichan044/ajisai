@@ -200,7 +200,7 @@ func TestGitFetcher_Fetch_PullLatest(t *testing.T) {
 
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
 
-	expectedPullArgs := []string{"pull", "--rebase", "origin"}
+	expectedPullArgs := []string{"pull"}
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedPullArgs).Return(nil)
 
 	err = fetcherInstance.Fetch(source, destDir)
@@ -232,7 +232,7 @@ func TestGitFetcher_Fetch_PullLatest_Failure(t *testing.T) {
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", "checkout", ".").Return(nil)
 
 	pullErr := errors.New("git pull failed")
-	expectedPullArgs := []string{"pull", "--rebase", "origin"}
+	expectedPullArgs := []string{"pull"}
 	mockRunner.EXPECT().RunInDir(absoluteDestDir, "git", expectedPullArgs).Return(pullErr)
 
 	err = fetcherInstance.Fetch(source, destDir)
