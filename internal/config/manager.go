@@ -61,7 +61,7 @@ func (m *Manager) Load() (*Config, error) {
 		return nil, err
 	}
 
-	loadedCfg, err := newYAMLLoader().Load(targetPath)
+	loadedCfg, err := NewYAMLLoader().Load(targetPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config file %s: %w", targetPath, err)
 	}
@@ -75,7 +75,7 @@ func (m *Manager) Save(cfg *Config) error {
 		return err
 	}
 
-	return newYAMLLoader().Save(targetPath, cfg)
+	return NewYAMLLoader().Save(targetPath, cfg)
 }
 
 // getFileToRead returns a readable config file path.

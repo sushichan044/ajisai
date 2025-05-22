@@ -67,8 +67,7 @@ func (s *configSerializerImpl) Serialize(cfg *Config) (SerializableConfig, error
 	var serializableCfg SerializableConfig
 
 	if cfg.Settings != nil {
-		var settings serializableSettings
-		settings = serializableSettings{
+		var settings serializableSettings = serializableSettings{
 			CacheDir:     cfg.Settings.CacheDir,
 			Experimental: cfg.Settings.Experimental,
 			Namespace:    cfg.Settings.Namespace,
@@ -124,24 +123,21 @@ func (s *configSerializerImpl) Serialize(cfg *Config) (SerializableConfig, error
 			var integrations serializableAgentIntegration
 
 			if cfg.Workspace.Integrations.Cursor != nil {
-				var cursor serializableCursorIntegration
-				cursor = serializableCursorIntegration{
+				var cursor serializableCursorIntegration = serializableCursorIntegration{
 					Enabled: cfg.Workspace.Integrations.Cursor.Enabled,
 				}
 				integrations.Cursor = &cursor
 			}
 
 			if cfg.Workspace.Integrations.GitHubCopilot != nil {
-				var githubCopilot serializableGitHubCopilotIntegration
-				githubCopilot = serializableGitHubCopilotIntegration{
+				var githubCopilot serializableGitHubCopilotIntegration = serializableGitHubCopilotIntegration{
 					Enabled: cfg.Workspace.Integrations.GitHubCopilot.Enabled,
 				}
 				integrations.GitHubCopilot = &githubCopilot
 			}
 
 			if cfg.Workspace.Integrations.Windsurf != nil {
-				var windsurf serializableWindsurfIntegration
-				windsurf = serializableWindsurfIntegration{
+				var windsurf serializableWindsurfIntegration = serializableWindsurfIntegration{
 					Enabled: cfg.Workspace.Integrations.Windsurf.Enabled,
 				}
 				integrations.Windsurf = &windsurf

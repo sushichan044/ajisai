@@ -1,4 +1,4 @@
-package config
+package config_test
 
 import (
 	"os"
@@ -8,17 +8,19 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/sushichan044/ajisai/internal/config"
 )
 
 func TestYamlLoader_Load_FileNotFound(t *testing.T) {
-	loader := newYAMLLoader()
+	loader := config.NewYAMLLoader()
 	_, err := loader.Load("non_existent_config.yaml")
 	assert.Error(t, err)
 }
 
 func TestYamlLoader_Save_InvalidPath(t *testing.T) {
-	loader := newYAMLLoader()
-	err := loader.Save("/invalid_path/should_not_exist/config.yaml", &Config{})
+	loader := config.NewYAMLLoader()
+	err := loader.Save("/invalid_path/should_not_exist/config.yaml", &config.Config{})
 	assert.Error(t, err)
 }
 
@@ -28,7 +30,7 @@ func TestYamlLoader_Load(t *testing.T) {
 	tcs := []struct {
 		name     string
 		yamlBody string
-		expected *Config
+		expected *config.Config
 	}{
 		{
 			name: "Full config",
@@ -60,30 +62,30 @@ workspace:
     windsurf:
       enabled: true
 `,
-			expected: &Config{
-				Settings: &Settings{
+			expected: &config.Config{
+				Settings: &config.Settings{
 					CacheDir:     "/tmp/ajisai_cache",
 					Experimental: true,
 					Namespace:    "my_namespace",
 				},
-				Package: &Package{
+				Package: &config.Package{
 					Name: "my_package",
-					Exports: map[string]ExportedPresetDefinition{
+					Exports: map[string]config.ExportedPresetDefinition{
 						"preset1": {Prompts: []string{"prompts/prompt1.md"}, Rules: []string{"rules/rule1.json"}},
 					},
 				},
-				Workspace: &Workspace{
-					Imports: map[string]ImportedPackage{
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{
 						"import1": {
-							Type:    ImportTypeLocal,
-							Details: LocalImportDetails{Path: "path/to/import1"},
+							Type:    config.ImportTypeLocal,
+							Details: config.LocalImportDetails{Path: "path/to/import1"},
 							Include: []string{"rule1"},
 						},
 					},
-					Integrations: &AgentIntegrations{
-						Cursor:        &CursorIntegration{Enabled: true},
-						GitHubCopilot: &GitHubCopilotIntegration{Enabled: false},
-						Windsurf:      &WindsurfIntegration{Enabled: true},
+					Integrations: &config.AgentIntegrations{
+						Cursor:        &config.CursorIntegration{Enabled: true},
+						GitHubCopilot: &config.GitHubCopilotIntegration{Enabled: false},
+						Windsurf:      &config.WindsurfIntegration{Enabled: true},
 					},
 				},
 			},
@@ -92,10 +94,10 @@ workspace:
 			name: "Empty config",
 			yamlBody: `
 `,
-			expected: &Config{
-				Settings:  &Settings{},
-				Package:   &Package{},
-				Workspace: &Workspace{},
+			expected: &config.Config{
+				Settings:  &config.Settings{},
+				Package:   &config.Package{},
+				Workspace: &config.Workspace{},
 			},
 		},
 		{
@@ -105,13 +107,13 @@ settings:
   namespace: custom
   experimental: false
 `,
-			expected: &Config{
-				Settings: &Settings{
+			expected: &config.Config{
+				Settings: &config.Settings{
 					Namespace:    "custom",
 					Experimental: false,
 				},
-				Package:   &Package{},
-				Workspace: &Workspace{},
+				Package:   &config.Package{},
+				Workspace: &config.Workspace{},
 			},
 		},
 		{
@@ -120,10 +122,10 @@ settings:
 package:
   name: my_package
 `,
-			expected: &Config{
-				Settings:  &Settings{},
-				Package:   &Package{Name: "my_package"},
-				Workspace: &Workspace{},
+			expected: &config.Config{
+				Settings:  &config.Settings{},
+				Package:   &config.Package{Name: "my_package"},
+				Workspace: &config.Workspace{},
 			},
 		},
 		{
@@ -135,14 +137,17 @@ workspace:
       type: local
       path: path/to/import1
 `,
-			expected: &Config{
-				Settings: &Settings{},
-				Package:  &Package{},
-				Workspace: &Workspace{
-					Imports: map[string]ImportedPackage{
-						"import1": {Type: ImportTypeLocal, Details: LocalImportDetails{Path: "path/to/import1"}},
+			expected: &config.Config{
+				Settings: &config.Settings{},
+				Package:  &config.Package{},
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{
+						"import1": {
+							Type:    config.ImportTypeLocal,
+							Details: config.LocalImportDetails{Path: "path/to/import1"},
+						},
 					},
-					Integrations: &AgentIntegrations{},
+					Integrations: &config.AgentIntegrations{},
 				},
 			},
 		},
@@ -156,15 +161,15 @@ workspace:
     github-copilot:
       enabled: false
 `,
-			expected: &Config{
-				Settings: &Settings{},
-				Package:  &Package{},
-				Workspace: &Workspace{
-					Imports: map[string]ImportedPackage{},
-					Integrations: &AgentIntegrations{
-						Cursor:        &CursorIntegration{Enabled: true},
-						GitHubCopilot: &GitHubCopilotIntegration{Enabled: false},
-						Windsurf:      &WindsurfIntegration{Enabled: false}, // zero value
+			expected: &config.Config{
+				Settings: &config.Settings{},
+				Package:  &config.Package{},
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{},
+					Integrations: &config.AgentIntegrations{
+						Cursor:        &config.CursorIntegration{Enabled: true},
+						GitHubCopilot: &config.GitHubCopilotIntegration{Enabled: false},
+						Windsurf:      &config.WindsurfIntegration{Enabled: false}, // zero value
 					},
 				},
 			},
@@ -176,7 +181,7 @@ workspace:
 			cfgPath := filepath.Join(tmp, tc.name+".yaml")
 			os.WriteFile(cfgPath, []byte(tc.yamlBody), 0644)
 
-			loader := newYAMLLoader()
+			loader := config.NewYAMLLoader()
 			cfg, err := loader.Load(cfgPath)
 			require.NoError(t, err)
 
@@ -190,35 +195,38 @@ workspace:
 func TestYamlLoader_Save(t *testing.T) {
 	tmp := t.TempDir()
 
-	loader := newYAMLLoader()
+	loader := config.NewYAMLLoader()
 
 	tcs := []struct {
 		name     string
-		cfg      *Config
+		cfg      *config.Config
 		expected string
 	}{
 		{
 			name: "Full config",
-			cfg: &Config{
-				Settings: &Settings{
+			cfg: &config.Config{
+				Settings: &config.Settings{
 					CacheDir:     "/tmp/ajisai_cache",
 					Experimental: true,
 					Namespace:    "my_namespace",
 				},
-				Package: &Package{
+				Package: &config.Package{
 					Name: "my_package",
-					Exports: map[string]ExportedPresetDefinition{
+					Exports: map[string]config.ExportedPresetDefinition{
 						"preset1": {Prompts: []string{"prompts/prompt1.md"}, Rules: []string{"rules/rule1.json"}},
 					},
 				},
-				Workspace: &Workspace{
-					Imports: map[string]ImportedPackage{
-						"import1": {Type: ImportTypeLocal, Details: LocalImportDetails{Path: "path/to/import1"}},
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{
+						"import1": {
+							Type:    config.ImportTypeLocal,
+							Details: config.LocalImportDetails{Path: "path/to/import1"},
+						},
 					},
-					Integrations: &AgentIntegrations{
-						Cursor:        &CursorIntegration{Enabled: true},
-						GitHubCopilot: &GitHubCopilotIntegration{Enabled: false},
-						Windsurf:      &WindsurfIntegration{Enabled: true},
+					Integrations: &config.AgentIntegrations{
+						Cursor:        &config.CursorIntegration{Enabled: true},
+						GitHubCopilot: &config.GitHubCopilotIntegration{Enabled: false},
+						Windsurf:      &config.WindsurfIntegration{Enabled: true},
 					},
 				},
 			},
@@ -250,8 +258,8 @@ workspace:
 		},
 		{
 			name: "Partial Settings",
-			cfg: &Config{
-				Settings: &Settings{
+			cfg: &config.Config{
+				Settings: &config.Settings{
 					Namespace:    "custom",
 					Experimental: false,
 				},
@@ -263,8 +271,8 @@ workspace:
 		},
 		{
 			name: "Partial Package",
-			cfg: &Config{
-				Package: &Package{Name: "my_package"},
+			cfg: &config.Config{
+				Package: &config.Package{Name: "my_package"},
 			},
 			expected: `package:
   name: my_package
@@ -272,10 +280,13 @@ workspace:
 		},
 		{
 			name: "Partial Workspace: imports",
-			cfg: &Config{
-				Workspace: &Workspace{
-					Imports: map[string]ImportedPackage{
-						"import1": {Type: ImportTypeLocal, Details: LocalImportDetails{Path: "path/to/import1"}},
+			cfg: &config.Config{
+				Workspace: &config.Workspace{
+					Imports: map[string]config.ImportedPackage{
+						"import1": {
+							Type:    config.ImportTypeLocal,
+							Details: config.LocalImportDetails{Path: "path/to/import1"},
+						},
 					},
 				},
 			},
@@ -288,11 +299,11 @@ workspace:
 		},
 		{
 			name: "Partial Workspace: integrations",
-			cfg: &Config{
-				Workspace: &Workspace{
-					Integrations: &AgentIntegrations{
-						Cursor:        &CursorIntegration{Enabled: true},
-						GitHubCopilot: &GitHubCopilotIntegration{Enabled: false},
+			cfg: &config.Config{
+				Workspace: &config.Workspace{
+					Integrations: &config.AgentIntegrations{
+						Cursor:        &config.CursorIntegration{Enabled: true},
+						GitHubCopilot: &config.GitHubCopilotIntegration{Enabled: false},
 					},
 				},
 			},

@@ -14,7 +14,7 @@ type yamlLoader struct {
 	serializer configSerializer
 }
 
-func newYAMLLoader() formatLoader[SerializableConfig] {
+func NewYAMLLoader() formatLoader[SerializableConfig] {
 	return &yamlLoader{
 		serializer: NewSerializer(),
 	}
