@@ -33,7 +33,6 @@ jobs:
           go-version-file: go.mod
 
       - uses: Songmu/tagpr@812f0c28980cb9a1e5cf427b65c1ac6a1d2b4377 # v1.6.1
-        id: tagpr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,7 +40,7 @@ jobs:
       - name: Get next version from svu
         id: svu
         run: |
-          next_version=$(go run github.com/caarlos0/svu/v3@latest next)
+          next_version="$(go run github.com/caarlos0/svu/v3@latest next)"
           if [ $? -ne 0 ]; then
             echo "::error::Failed to get the next version using svu"
             exit 1
@@ -50,7 +49,7 @@ jobs:
 
       - name: Switch to PR
         run: |
-          PR_NUMBER=$(jq -r '.number' <<<"${{ steps.tagpr.outputs.pull_request }}")
+          PR_NUMBER=$(gh pr list --author "github-actions[bot]" --state 'open' --json 'number,headRefName' --jq '.[] | select(.headRefName | startswith("tagpr-from")) | .number')
           gh pr checkout "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
