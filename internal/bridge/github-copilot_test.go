@@ -91,17 +91,36 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name: "UnsupportedAttachType",
+			name: "manual attach type",
 			ruleItem: *domain.NewRuleItem(
-				"test-unsupported",
-				"# Test Unsupported\n\nThis rule has unsupported attach type.",
+				"manual",
+				"content",
 				domain.RuleMetadata{
-					Attach: "unsupported",
-					Globs:  []string{},
+					Attach: domain.AttachTypeManual,
 				},
 			),
-			expected:  bridge.GitHubCopilotInstruction{},
-			expectErr: true,
+			expected: bridge.GitHubCopilotInstruction{
+				Slug:     "manual",
+				Content:  "content",
+				Metadata: bridge.GitHubCopilotInstructionMetadata{},
+			},
+			expectErr: false,
+		},
+		{
+			name: "unsupported attach type falls back to manual",
+			ruleItem: *domain.NewRuleItem(
+				"unsupported",
+				"content",
+				domain.RuleMetadata{
+					Attach: "unsupported",
+				},
+			),
+			expected: bridge.GitHubCopilotInstruction{
+				Slug:     "unsupported",
+				Content:  "content",
+				Metadata: bridge.GitHubCopilotInstructionMetadata{},
+			},
+			expectErr: false,
 		},
 	}
 

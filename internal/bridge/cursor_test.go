@@ -61,6 +61,44 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "manual attach type",
+			domainRule: *domain.NewRuleItem(
+				"manual",
+				"content",
+				domain.RuleMetadata{
+					Attach: domain.AttachTypeManual,
+				},
+			),
+			expectedRule: bridge.CursorRule{
+				Slug:    "manual",
+				Content: "content",
+				Metadata: bridge.CursorRuleMetadata{
+					AlwaysApply: false,
+					Description: "",
+					Globs:       "",
+				},
+			},
+		},
+		{
+			name: "unsupported attach type falls back to manual",
+			domainRule: *domain.NewRuleItem(
+				"unsupported",
+				"content",
+				domain.RuleMetadata{
+					Attach: "unsupported",
+				},
+			),
+			expectedRule: bridge.CursorRule{
+				Slug:    "unsupported",
+				Content: "content",
+				Metadata: bridge.CursorRuleMetadata{
+					AlwaysApply: false,
+					Description: "",
+					Globs:       "",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

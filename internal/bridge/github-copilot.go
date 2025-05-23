@@ -1,7 +1,6 @@
 package bridge
 
 import (
-	"fmt"
 	"strings"
 
 	yaml "github.com/goccy/go-yaml"
@@ -91,7 +90,12 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 		}, nil
 	}
 
-	return GitHubCopilotInstruction{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
+	// Fallback as manual rule.
+	return GitHubCopilotInstruction{
+		Slug:     rule.Slug,
+		Content:  rule.Content,
+		Metadata: GitHubCopilotInstructionMetadata{},
+	}, nil
 }
 
 func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) (domain.RuleItem, error) {

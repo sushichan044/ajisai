@@ -236,6 +236,25 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "unsupported attach type falls back to manual",
+			domainRule: *domain.NewRuleItem(
+				"unsupported",
+				"content",
+				domain.RuleMetadata{
+					Attach: "unsupported",
+				},
+			),
+			expectedRule: bridge.WindsurfRule{
+				Slug:    "unsupported",
+				Content: "content",
+				Metadata: bridge.WindsurfRuleMetadata{
+					Trigger:     bridge.WindsurfTriggerTypeManual,
+					Globs:       "",
+					Description: "",
+				},
+			},
+		},
 	}
 
 	bridge := bridge.NewWindsurfBridge()

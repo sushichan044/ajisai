@@ -86,7 +86,17 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 			},
 		}, nil
 	}
-	return WindsurfRule{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
+
+	// Fallback as manual rule.
+	return WindsurfRule{
+		Slug:    rule.Slug,
+		Content: rule.Content,
+		Metadata: WindsurfRuleMetadata{
+			Trigger:     WindsurfTriggerTypeManual,
+			Globs:       "",
+			Description: "",
+		},
+	}, nil
 }
 
 func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem, error) {
