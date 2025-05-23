@@ -72,7 +72,7 @@ go install github.com/sushichan044/ajisai/cmd/ajisai@latest
 ```
 
 > [!WARNING]
-> Because `ajisai` embeds its version information at **build time**, the **version** isn't displayed correctly when installed using `go install`.
+> Because `ajisai` embeds its revision information at **build time**, the **revision** isn't displayed correctly when installed using `go install`.
 
 </details>
 
@@ -86,7 +86,7 @@ go install github.com/sushichan044/ajisai/cmd/ajisai@latest
 ```
 
 > [!WARNING]
-> Because `ajisai` embeds its version information at **build time**, the **version** isn't displayed correctly when installed using `go install`.
+> Because `ajisai` embeds its revision information at **build time**, the **revision** isn't displayed correctly when installed using `go install`.
 
 </details>
 
