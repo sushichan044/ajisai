@@ -50,7 +50,7 @@ jobs:
 
       - name: Switch to PR
         run: |
-          PR_NUMBER=$(jq -r '.number' <<<"${{ steps.tagpr.outputs.pull_request }}")
+          PR_NUMBER="$(jq -r '.number' <<<'${{ steps.tagpr.outputs.pull_request }}')"
           gh pr checkout "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
