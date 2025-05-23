@@ -1,7 +1,6 @@
 package bridge
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -78,7 +77,16 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 		}, nil
 	}
 
-	return CursorRule{}, fmt.Errorf("unsupported rule attach type: %s", rule.Metadata.Attach)
+	// Fallback as manual rule.
+	return CursorRule{
+		Slug:    rule.Slug,
+		Content: rule.Content,
+		Metadata: CursorRuleMetadata{
+			AlwaysApply: false,
+			Description: "",
+			Globs:       "",
+		},
+	}, nil
 }
 
 func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, error) {
