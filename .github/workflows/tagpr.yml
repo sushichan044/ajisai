@@ -49,6 +49,7 @@ jobs:
 
       - name: Switch to PR
         run: |
+          git reset --hard HEAD
           PR_NUMBER=$(gh pr list --author "github-actions[bot]" --state 'open' --json 'number,headRefName' --jq '.[] | select(.headRefName | startswith("tagpr-from")) | .number')
           gh pr checkout "$PR_NUMBER"
         env:
