@@ -63,6 +63,7 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^tagpr:"
 
 release:
   github:
