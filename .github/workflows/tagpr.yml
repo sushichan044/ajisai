@@ -41,7 +41,7 @@ jobs:
       - name: Get next version from svu
         id: svu
         run: |
-          next_version=$(go run github.com/caarlos0/svu/v3@latest next)
+          next_version="$(go run github.com/caarlos0/svu/v3@latest next)"
           if [ $? -ne 0 ]; then
             echo "::error::Failed to get the next version using svu"
             exit 1
@@ -50,8 +50,7 @@ jobs:
 
       - name: Switch to PR
         run: |
-          echo '${{ steps.tagpr.outputs.pull_request }}' > pr.json
-          PR_NUMBER="$(jq -r '.number' pr.json)"
+          PR_NUMBER="$(jq -r '.number' <<<${{ steps.tagpr.outputs.pull_request }})"
           gh pr checkout "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
