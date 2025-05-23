@@ -1,7 +1,7 @@
 # svu configuration.
 #
 # https://github.com/caarlos0/svu
-tag.prefix: v
+tag.prefix: ""
 always: true
 # Temporarily enforce v0 until support for cline and roo is available, even if breaking changes occur
 v0: true
