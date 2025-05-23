@@ -11,11 +11,10 @@ import (
 	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/engine"
 	"github.com/sushichan044/ajisai/utils"
+	"github.com/sushichan044/ajisai/version"
 )
 
 var (
-	// version and revision are set by goreleaser during the build process.
-	version = "dev"
 	// noglobals error is suppressed by golangci-lint.
 	revision = "dev"
 )
@@ -37,7 +36,7 @@ func run(args []string) error {
 	app := &cli.Command{
 		Name:    "ajisai",
 		Usage:   "Manage AI agent configuration presets",
-		Version: version,
+		Version: version.Version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
