@@ -61,6 +61,12 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           sed -i "s/Version = \".*\"/Version = \"${{ steps.svu.outputs.next }}\"/" version/version.go
+
+          if git diff --exit-code; then
+            echo "::notice::No changes to version file"
+            exit 0
+          fi
+
           git add version/version.go
           git commit -m "chore: bump version to ${{ steps.svu.outputs.next }}"
           git push
