@@ -57,6 +57,9 @@ jobs:
 
       - name: Edit version file and commit and push
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           sed -i "s/Version = \".*\"/Version = \"${{ steps.svu.outputs.next }}\"/" version/version.go
           git add version/version.go
           git commit -m "chore: bump version to ${{ steps.svu.outputs.next }}"
