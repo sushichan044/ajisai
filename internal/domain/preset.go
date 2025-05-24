@@ -2,6 +2,8 @@ package domain
 
 import (
 	"path/filepath"
+
+	"github.com/sushichan044/ajisai/utils"
 )
 
 const (
@@ -64,24 +66,48 @@ type (
 )
 
 func NewRuleItem(slug string, content string, metadata RuleMetadata) *RuleItem {
+	var resolvedDescription string
+	if metadata.Description != "" {
+		resolvedDescription = metadata.Description
+	} else {
+		// Extract h1 heading from content if description is not provided
+		resolvedDescription = utils.ExtractH1Heading(content)
+	}
+
+	// Update the metadata with the resolved description
+	resolvedMetadata := metadata
+	resolvedMetadata.Description = resolvedDescription
+
 	return &RuleItem{
 		presetItem: presetItem{
 			Type:    RulesPresetType,
 			Slug:    slug,
 			Content: content,
 		},
-		Metadata: metadata,
+		Metadata: resolvedMetadata,
 	}
 }
 
 func NewPromptItem(slug string, content string, metadata PromptMetadata) *PromptItem {
+	var resolvedDescription string
+	if metadata.Description != "" {
+		resolvedDescription = metadata.Description
+	} else {
+		// Extract h1 heading from content if description is not provided
+		resolvedDescription = utils.ExtractH1Heading(content)
+	}
+
+	// Update the metadata with the resolved description
+	resolvedMetadata := metadata
+	resolvedMetadata.Description = resolvedDescription
+
 	return &PromptItem{
 		presetItem: presetItem{
 			Type:    PromptsPresetType,
 			Slug:    slug,
 			Content: content,
 		},
-		Metadata: metadata,
+		Metadata: resolvedMetadata,
 	}
 }
 
