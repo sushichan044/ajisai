@@ -70,3 +70,5 @@ jobs:
           git add version/version.go
           git commit -m "chore: bump version to ${{ steps.svu.outputs.next }}"
           git push
+
+          gh pr edit "$PR_NUMBER" --title "Release for v${{ steps.svu.outputs.next }}"
