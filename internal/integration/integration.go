@@ -65,6 +65,11 @@ func New(adapter agentSpecificationAdapter) (domain.AgentIntegration, error) {
 func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPresetPackage) error {
 	eg := errgroup.Group{}
 
+	// Create gitignore files for the namespace directories
+	eg.Go(func() error {
+		return repo.ensureGitignoreFiles(namespace)
+	})
+
 	for _, preset := range pkg.Presets {
 		eg.Go(func() error {
 			return repo.writePreset(namespace, pkg.PackageName, preset)
@@ -147,6 +152,38 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 			return utils.AtomicWriteFile(promptPath, bytes.NewReader([]byte(serialized)))
 		})
 	}
+
+	return eg.Wait()
+}
+
+// ensureGitignoreFiles creates .gitignore files in the namespace directories to ignore all contents.
+func (repo *integrationImpl) ensureGitignoreFiles(namespace string) error {
+	gitignoreContent := "*\n"
+
+	ruleNamespaceDir := filepath.Join(repo.resolvedRulesRootDir, namespace)
+	promptNamespaceDir := filepath.Join(repo.resolvedPromptsRootDir, namespace)
+
+	eg := errgroup.Group{}
+
+	// Create .gitignore for rules directory
+	eg.Go(func() error {
+		if dirErr := utils.EnsureDir(ruleNamespaceDir); dirErr != nil {
+			return fmt.Errorf("could not ensure rules namespace dir %s: %w", ruleNamespaceDir, dirErr)
+		}
+
+		gitignorePath := filepath.Join(ruleNamespaceDir, ".gitignore")
+		return utils.AtomicWriteFile(gitignorePath, bytes.NewReader([]byte(gitignoreContent)))
+	})
+
+	// Create .gitignore for prompts directory
+	eg.Go(func() error {
+		if dirErr := utils.EnsureDir(promptNamespaceDir); dirErr != nil {
+			return fmt.Errorf("could not ensure prompts namespace dir %s: %w", promptNamespaceDir, dirErr)
+		}
+
+		gitignorePath := filepath.Join(promptNamespaceDir, ".gitignore")
+		return utils.AtomicWriteFile(gitignorePath, bytes.NewReader([]byte(gitignoreContent)))
+	})
 
 	return eg.Wait()
 }
