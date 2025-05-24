@@ -108,3 +108,72 @@ Content`)
 		assert.Equal(t, "Original Title", secondResult.FrontMatter.Title)
 	})
 }
+
+func TestExtractH1Heading(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "simple h1 heading",
+			input: `# Simple Heading
+This is content.`,
+			expected: "Simple Heading",
+		},
+		{
+			name: "h1 heading with complex content",
+			input: `# Complex Heading with Multiple Words
+## This is h2
+Some content here.`,
+			expected: "Complex Heading with Multiple Words",
+		},
+		{
+			name: "no h1 heading",
+			input: `## This is h2
+### This is h3
+Content without h1.`,
+			expected: "",
+		},
+		{
+			name: "multiple h1 headings - returns first",
+			input: `# First Heading
+Some content.
+# Second Heading
+More content.`,
+			expected: "First Heading",
+		},
+		{
+			name: "h1 heading with frontmatter",
+			input: `---
+title: Test
+---
+# Heading from Content
+Content here.`,
+			expected: "Heading from Content",
+		},
+		{
+			name:     "empty content",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "only whitespace",
+			input:    "   \n\t  \n  ",
+			expected: "",
+		},
+		{
+			name: "h1 with inline formatting",
+			input: `# Heading with **bold** and *italic*
+Content here.`,
+			expected: "Heading with bold and italic",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ExtractH1Heading(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
