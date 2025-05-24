@@ -40,7 +40,3 @@ Thumbs.db
 docs/
 # Added by goreleaser init:
 dist/
-
-.cursor/**/ajisai/
-.github/**/ajisai/
-.windsurf/**/ajisai/
