@@ -51,6 +51,12 @@ jobs:
         run: |
           git reset --hard HEAD
           PR_NUMBER=$(gh pr list --author "github-actions[bot]" --state 'open' --json 'number,headRefName' --jq '.[] | select(.headRefName | startswith("tagpr-from")) | .number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::notice::No PR found."
+            exit 0
+          fi
+
           gh pr checkout "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
