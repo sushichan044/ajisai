@@ -19,7 +19,7 @@ universal_binaries:
   - replace: true
 
 builds:
-  - main: ./cmd/ajisai/main.go
+  - main: ./main.go
     id: ajisai
     binary: ajisai
     env:
