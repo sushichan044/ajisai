@@ -43,4 +43,4 @@ jobs:
           go-version-file: go.mod
 
       - name: run tests
-        run: gotestsum --packages="./..."
+        run: gotestsum --packages="./..." --format=github-actions
