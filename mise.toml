@@ -32,6 +32,10 @@ run = "golangci-lint fmt"
 description = "Run tests"
 run = "go run gotest.tools/gotestsum@v1.12.2"
 
+[tasks.test-coverage]
+description = "Run tests with coverage"
+run = "mise run test -- -- -cover ./..."
+
 [tasks.build-snapshot]
 description = "Build the application with version info"
 run = "goreleaser release --clean --snapshot"

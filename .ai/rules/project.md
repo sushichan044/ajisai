@@ -25,6 +25,8 @@ attach: always
 
     You can run specific tests. e.g. `mise run test ./internal/config/...`
 
+    Tip: run `mise run test-coverage` to get coverage report.
+
 ## Testing
 
 - Whenever making further modifications to the code, always ensure that `mise run test` passes.
