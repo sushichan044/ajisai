@@ -68,7 +68,7 @@ brew install sushichan044/tap/ajisai
   <summary>go install (requires Go 1.21+) </summary>
 
 ```bash
-go install github.com/sushichan044/ajisai/cmd/ajisai@latest
+go install github.com/sushichan044/ajisai@latest
 ```
 
 > [!WARNING]
@@ -82,7 +82,7 @@ go install github.com/sushichan044/ajisai/cmd/ajisai@latest
 ```toml
 # mise.toml
 [tools]
-"go:github.com/sushichan044/ajisai/cmd/ajisai" = "latest"
+"go:github.com/sushichan044/ajisai" = "latest"
 ```
 
 > [!WARNING]

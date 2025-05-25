@@ -10,7 +10,7 @@ enter = "echo 'Auto-syncing AI Rules...' && mise run apply"
 
 [tasks.dev]
 description = "Run the application in development mode"
-run = "go run ./cmd/ajisai"
+run = "go run main.go"
 
 [tasks.apply]
 description = "Apply AI Rules"

@@ -1,4 +1,4 @@
-package main
+package ajisai
 
 import (
 	"context"
@@ -19,14 +19,7 @@ var (
 	revision = "dev"
 )
 
-func main() {
-	if err := run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-func run(args []string) error {
+func Run(args []string) error {
 	// reassign error is suppressed by golangci-lint.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
