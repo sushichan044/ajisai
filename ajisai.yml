@@ -10,6 +10,7 @@ workspace:
       repository: https://github.com/sushichan044/ai-presets.git
       include:
         - essentials
+        - tdd
   integrations:
     cursor:
       enabled: true
