@@ -163,7 +163,12 @@ func getEnabledIntegrations(cfg *config.Config) ([]domain.AgentIntegration, erro
 	maxIntegrations := 3
 	integrations := make([]domain.AgentIntegration, 0, maxIntegrations)
 
-	if cfg.Workspace.Integrations.Cursor.Enabled {
+	// Check if Integrations is nil to avoid nil pointer dereference
+	if cfg.Workspace == nil || cfg.Workspace.Integrations == nil {
+		return integrations, nil
+	}
+
+	if cfg.Workspace.Integrations.Cursor != nil && cfg.Workspace.Integrations.Cursor.Enabled {
 		cursorRepo, cursorErr := getIntegration(config.AgentIntegrationTypeCursor)
 		if cursorErr != nil {
 			return nil, fmt.Errorf("failed to get cursor repository: %w", cursorErr)
@@ -171,7 +176,7 @@ func getEnabledIntegrations(cfg *config.Config) ([]domain.AgentIntegration, erro
 		integrations = append(integrations, cursorRepo)
 	}
 
-	if cfg.Workspace.Integrations.GitHubCopilot.Enabled {
+	if cfg.Workspace.Integrations.GitHubCopilot != nil && cfg.Workspace.Integrations.GitHubCopilot.Enabled {
 		githubCopilotRepo, githubCopilotErr := getIntegration(config.AgentIntegrationTypeGitHubCopilot)
 		if githubCopilotErr != nil {
 			return nil, fmt.Errorf("failed to get github copilot repository: %w", githubCopilotErr)
@@ -179,7 +184,7 @@ func getEnabledIntegrations(cfg *config.Config) ([]domain.AgentIntegration, erro
 		integrations = append(integrations, githubCopilotRepo)
 	}
 
-	if cfg.Workspace.Integrations.Windsurf.Enabled {
+	if cfg.Workspace.Integrations.Windsurf != nil && cfg.Workspace.Integrations.Windsurf.Enabled {
 		windsurfRepo, windsurfErr := getIntegration(config.AgentIntegrationTypeWindsurf)
 		if windsurfErr != nil {
 			return nil, fmt.Errorf("failed to get windsurf repository: %w", windsurfErr)

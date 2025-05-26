@@ -30,7 +30,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 		return nil, fmt.Errorf("could not load package %s: not imported", packageName)
 	}
 
-	pkgManifest, manifestErr := l.resolvePackageManifest(packageName)
+	pkgManifest, manifestErr := l.ResolvePackageManifest(packageName)
 	if manifestErr != nil {
 		return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
 	}
@@ -65,7 +65,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 	}, nil
 }
 
-func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.Package, error) {
+func (l *agentPresetLoader) ResolvePackageManifest(packageName string) (*config.Package, error) {
 	cacheDir, err := l.cfg.GetImportedPackageCacheRoot(packageName)
 	if err != nil {
 		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
