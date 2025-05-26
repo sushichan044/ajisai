@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	// noglobals error is suppressed by golangci-lint.
+	//nolint:gochecknoglobals // This value is overridden by goreleaser.
 	revision = "dev"
 )
 
