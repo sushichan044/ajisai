@@ -15,7 +15,7 @@ import (
 )
 
 func Run(args []string, revision string) error {
-	// reassign error is suppressed by golangci-lint.
+	//nolint:reassign // This is expected usecase by urfave/cli.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
 		fmt.Fprintf(root.Writer, "%s version %s (revision:%s)\n", root.Name, root.Version, revision)
