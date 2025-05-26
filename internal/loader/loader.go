@@ -30,7 +30,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 		return nil, fmt.Errorf("could not load package %s: not imported", packageName)
 	}
 
-	pkgManifest, manifestErr := l.resolvePackageManifest(packageName)
+	pkgManifest, manifestErr := l.ResolvePackageManifest(packageName)
 	if manifestErr != nil {
 		return nil, fmt.Errorf("failed to load package manifest for %s: %w", packageName, manifestErr)
 	}
@@ -65,7 +65,7 @@ func (l *agentPresetLoader) LoadAgentPresetPackage(packageName string) (*domain.
 	}, nil
 }
 
-func (l *agentPresetLoader) resolvePackageManifest(packageName string) (*config.Package, error) {
+func (l *agentPresetLoader) ResolvePackageManifest(packageName string) (*config.Package, error) {
 	cacheDir, err := l.cfg.GetImportedPackageCacheRoot(packageName)
 	if err != nil {
 		return nil, fmt.Errorf("resolve package manifest for %s: %w", packageName, err)
@@ -172,6 +172,9 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 			return fmt.Errorf("failed to get slug for prompt %s: %w", fullPath, slugErr)
 		}
 
+		// プレフィックスを追加
+		slug = "prompts/" + slug
+
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {
 			return fmt.Errorf("failed to read prompt file %s: %w", fullPath, readErr)
@@ -212,6 +215,9 @@ func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain
 		if slugErr != nil {
 			return fmt.Errorf("failed to get slug for rule %s: %w", fullPath, slugErr)
 		}
+
+		// プレフィックスを追加
+		slug = "rules/" + slug
 
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {

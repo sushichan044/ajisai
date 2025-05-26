@@ -38,5 +38,7 @@ type (
 		//
 		// packageName is the name of the package to load.
 		LoadAgentPresetPackage(packageName string) (*AgentPresetPackage, error)
+
+		ResolvePackageManifest(packageName string) (*config.Package, error)
 	}
 )
