@@ -172,9 +172,6 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 			return fmt.Errorf("failed to get slug for prompt %s: %w", fullPath, slugErr)
 		}
 
-		// プレフィックスを追加
-		slug = "prompts/" + slug
-
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {
 			return fmt.Errorf("failed to read prompt file %s: %w", fullPath, readErr)
@@ -215,9 +212,6 @@ func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain
 		if slugErr != nil {
 			return fmt.Errorf("failed to get slug for rule %s: %w", fullPath, slugErr)
 		}
-
-		// プレフィックスを追加
-		slug = "rules/" + slug
 
 		body, readErr := os.ReadFile(fullPath)
 		if readErr != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/sushichan044/ajisai/internal/config"
 	"github.com/sushichan044/ajisai/internal/loader"
+	"github.com/sushichan044/ajisai/utils"
 )
 
 func TestNewAgentPresetPackageLoader(t *testing.T) {
@@ -122,9 +123,14 @@ attach: "always"
 # Test Rule
 This is a test rule.`
 
-	err = os.WriteFile(filepath.Join(promptsDir, "prompt.md"), []byte(promptContent), 0644)
+	err = utils.EnsureDir(filepath.Join(promptsDir, "foo"))
+	require.NoError(t, err, "EnsureDir should create foo directory")
+	err = utils.EnsureDir(filepath.Join(rulesDir, "bar"))
+	require.NoError(t, err, "EnsureDir should create bar directory")
+
+	err = os.WriteFile(filepath.Join(promptsDir, "foo", "prompt.md"), []byte(promptContent), 0644)
 	require.NoError(t, err, "WriteFile should create prompt file")
-	err = os.WriteFile(filepath.Join(rulesDir, "rule.md"), []byte(ruleContent), 0644)
+	err = os.WriteFile(filepath.Join(rulesDir, "bar", "rule.md"), []byte(ruleContent), 0644)
 	require.NoError(t, err, "WriteFile should create rule file")
 
 	// Create manifest file
@@ -165,6 +171,8 @@ This is a test rule.`
 	assert.Equal(t, packageName, pkg.PackageName, "Package name should match input")
 	assert.Len(t, pkg.Presets, 1, "Package should contain exactly one preset")
 	assert.Equal(t, "default", pkg.Presets[0].Name, "Preset name should be 'default'")
+	assert.Equal(t, "foo/prompt", pkg.Presets[0].Prompts[0].Slug, "Prompt slug should be 'foo/prompt'")
 	assert.Len(t, pkg.Presets[0].Prompts, 1, "Preset should contain exactly one prompt")
 	assert.Len(t, pkg.Presets[0].Rules, 1, "Preset should contain exactly one rule")
+	assert.Equal(t, "bar/rule", pkg.Presets[0].Rules[0].Slug, "Rule slug should be 'bar/rule'")
 }
