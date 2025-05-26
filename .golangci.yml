@@ -512,12 +512,6 @@ linters:
           - gosec
           - noctx
           - wrapcheck
-      - text: 'reassigning variable VersionPrinter'
-        linters:
-          - reassign
-      - text: 'revision is a global variable'
-        linters:
-          - gochecknoglobals
       - text: 'BinaryPath is a global variable'
         linters:
           - gochecknoglobals

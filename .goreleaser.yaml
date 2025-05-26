@@ -30,7 +30,6 @@ builds:
       - darwin
     ldflags:
       - -s -w
-      - -X main.version={{.Version}}
       - -X main.revision={{.ShortCommit}}
 
 archives:

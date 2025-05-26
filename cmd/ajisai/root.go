@@ -14,13 +14,8 @@ import (
 	"github.com/sushichan044/ajisai/version"
 )
 
-var (
-	// noglobals error is suppressed by golangci-lint.
-	revision = "dev"
-)
-
-func Run(args []string) error {
-	// reassign error is suppressed by golangci-lint.
+func Run(args []string, revision string) error {
+	//nolint:reassign // This is expected usecase by urfave/cli.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
 		fmt.Fprintf(root.Writer, "%s version %s (revision:%s)\n", root.Name, root.Version, revision)
