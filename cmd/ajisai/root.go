@@ -14,12 +14,7 @@ import (
 	"github.com/sushichan044/ajisai/version"
 )
 
-var (
-	// noglobals error is suppressed by golangci-lint.
-	revision = "dev"
-)
-
-func Run(args []string) error {
+func Run(args []string, revision string) error {
 	// reassign error is suppressed by golangci-lint.
 	cli.VersionPrinter = func(cmd *cli.Command) {
 		root := cmd.Root()
