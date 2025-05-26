@@ -53,7 +53,8 @@ func Run(args []string) error {
 					return config.StoreNotFoundInContext(ctx), nil
 				}
 
-				return ctx, fmt.Errorf("failed to load configuration from %s: %w", cfgPath, err)
+				// TODO: add validation and distinguish between validation errors and other errors.
+				return config.StoreValidationErrorInContext(ctx, err), nil
 			}
 
 			return config.StoreInContext(ctx, loadedCfg), nil
@@ -114,8 +115,14 @@ func doApply(c context.Context, _ *cli.Command) error {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
-	if cfgCtx.NotFound {
+	switch cfgCtx.Status {
+	case config.StatusValid:
+		// No action needed.
+		// But we include it for use exhaustive linter.
+	case config.StatusNotFound:
 		return errors.New("apply command requires an existing config file")
+	case config.StatusValidationFailed:
+		return cfgCtx.ValidationError
 	}
 
 	cfg := cfgCtx.Config
@@ -145,8 +152,14 @@ func doClean(c context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to retrieve config from context: %w", err)
 	}
 
-	if cfgCtx.NotFound {
+	switch cfgCtx.Status {
+	case config.StatusValid:
+		// No action needed.
+		// But we include it for use exhaustive linter.
+	case config.StatusNotFound:
 		return errors.New("clean command requires an existing config file")
+	case config.StatusValidationFailed:
+		return cfgCtx.ValidationError
 	}
 
 	cfg := cfgCtx.Config
