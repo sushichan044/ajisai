@@ -48,20 +48,24 @@ jobs:
           echo "next=$next_version" >> "$GITHUB_OUTPUT"
 
       - name: Switch to PR
+        id: switch-to-pr
         run: |
           git reset --hard HEAD
           PR_NUMBER=$(gh pr list --author "github-actions[bot]" --state 'open' --json 'number,headRefName' --jq '.[] | select(.headRefName | startswith("tagpr-from")) | .number')
 
           if [ -z "$PR_NUMBER" ]; then
             echo "::notice::No PR found."
+            echo "should-continue=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           gh pr checkout "$PR_NUMBER"
+          echo "should-continue=true" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Edit version file and commit and push
+        if: steps.switch-to-pr.outputs.should-continue == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -78,3 +82,5 @@ jobs:
           git push
 
           gh pr edit "$PR_NUMBER" --title "Release for v${{ steps.svu.outputs.next }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
