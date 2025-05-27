@@ -40,10 +40,10 @@ func (engine *Engine) ApplyPackage(packageName string) error {
 		return fmt.Errorf("failed to fetch package %s: %w", packageName, fetchErr)
 	}
 
-	pkg, buildErr := engine.LoadPackage(packageName)
+	pkg, loadErr := engine.LoadPackage(packageName)
 
-	if buildErr != nil {
-		return fmt.Errorf("failed to build package %s: %w", packageName, buildErr)
+	if loadErr != nil {
+		return fmt.Errorf("failed to load package %s: %w", packageName, loadErr)
 	}
 
 	exportErr := engine.exportPackage(pkg)
