@@ -40,7 +40,7 @@ func (engine *Engine) ApplyPackage(packageName string) error {
 		return fmt.Errorf("failed to fetch package %s: %w", packageName, fetchErr)
 	}
 
-	pkg, buildErr := engine.loadPackage(packageName)
+	pkg, buildErr := engine.LoadPackage(packageName)
 
 	if buildErr != nil {
 		return fmt.Errorf("failed to build package %s: %w", packageName, buildErr)
@@ -132,7 +132,7 @@ func (engine *Engine) fetchPackage(packageName string) error {
 	return fetcher.Fetch(pkgImport, cacheDestination)
 }
 
-func (engine *Engine) loadPackage(packageName string) (*domain.AgentPresetPackage, error) {
+func (engine *Engine) LoadPackage(packageName string) (*domain.AgentPresetPackage, error) {
 	loader := loader.NewAgentPresetPackageLoader(engine.cfg)
 	return loader.LoadAgentPresetPackage(packageName)
 }

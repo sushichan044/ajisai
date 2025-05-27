@@ -1,9 +1,8 @@
 package domain
 
 import (
+	"encoding/xml"
 	"path/filepath"
-
-	"github.com/sushichan044/ajisai/utils"
 )
 
 const (
@@ -23,94 +22,81 @@ type (
 	PresetType string
 	AttachType string
 
-	AgentPresetPackage struct {
-		PackageName string
-		Presets     []*AgentPreset
-	}
-
 	AgentPreset struct {
 		Name    string        // name of the preset. This value is used as the directory name in the cache.
 		Rules   []*RuleItem   // rules in the preset
 		Prompts []*PromptItem // prompts in the preset
 	}
 
-	RuleItem struct {
-		presetItem
-		Metadata RuleMetadata
-	}
-
-	PromptItem struct {
-		presetItem
-		Metadata PromptMetadata
-	}
-
-	// RuleMetadata defines the structure for metadata specific to rules.
-	RuleMetadata struct {
-		Description string     // Optional: Detailed description from front matter.
-		Attach      AttachType // Required: How the rule is attached
-		Globs       []string   // Optional: Glob patterns, used when Attach is "glob".
-	}
-
-	// PromptMetadata defines the structure for metadata specific to prompts.
-	PromptMetadata struct {
-		Description string // Optional: Detailed description from front matter.
-	}
-
 	// PresetItem is a base struct for all preset items.
 	presetItem struct {
-		Slug    string // slug of the preset item. (e.g. $preset-name/rules/react/my-rule.md → "react/my-rule")
-		Content string // Content (e.g., Markdown), excluding front matter
-
-		Type PresetType // type of the preset item
+		Slug    string     `xml:"slug,attr"`
+		Content string     `xml:"-"` // Do not output content to XML.
+		Type    PresetType `xml:"type,attr"`
 	}
 )
 
-func NewRuleItem(slug string, content string, metadata RuleMetadata) *RuleItem {
-	var resolvedDescription string
-	if metadata.Description != "" {
-		resolvedDescription = metadata.Description
-	} else {
-		// Extract h1 heading from content if description is not provided
-		resolvedDescription = utils.ExtractH1Heading(content)
-	}
-
-	// Update the metadata with the resolved description
-	resolvedMetadata := metadata
-	resolvedMetadata.Description = resolvedDescription
-
-	return &RuleItem{
-		presetItem: presetItem{
-			Type:    RulesPresetType,
-			Slug:    slug,
-			Content: content,
-		},
-		Metadata: resolvedMetadata,
-	}
-}
-
-func NewPromptItem(slug string, content string, metadata PromptMetadata) *PromptItem {
-	var resolvedDescription string
-	if metadata.Description != "" {
-		resolvedDescription = metadata.Description
-	} else {
-		// Extract h1 heading from content if description is not provided
-		resolvedDescription = utils.ExtractH1Heading(content)
-	}
-
-	// Update the metadata with the resolved description
-	resolvedMetadata := metadata
-	resolvedMetadata.Description = resolvedDescription
-
-	return &PromptItem{
-		presetItem: presetItem{
-			Type:    PromptsPresetType,
-			Slug:    slug,
-			Content: content,
-		},
-		Metadata: resolvedMetadata,
-	}
-}
-
 func (item *presetItem) GetInternalPath(packageName, presetName, extension string) (string, error) {
 	return filepath.Join(packageName, presetName, item.Slug+extension), nil
+}
+
+// XML marshalling implementation
+
+type (
+	xmlPreset struct {
+		XMLName xml.Name    `xml:"preset"`
+		Name    string      `xml:"name,attr"`
+		Rules   *xmlRules   `xml:"rules,omitempty"`
+		Prompts *xmlPrompts `xml:"prompts,omitempty"`
+	}
+
+	xmlPresetItem struct {
+		Slug string `xml:"slug,attr"`
+	}
+
+	xmlRules struct {
+		Items []*xmlRule `xml:"rule"`
+	}
+
+	xmlPrompts struct {
+		Items []*xmlPrompt `xml:"prompt"`
+	}
+)
+
+func (p *AgentPreset) MarshalToXML() ([]byte, error) {
+	return p.toXML().Marshal()
+}
+
+func (p *AgentPreset) toXML() *xmlPreset {
+	outputPreset := xmlPreset{
+		Name: p.Name,
+	}
+
+	if len(p.Rules) > 0 {
+		items := make([]*xmlRule, len(p.Rules))
+		for i, rule := range p.Rules {
+			items[i] = rule.toXML()
+		}
+
+		outputPreset.Rules = &xmlRules{
+			Items: items,
+		}
+	}
+
+	if len(p.Prompts) > 0 {
+		items := make([]*xmlPrompt, len(p.Prompts))
+		for i, prompt := range p.Prompts {
+			items[i] = prompt.toXML()
+		}
+
+		outputPreset.Prompts = &xmlPrompts{
+			Items: items,
+		}
+	}
+
+	return &outputPreset
+}
+
+func (xp *xmlPreset) Marshal() ([]byte, error) {
+	return xml.MarshalIndent(xp, "", "  ")
 }
