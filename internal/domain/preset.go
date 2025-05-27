@@ -63,6 +63,8 @@ type (
 	}
 )
 
+// MarshalToXML converts the AgentPreset object into its XML representation.
+// It returns the XML as a byte slice and an error if the marshalling fails.
 func (p *AgentPreset) MarshalToXML() ([]byte, error) {
 	return p.toXML().Marshal()
 }
