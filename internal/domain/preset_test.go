@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/sushichan044/ajisai/internal/domain"
 )
@@ -153,6 +154,144 @@ func TestNewPromptItem(t *testing.T) {
 			assert.Equal(t, tt.content, result.Content)
 			assert.Equal(t, domain.PromptsPresetType, result.Type)
 			assert.Equal(t, tt.expectedDescription, result.Metadata.Description)
+		})
+	}
+}
+
+func TestAgentPreset_ToXML(t *testing.T) {
+	tests := []struct {
+		name     string
+		preset   *domain.AgentPreset
+		expected string
+	}{
+		{
+			name: "Empty preset",
+			preset: &domain.AgentPreset{
+				Name:    "empty-preset",
+				Rules:   nil,
+				Prompts: nil,
+			},
+			expected: `<preset name="empty-preset"></preset>`,
+		},
+		{
+			name: "Preset with rules only",
+			preset: &domain.AgentPreset{
+				Name: "rules-only",
+				Rules: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"rule1",
+						"Rule 1 content",
+						domain.RuleMetadata{Description: "Rule 1 desc", Attach: domain.AttachTypeAlways},
+					),
+					domain.NewRuleItem(
+						"rule2",
+						"Rule 2 content",
+						domain.RuleMetadata{
+							Description: "Rule 2 desc",
+							Attach:      domain.AttachTypeGlob,
+							Globs:       []string{"*.go"},
+						},
+					),
+				},
+				Prompts: nil,
+			},
+			expected: `<preset name="rules-only">
+  <rules>
+    <rule slug="rule1">
+      <metadata>
+        <description>Rule 1 desc</description>
+        <attach>always</attach>
+      </metadata>
+    </rule>
+    <rule slug="rule2">
+      <metadata>
+        <description>Rule 2 desc</description>
+        <attach>glob</attach>
+        <globs>
+          <glob>*.go</glob>
+        </globs>
+      </metadata>
+    </rule>
+  </rules>
+</preset>`,
+		},
+		{
+			name: "Preset with prompts only",
+			preset: &domain.AgentPreset{
+				Name:  "prompts-only",
+				Rules: nil,
+				Prompts: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"prompt1",
+						"Prompt 1 content",
+						domain.PromptMetadata{Description: "Prompt 1 desc"},
+					),
+					domain.NewPromptItem(
+						"prompt2",
+						"Prompt 2 content",
+						domain.PromptMetadata{Description: "Prompt 2 desc"},
+					),
+				},
+			},
+			expected: `<preset name="prompts-only">
+  <prompts>
+    <prompt slug="prompt1">
+      <metadata>
+        <description>Prompt 1 desc</description>
+      </metadata>
+    </prompt>
+    <prompt slug="prompt2">
+      <metadata>
+        <description>Prompt 2 desc</description>
+      </metadata>
+    </prompt>
+  </prompts>
+</preset>`,
+		},
+		{
+			name: "Preset with both rules and prompts",
+			preset: &domain.AgentPreset{
+				Name: "mixed-preset",
+				Rules: []*domain.RuleItem{
+					domain.NewRuleItem(
+						"rule1",
+						"Rule content",
+						domain.RuleMetadata{Description: "Rule desc", Attach: domain.AttachTypeManual},
+					),
+				},
+				Prompts: []*domain.PromptItem{
+					domain.NewPromptItem(
+						"prompt1",
+						"Prompt content",
+						domain.PromptMetadata{Description: "Prompt desc"},
+					),
+				},
+			},
+			expected: `<preset name="mixed-preset">
+  <rules>
+    <rule slug="rule1">
+      <metadata>
+        <description>Rule desc</description>
+        <attach>manual</attach>
+      </metadata>
+    </rule>
+  </rules>
+  <prompts>
+    <prompt slug="prompt1">
+      <metadata>
+        <description>Prompt desc</description>
+      </metadata>
+    </prompt>
+  </prompts>
+</preset>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bytes, err := tt.preset.MarshalToXML()
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, string(bytes))
 		})
 	}
 }
