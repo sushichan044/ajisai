@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/adrg/frontmatter v0.2.0
 	github.com/bmatcuk/doublestar/v4 v4.8.1
-	github.com/goccy/go-yaml v1.17.1
+	github.com/goccy/go-yaml v1.18.0
 	github.com/google/go-cmp v0.7.0
 	github.com/otiai10/copy v1.14.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
