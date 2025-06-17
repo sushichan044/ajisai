@@ -81,24 +81,21 @@ func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPre
 
 //gocognit:ignore
 func (repo *integrationImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
-	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
+	resolveRulePath := func(rule *domain.RuleItem) string {
 		rulePath := rule.URI.GetInternalPath(repo.adapter.RuleExtension())
-		return filepath.Join(repo.resolvedRulesRootDir, namespace, rulePath), nil
+		return filepath.Join(repo.resolvedRulesRootDir, namespace, rulePath)
 	}
 
-	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
+	resolvePromptPath := func(prompt *domain.PromptItem) string {
 		promptPath := prompt.URI.GetInternalPath(repo.adapter.PromptExtension())
-		return filepath.Join(repo.resolvedPromptsRootDir, namespace, promptPath), nil
+		return filepath.Join(repo.resolvedPromptsRootDir, namespace, promptPath)
 	}
 
 	eg := errgroup.Group{}
 
 	for _, rule := range preset.Rules {
 		eg.Go(func() error {
-			rulePath, err := resolveRulePath(rule)
-			if err != nil {
-				return err
-			}
+			rulePath := resolveRulePath(rule)
 
 			serialized, serializeErr := repo.adapter.SerializeRule(rule)
 			if serializeErr != nil {
@@ -121,10 +118,7 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 
 	for _, prompt := range preset.Prompts {
 		eg.Go(func() error {
-			promptPath, err := resolvePromptPath(prompt)
-			if err != nil {
-				return err
-			}
+			promptPath := resolvePromptPath(prompt)
 
 			serialized, serializeErr := repo.adapter.SerializePrompt(prompt)
 			if serializeErr != nil {
