@@ -2,7 +2,6 @@ package domain
 
 import (
 	"encoding/xml"
-	"fmt"
 
 	"github.com/sushichan044/ajisai/utils"
 )
@@ -21,7 +20,7 @@ type (
 	}
 )
 
-func NewRuleItem(slug string, content string, metadata RuleMetadata) *RuleItem {
+func NewRuleItem(packageName, presetName, path, content string, metadata RuleMetadata) *RuleItem {
 	var resolvedDescription string
 	if metadata.Description != "" {
 		resolvedDescription = metadata.Description
@@ -37,16 +36,19 @@ func NewRuleItem(slug string, content string, metadata RuleMetadata) *RuleItem {
 	return &RuleItem{
 		presetItem: presetItem{
 			Type:    RulesPresetType,
-			Slug:    slug,
 			Content: content,
+			URI: URI{
+				Scheme:  Scheme,
+				Package: packageName,
+				Preset:  presetName,
+				Type:    RulesPresetType,
+				Path:    path,
+			},
 		},
 		Metadata: resolvedMetadata,
 	}
 }
 
-func (r *RuleItem) URI(packageName, presetName string) string {
-	return fmt.Sprintf("ajisai://%s/%s/%s/%s", packageName, presetName, r.Type, r.Slug)
-}
 
 // XML marshalling implementation
 
@@ -67,7 +69,7 @@ type (
 func (r *RuleItem) toXML() *xmlRule {
 	return &xmlRule{
 		xmlPresetItem: xmlPresetItem{
-			Slug: r.Slug,
+			Path: r.URI.Path,
 		},
 		Metadata: xmlRuleMetadata{
 			Description: r.Metadata.Description,

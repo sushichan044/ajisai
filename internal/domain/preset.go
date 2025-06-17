@@ -2,7 +2,6 @@ package domain
 
 import (
 	"encoding/xml"
-	"path/filepath"
 )
 
 const (
@@ -30,15 +29,12 @@ type (
 
 	// PresetItem is a base struct for all preset items.
 	presetItem struct {
-		Slug    string     `xml:"slug,attr"`
 		Content string     `xml:"-"` // Do not output content to XML.
 		Type    PresetType `xml:"type,attr"`
+		URI     URI        `xml:"-"` // Do not output URI to XML.
 	}
 )
 
-func (item *presetItem) GetInternalPath(packageName, presetName, extension string) (string, error) {
-	return filepath.Join(packageName, presetName, item.Slug+extension), nil
-}
 
 // XML marshalling implementation
 
@@ -51,7 +47,7 @@ type (
 	}
 
 	xmlPresetItem struct {
-		Slug string `xml:"slug,attr"`
+		Path string `xml:"path,attr"`
 	}
 
 	xmlRules struct {
