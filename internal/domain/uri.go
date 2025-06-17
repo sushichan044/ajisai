@@ -28,7 +28,7 @@ func (u *URI) String() string {
 }
 
 // GetInternalPath generates the relative path for writing to agent filesystem
-// from the URI (e.g., "test-package/test-preset/my/rule.md").
+// from the URI. (e.g., "test-package/test-preset/my/rule.md")
 func (u *URI) GetInternalPath(extension string) string {
 	// u.Path is in format like "my/rule", so we add the extension
 	return filepath.Join(u.Package, u.Preset, u.Path+extension)
