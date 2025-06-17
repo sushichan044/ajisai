@@ -82,20 +82,12 @@ func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPre
 //gocognit:ignore
 func (repo *integrationImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) (string, error) {
-		rulePath, err := rule.GetInternalPath(packageName, preset.Name, repo.adapter.RuleExtension())
-		if err != nil {
-			return "", err
-		}
-
+		rulePath := rule.URI.GetInternalPath(repo.adapter.RuleExtension())
 		return filepath.Join(repo.resolvedRulesRootDir, namespace, rulePath), nil
 	}
 
 	resolvePromptPath := func(prompt *domain.PromptItem) (string, error) {
-		promptPath, err := prompt.GetInternalPath(packageName, preset.Name, repo.adapter.PromptExtension())
-		if err != nil {
-			return "", err
-		}
-
+		promptPath := prompt.URI.GetInternalPath(repo.adapter.PromptExtension())
 		return filepath.Join(repo.resolvedPromptsRootDir, namespace, promptPath), nil
 	}
 
