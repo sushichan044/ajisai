@@ -37,7 +37,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 	switch rule.Metadata.Attach {
 	case domain.AttachTypeAlways:
 		return CursorRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: CursorRuleMetadata{
 				AlwaysApply: true,
@@ -47,7 +47,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 		}, nil
 	case domain.AttachTypeGlob:
 		return CursorRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: CursorRuleMetadata{
 				AlwaysApply: false,
@@ -57,7 +57,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 		}, nil
 	case domain.AttachTypeAgentRequested:
 		return CursorRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: CursorRuleMetadata{
 				AlwaysApply: false,
@@ -67,7 +67,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 		}, nil
 	case domain.AttachTypeManual:
 		return CursorRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: CursorRuleMetadata{
 				AlwaysApply: false,
@@ -79,7 +79,7 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 
 	// Fallback as manual rule.
 	return CursorRule{
-		Slug:    rule.Slug,
+		Slug:    rule.URI.Path,
 		Content: rule.Content,
 		Metadata: CursorRuleMetadata{
 			AlwaysApply: false,
@@ -94,6 +94,8 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 	if rule.Metadata.AlwaysApply {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -106,6 +108,8 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 	if rule.Metadata.Globs != "" {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -118,6 +122,8 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 	if rule.Metadata.Description != "" {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -129,6 +135,8 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 	}
 
 	return *domain.NewRuleItem(
+		"", // packageName - placeholder, bridge doesn't have this context
+		"", // presetName - placeholder, bridge doesn't have this context
 		rule.Slug,
 		rule.Content,
 		domain.RuleMetadata{
@@ -141,13 +149,15 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 func (bridge *CursorBridge) ToAgentPrompt(prompt domain.PromptItem) (CursorPrompt, error) {
 	return CursorPrompt{
-		Slug:    prompt.Slug,
+		Slug:    prompt.URI.Path,
 		Content: prompt.Content,
 	}, nil
 }
 
 func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptItem, error) {
 	return *domain.NewPromptItem(
+		"", // packageName - placeholder, bridge doesn't have this context
+		"", // presetName - placeholder, bridge doesn't have this context
 		prompt.Slug,
 		prompt.Content,
 		domain.PromptMetadata{},

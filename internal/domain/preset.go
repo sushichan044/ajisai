@@ -35,7 +35,6 @@ type (
 	}
 )
 
-
 // XML marshalling implementation
 
 type (

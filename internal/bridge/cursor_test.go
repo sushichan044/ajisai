@@ -23,7 +23,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 	}{
 		{
 			name: "AlwaysAttach rule",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"always-rule",
 				"This is an always rule",
 				domain.RuleMetadata{
@@ -43,7 +43,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "Glob rule",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"glob-rule",
 				"This is a glob rule",
 				domain.RuleMetadata{
@@ -63,7 +63,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "manual attach type",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"manual",
 				"content",
 				domain.RuleMetadata{
@@ -82,7 +82,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "unsupported attach type falls back to manual",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"unsupported",
 				"content",
 				domain.RuleMetadata{
@@ -131,7 +131,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 					Globs:       "",
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"always-rule",
 				"This is an always rule",
 				domain.RuleMetadata{
@@ -152,7 +152,7 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 					Globs:       "*.go,*.md",
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"glob-rule",
 				"This is a glob rule",
 				domain.RuleMetadata{
@@ -181,7 +181,7 @@ func TestCursorBridge_PromptConversion(t *testing.T) {
 	bridgeInstance := bridge.NewCursorBridge()
 
 	// Test ToAgentPrompt
-	domainPrompt := *domain.NewPromptItem(
+	domainPrompt := *domain.NewPromptItem("test-package", "test-preset",
 		"test-prompt",
 		"This is a test prompt.",
 		domain.PromptMetadata{},
@@ -198,7 +198,7 @@ func TestCursorBridge_PromptConversion(t *testing.T) {
 		Content: "This is a Cursor prompt.",
 	}
 
-	expectedDomainPrompt := *domain.NewPromptItem(
+	expectedDomainPrompt := *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
 		"cursor-prompt",
 		"This is a Cursor prompt.",
 		domain.PromptMetadata{},

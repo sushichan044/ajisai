@@ -49,7 +49,6 @@ func NewRuleItem(packageName, presetName, path, content string, metadata RuleMet
 	}
 }
 
-
 // XML marshalling implementation
 
 type (

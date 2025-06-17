@@ -47,7 +47,6 @@ func NewPromptItem(packageName, presetName, path, content string, metadata Promp
 	}
 }
 
-
 // XML marshalling implementation
 
 type (

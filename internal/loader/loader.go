@@ -152,7 +152,9 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 	}, nil
 }
 
-func (l *agentPresetLoader) loadPromptItems(rootDir, packageName, presetName, promptGlob string) ([]*domain.PromptItem, error) {
+func (l *agentPresetLoader) loadPromptItems(
+	rootDir, packageName, presetName, promptGlob string,
+) ([]*domain.PromptItem, error) {
 	var loadedPrompts []*domain.PromptItem
 	slashed := filepath.ToSlash(promptGlob)
 	base, glob := doublestar.SplitPattern(slashed)
@@ -193,7 +195,9 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, packageName, presetName, pr
 	return loadedPrompts, nil
 }
 
-func (l *agentPresetLoader) loadRuleItems(rootDir, packageName, presetName, ruleGlob string) ([]*domain.RuleItem, error) {
+func (l *agentPresetLoader) loadRuleItems(
+	rootDir, packageName, presetName, ruleGlob string,
+) ([]*domain.RuleItem, error) {
 	var loadedRules []*domain.RuleItem
 	slashed := filepath.ToSlash(ruleGlob)
 	base, glob := doublestar.SplitPattern(slashed)
