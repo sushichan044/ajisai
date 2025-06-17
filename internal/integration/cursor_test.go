@@ -21,17 +21,11 @@ func TestCursorAdapter_NewCursorAdapter(t *testing.T) {
 func TestCursorAdapter_SerializeRule(t *testing.T) {
 	// Setup
 	adapter := integration.NewCursorAdapter()
-	rule := domain.NewRuleItem(
-		"test-package",
-		"test-preset",
-		"test-rule",
-		"# Test Rule\nThis is a test rule.",
-		domain.RuleMetadata{
-			Description: "Test Rule Description",
-			Attach:      domain.AttachTypeAlways,
-			Globs:       []string{"**/*.go"},
-		},
-	)
+	rule := domain.NewRuleItem("test-package", "test-preset", "test-rule", "# Test Rule\nThis is a test rule.", domain.RuleMetadata{
+		Description: "Test Rule Description",
+		Attach:      domain.AttachTypeAlways,
+		Globs:       []string{"**/*.go"},
+	})
 
 	// Execute
 	serialized, err := adapter.SerializeRule(rule)
@@ -46,15 +40,9 @@ func TestCursorAdapter_SerializeRule(t *testing.T) {
 func TestCursorAdapter_SerializePrompt(t *testing.T) {
 	// Setup
 	adapter := integration.NewCursorAdapter()
-	prompt := domain.NewPromptItem(
-		"test-package",
-		"test-preset",
-		"test-prompt",
-		"# Test Prompt\nThis is a test prompt.",
-		domain.PromptMetadata{
-			Description: "Test Prompt Description",
-		},
-	)
+	prompt := domain.NewPromptItem("test-package", "test-preset", "test-prompt", "# Test Prompt\nThis is a test prompt.", domain.PromptMetadata{
+		Description: "Test Prompt Description",
+	})
 
 	// Execute
 	serialized, err := adapter.SerializePrompt(prompt)
