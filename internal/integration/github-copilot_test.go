@@ -21,11 +21,17 @@ func TestGitHubCopilotAdapter_NewGitHubCopilotAdapter(t *testing.T) {
 func TestGitHubCopilotAdapter_SerializeRule(t *testing.T) {
 	// Setup
 	adapter := integration.NewGitHubCopilotAdapter()
-	rule := domain.NewRuleItem("test-package", "test-preset", "test-rule", "# Test Rule\nThis is a test rule.", domain.RuleMetadata{
-		Description: "Test Rule Description",
-		Attach:      domain.AttachTypeAlways,
-		Globs:       []string{"**/*.go"},
-	})
+	rule := domain.NewRuleItem(
+		"test-package",
+		"test-preset",
+		"test-rule",
+		"# Test Rule\nThis is a test rule.",
+		domain.RuleMetadata{
+			Description: "Test Rule Description",
+			Attach:      domain.AttachTypeAlways,
+			Globs:       []string{"**/*.go"},
+		},
+	)
 
 	// Execute
 	serialized, err := adapter.SerializeRule(rule)
@@ -40,9 +46,15 @@ func TestGitHubCopilotAdapter_SerializeRule(t *testing.T) {
 func TestGitHubCopilotAdapter_SerializePrompt(t *testing.T) {
 	// Setup
 	adapter := integration.NewGitHubCopilotAdapter()
-	prompt := domain.NewPromptItem("test-package", "test-preset", "test-prompt", "# Test Prompt\nThis is a test prompt.", domain.PromptMetadata{
-		Description: "Test Prompt Description",
-	})
+	prompt := domain.NewPromptItem(
+		"test-package",
+		"test-preset",
+		"test-prompt",
+		"# Test Prompt\nThis is a test prompt.",
+		domain.PromptMetadata{
+			Description: "Test Prompt Description",
+		},
+	)
 
 	// Execute
 	serialized, err := adapter.SerializePrompt(prompt)
