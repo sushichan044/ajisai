@@ -121,7 +121,7 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 
 	for _, promptGlob := range exports.Prompts {
 		eg.Go(func() error {
-			loadedPrompts, loadErr := l.loadPromptItems(rootDir, promptGlob)
+			loadedPrompts, loadErr := l.loadPromptItems(rootDir, pkgManifest.Name, presetName, promptGlob)
 			if loadErr != nil {
 				return fmt.Errorf("glob failed for prompt %s: %w", promptGlob, loadErr)
 			}
@@ -132,7 +132,7 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 
 	for _, ruleGlob := range exports.Rules {
 		eg.Go(func() error {
-			loadedRules, loadErr := l.loadRuleItems(rootDir, ruleGlob)
+			loadedRules, loadErr := l.loadRuleItems(rootDir, pkgManifest.Name, presetName, ruleGlob)
 			if loadErr != nil {
 				return fmt.Errorf("glob failed for rule %s: %w", ruleGlob, loadErr)
 			}
@@ -152,7 +152,7 @@ func (l *agentPresetLoader) buildPreset(pkgManifest *config.Package, presetName 
 	}, nil
 }
 
-func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*domain.PromptItem, error) {
+func (l *agentPresetLoader) loadPromptItems(rootDir, packageName, presetName, promptGlob string) ([]*domain.PromptItem, error) {
 	var loadedPrompts []*domain.PromptItem
 	slashed := filepath.ToSlash(promptGlob)
 	base, glob := doublestar.SplitPattern(slashed)
@@ -167,9 +167,9 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 		// and GetSlugFromBaseDir, as `path` is relative to `fsys`'s root.
 		fullPath := filepath.Join(rootDir, base, path)
 
-		slug, slugErr := utils.GetSlugFromBaseDir(filepath.Join(rootDir, base), fullPath)
-		if slugErr != nil {
-			return fmt.Errorf("failed to get slug for prompt %s: %w", fullPath, slugErr)
+		uriPath, pathErr := domain.GetPathFromBaseDir(filepath.Join(rootDir, base), fullPath)
+		if pathErr != nil {
+			return fmt.Errorf("failed to get path for prompt %s: %w", fullPath, pathErr)
 		}
 
 		body, readErr := os.ReadFile(fullPath)
@@ -182,7 +182,7 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 			return fmt.Errorf("failed to parse prompt markdown %s: %w", fullPath, parseErr)
 		}
 
-		promptItem := domain.NewPromptItem(slug, result.Content, result.FrontMatter)
+		promptItem := domain.NewPromptItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
 		loadedPrompts = append(loadedPrompts, promptItem)
 		return nil
 	})
@@ -193,9 +193,9 @@ func (l *agentPresetLoader) loadPromptItems(rootDir, promptGlob string) ([]*doma
 	return loadedPrompts, nil
 }
 
-func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain.RuleItem, error) {
+func (l *agentPresetLoader) loadRuleItems(rootDir, packageName, presetName, ruleGlob string) ([]*domain.RuleItem, error) {
 	var loadedRules []*domain.RuleItem
-	slashed := filepath.ToSlash(promptGlob)
+	slashed := filepath.ToSlash(ruleGlob)
 	base, glob := doublestar.SplitPattern(slashed)
 	fsys := os.DirFS(filepath.Join(rootDir, base))
 
@@ -208,9 +208,9 @@ func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain
 		// and GetSlugFromBaseDir, as `path` is relative to `fsys`'s root.
 		fullPath := filepath.Join(rootDir, base, path)
 
-		slug, slugErr := utils.GetSlugFromBaseDir(filepath.Join(rootDir, base), fullPath)
-		if slugErr != nil {
-			return fmt.Errorf("failed to get slug for rule %s: %w", fullPath, slugErr)
+		uriPath, pathErr := domain.GetPathFromBaseDir(filepath.Join(rootDir, base), fullPath)
+		if pathErr != nil {
+			return fmt.Errorf("failed to get path for rule %s: %w", fullPath, pathErr)
 		}
 
 		body, readErr := os.ReadFile(fullPath)
@@ -223,7 +223,7 @@ func (l *agentPresetLoader) loadRuleItems(rootDir, promptGlob string) ([]*domain
 			return fmt.Errorf("failed to parse rule markdown %s: %w", fullPath, parseErr)
 		}
 
-		ruleItem := domain.NewRuleItem(slug, result.Content, result.FrontMatter)
+		ruleItem := domain.NewRuleItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
 		loadedRules = append(loadedRules, ruleItem)
 		return nil
 	})
