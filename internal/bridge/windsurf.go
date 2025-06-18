@@ -47,7 +47,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 	switch rule.Metadata.Attach {
 	case domain.AttachTypeAlways:
 		return WindsurfRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: WindsurfRuleMetadata{
 				Trigger:     WindsurfTriggerTypeAlways,
@@ -57,7 +57,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 		}, nil
 	case domain.AttachTypeGlob:
 		return WindsurfRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: WindsurfRuleMetadata{
 				Trigger:     WindsurfTriggerTypeGlob,
@@ -67,7 +67,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 		}, nil
 	case domain.AttachTypeAgentRequested:
 		return WindsurfRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: WindsurfRuleMetadata{
 				Trigger:     WindsurfTriggerTypeAgentRequested,
@@ -77,7 +77,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 		}, nil
 	case domain.AttachTypeManual:
 		return WindsurfRule{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: WindsurfRuleMetadata{
 				Trigger:     WindsurfTriggerTypeManual,
@@ -89,7 +89,7 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 
 	// Fallback as manual rule.
 	return WindsurfRule{
-		Slug:    rule.Slug,
+		Slug:    rule.URI.Path,
 		Content: rule.Content,
 		Metadata: WindsurfRuleMetadata{
 			Trigger:     WindsurfTriggerTypeManual,
@@ -104,6 +104,8 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 
 	if rule.Metadata.Trigger == WindsurfTriggerTypeAlways {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -116,6 +118,8 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 
 	if rule.Metadata.Trigger == WindsurfTriggerTypeGlob {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -128,6 +132,8 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 
 	if rule.Metadata.Trigger == WindsurfTriggerTypeAgentRequested {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -140,6 +146,8 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 
 	if rule.Metadata.Trigger == WindsurfTriggerTypeManual {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -155,13 +163,15 @@ func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem,
 
 func (bridge *WindsurfBridge) ToAgentPrompt(prompt domain.PromptItem) (WindsurfPrompt, error) {
 	return WindsurfPrompt{
-		Slug:    prompt.Slug,
+		Slug:    prompt.URI.Path,
 		Content: prompt.Content,
 	}, nil
 }
 
 func (bridge *WindsurfBridge) FromAgentPrompt(prompt WindsurfPrompt) (domain.PromptItem, error) {
 	return *domain.NewPromptItem(
+		"", // packageName - placeholder, bridge doesn't have this context
+		"", // presetName - placeholder, bridge doesn't have this context
 		prompt.Slug,
 		prompt.Content,
 		domain.PromptMetadata{},

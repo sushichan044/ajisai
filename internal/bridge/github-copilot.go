@@ -68,7 +68,7 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 	switch rule.Metadata.Attach {
 	case domain.AttachTypeAlways:
 		return GitHubCopilotInstruction{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: GitHubCopilotInstructionMetadata{
 				ApplyTo: GitHubCopilotApplyToAllPrimary,
@@ -76,7 +76,7 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 		}, nil
 	case domain.AttachTypeGlob:
 		return GitHubCopilotInstruction{
-			Slug:    rule.Slug,
+			Slug:    rule.URI.Path,
 			Content: rule.Content,
 			Metadata: GitHubCopilotInstructionMetadata{
 				ApplyTo: strings.Join(rule.Metadata.Globs, ","),
@@ -84,7 +84,7 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 		}, nil
 	case domain.AttachTypeAgentRequested, domain.AttachTypeManual:
 		return GitHubCopilotInstruction{
-			Slug:     rule.Slug,
+			Slug:     rule.URI.Path,
 			Content:  rule.Content,
 			Metadata: GitHubCopilotInstructionMetadata{},
 		}, nil
@@ -92,7 +92,7 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 
 	// Fallback as manual rule.
 	return GitHubCopilotInstruction{
-		Slug:     rule.Slug,
+		Slug:     rule.URI.Path,
 		Content:  rule.Content,
 		Metadata: GitHubCopilotInstructionMetadata{},
 	}, nil
@@ -106,6 +106,8 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 
 	if alwaysApplied {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -117,6 +119,8 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 
 	if len(globs) > 0 {
 		return *domain.NewRuleItem(
+			"", // packageName - placeholder, bridge doesn't have this context
+			"", // presetName - placeholder, bridge doesn't have this context
 			rule.Slug,
 			rule.Content,
 			domain.RuleMetadata{
@@ -127,6 +131,8 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 	}
 
 	return *domain.NewRuleItem(
+		"", // packageName - placeholder, bridge doesn't have this context
+		"", // presetName - placeholder, bridge doesn't have this context
 		rule.Slug,
 		rule.Content,
 		domain.RuleMetadata{
@@ -138,7 +144,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 
 func (bridge *GitHubCopilotBridge) ToAgentPrompt(prompt domain.PromptItem) (GitHubCopilotPrompt, error) {
 	return GitHubCopilotPrompt{
-		Slug:    prompt.Slug,
+		Slug:    prompt.URI.Path,
 		Content: prompt.Content,
 		Metadata: GitHubCopilotPromptMetadata{
 			Description: prompt.Metadata.Description,
@@ -151,6 +157,8 @@ func (bridge *GitHubCopilotBridge) ToAgentPrompt(prompt domain.PromptItem) (GitH
 
 func (bridge *GitHubCopilotBridge) FromAgentPrompt(prompt GitHubCopilotPrompt) (domain.PromptItem, error) {
 	return *domain.NewPromptItem(
+		"", // packageName - placeholder, bridge doesn't have this context
+		"", // presetName - placeholder, bridge doesn't have this context
 		prompt.Slug,
 		prompt.Content,
 		domain.PromptMetadata{

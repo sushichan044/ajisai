@@ -50,7 +50,13 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 					{
 						Name: "test-preset",
 						Rules: []*domain.RuleItem{
-							domain.NewRuleItem("test-rule", "# Test Rule", domain.RuleMetadata{}),
+							domain.NewRuleItem(
+								"test-package",
+								"test-preset",
+								"test-rule",
+								"# Test Rule",
+								domain.RuleMetadata{},
+							),
 						},
 						Prompts: nil,
 					},
@@ -59,7 +65,7 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 			expectedXML: `<package name="test-package">
   <preset name="test-preset">
     <rules>
-      <rule slug="test-rule">
+      <rule path="test-rule">
         <metadata>
           <description>Test Rule</description>
         </metadata>
@@ -78,7 +84,13 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 						Name:  "test-preset",
 						Rules: nil,
 						Prompts: []*domain.PromptItem{
-							domain.NewPromptItem("test-prompt", "# Test Prompt", domain.PromptMetadata{}),
+							domain.NewPromptItem(
+								"test-package",
+								"test-preset",
+								"test-prompt",
+								"# Test Prompt",
+								domain.PromptMetadata{},
+							),
 						},
 					},
 				},
@@ -86,7 +98,7 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 			expectedXML: `<package name="test-package">
   <preset name="test-preset">
     <prompts>
-      <prompt slug="test-prompt">
+      <prompt path="test-prompt">
         <metadata>
           <description>Test Prompt</description>
         </metadata>
@@ -102,15 +114,23 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 				PackageName: "test-package",
 				Presets: []*domain.AgentPreset{
 					{
-						Name:    "preset1",
-						Rules:   []*domain.RuleItem{domain.NewRuleItem("rule1", "# Rule One", domain.RuleMetadata{})},
+						Name: "preset1",
+						Rules: []*domain.RuleItem{
+							domain.NewRuleItem("test-package", "preset1", "rule1", "# Rule One", domain.RuleMetadata{}),
+						},
 						Prompts: nil,
 					},
 					{
 						Name:  "preset2",
 						Rules: nil,
 						Prompts: []*domain.PromptItem{
-							domain.NewPromptItem("prompt2", "# Prompt Two", domain.PromptMetadata{}),
+							domain.NewPromptItem(
+								"test-package",
+								"preset2",
+								"prompt2",
+								"# Prompt Two",
+								domain.PromptMetadata{},
+							),
 						},
 					},
 				},
@@ -118,7 +138,7 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 			expectedXML: `<package name="test-package">
   <preset name="preset1">
     <rules>
-      <rule slug="rule1">
+      <rule path="rule1">
         <metadata>
           <description>Rule One</description>
         </metadata>
@@ -127,7 +147,7 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
   </preset>
   <preset name="preset2">
     <prompts>
-      <prompt slug="prompt2">
+      <prompt path="prompt2">
         <metadata>
           <description>Prompt Two</description>
         </metadata>

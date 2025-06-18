@@ -157,7 +157,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 	}{
 		{
 			name: "Always Attach Type",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"always",
 				"Always",
 				domain.RuleMetadata{
@@ -177,7 +177,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Glob Attach Type",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"go",
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
@@ -197,7 +197,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Agent Requested Attach Type",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"model-decision",
 				"HeyHeyHey",
 				domain.RuleMetadata{
@@ -218,7 +218,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Manual Attach Type",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"manual",
 				"Content",
 				domain.RuleMetadata{
@@ -238,7 +238,7 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "unsupported attach type falls back to manual",
-			domainRule: *domain.NewRuleItem(
+			domainRule: *domain.NewRuleItem("test-package", "test-preset",
 				"unsupported",
 				"content",
 				domain.RuleMetadata{
@@ -288,7 +288,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Trigger: bridge.WindsurfTriggerTypeAlways,
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"always",
 				"Always",
 				domain.RuleMetadata{
@@ -308,7 +308,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Globs:   "**/*.go,**/*.yaml",
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"go",
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
@@ -328,7 +328,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Description: longModelDecisionDescription,
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"model-decision",
 				"HeyHeyHey",
 				domain.RuleMetadata{
@@ -347,7 +347,7 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Trigger: bridge.WindsurfTriggerTypeManual,
 				},
 			},
-			expectedRule: *domain.NewRuleItem(
+			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
 				"manual",
 				"Content",
 				domain.RuleMetadata{
@@ -388,7 +388,7 @@ func TestWindsurfBridge_PromptConversion(t *testing.T) {
 	bridgeInstance := bridge.NewWindsurfBridge()
 
 	// Test ToAgentPrompt
-	domainPrompt := *domain.NewPromptItem(
+	domainPrompt := *domain.NewPromptItem("test-package", "test-preset",
 		"test-prompt",
 		"This is a test prompt.",
 		domain.PromptMetadata{},
@@ -405,7 +405,7 @@ func TestWindsurfBridge_PromptConversion(t *testing.T) {
 		Content: "This is a Windsurf prompt.",
 	}
 
-	expectedDomainPrompt := *domain.NewPromptItem(
+	expectedDomainPrompt := *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
 		"windsurf-prompt",
 		"This is a Windsurf prompt.",
 		domain.PromptMetadata{},

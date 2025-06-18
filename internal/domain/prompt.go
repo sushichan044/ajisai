@@ -2,7 +2,6 @@ package domain
 
 import (
 	"encoding/xml"
-	"fmt"
 
 	"github.com/sushichan044/ajisai/utils"
 )
@@ -19,7 +18,7 @@ type (
 	}
 )
 
-func NewPromptItem(slug string, content string, metadata PromptMetadata) *PromptItem {
+func NewPromptItem(packageName, presetName, path, content string, metadata PromptMetadata) *PromptItem {
 	var resolvedDescription string
 	if metadata.Description != "" {
 		resolvedDescription = metadata.Description
@@ -35,15 +34,17 @@ func NewPromptItem(slug string, content string, metadata PromptMetadata) *Prompt
 	return &PromptItem{
 		presetItem: presetItem{
 			Type:    PromptsPresetType,
-			Slug:    slug,
 			Content: content,
+			URI: URI{
+				Scheme:  Scheme,
+				Package: packageName,
+				Preset:  presetName,
+				Type:    PromptsPresetType,
+				Path:    path,
+			},
 		},
 		Metadata: resolvedMetadata,
 	}
-}
-
-func (p *PromptItem) URI(packageName, presetName string) string {
-	return fmt.Sprintf("ajisai://%s/%s/%s/%s", packageName, presetName, p.Type, p.Slug)
 }
 
 // XML marshalling implementation
@@ -63,7 +64,7 @@ type (
 func (p *PromptItem) toXML() *xmlPrompt {
 	return &xmlPrompt{
 		xmlPresetItem: xmlPresetItem{
-			Slug: p.Slug,
+			Path: p.URI.Path,
 		},
 		Metadata: xmlPromptMetadata{
 			Description: p.Metadata.Description,
