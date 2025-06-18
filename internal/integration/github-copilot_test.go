@@ -22,9 +22,13 @@ func TestGitHubCopilotAdapter_SerializeRule(t *testing.T) {
 	// Setup
 	adapter := integration.NewGitHubCopilotAdapter()
 	rule := domain.NewRuleItem(
-		"test-package",
-		"test-preset",
-		"test-rule",
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "test-package",
+			Preset:  "test-preset",
+			Type:    domain.RulesPresetType,
+			Path:    "test-rule",
+		},
 		"# Test Rule\nThis is a test rule.",
 		domain.RuleMetadata{
 			Description: "Test Rule Description",
@@ -47,9 +51,13 @@ func TestGitHubCopilotAdapter_SerializePrompt(t *testing.T) {
 	// Setup
 	adapter := integration.NewGitHubCopilotAdapter()
 	prompt := domain.NewPromptItem(
-		"test-package",
-		"test-preset",
-		"test-prompt",
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "test-package",
+			Preset:  "test-preset",
+			Type:    domain.PromptsPresetType,
+			Path:    "test-prompt",
+		},
 		"# Test Prompt\nThis is a test prompt.",
 		domain.PromptMetadata{
 			Description: "Test Prompt Description",

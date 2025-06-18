@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func NewRuleItem(packageName, presetName, path, content string, metadata RuleMetadata) *RuleItem {
+func NewRuleItem(uri URI, content string, metadata RuleMetadata) *RuleItem {
 	var resolvedDescription string
 	if metadata.Description != "" {
 		resolvedDescription = metadata.Description
@@ -37,13 +37,7 @@ func NewRuleItem(packageName, presetName, path, content string, metadata RuleMet
 		presetItem: presetItem{
 			Type:    RulesPresetType,
 			Content: content,
-			URI: URI{
-				Scheme:  Scheme,
-				Package: packageName,
-				Preset:  presetName,
-				Type:    RulesPresetType,
-				Path:    path,
-			},
+			URI:     uri,
 		},
 		Metadata: resolvedMetadata,
 	}

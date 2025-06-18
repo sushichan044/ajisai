@@ -65,13 +65,25 @@ func TestWritePreset(t *testing.T) {
 	preset := domain.AgentPreset{
 		Name: "test-preset",
 		Rules: []*domain.RuleItem{
-			domain.NewRuleItem("test-package", "test-preset", "test-rule", "Rule content", domain.RuleMetadata{
+			domain.NewRuleItem(domain.URI{
+				Scheme:  domain.Scheme,
+				Package: "test-package",
+				Preset:  "test-preset",
+				Type:    domain.RulesPresetType,
+				Path:    "test-rule",
+			}, "Rule content", domain.RuleMetadata{
 				Description: "Test rule",
 				Attach:      domain.AttachTypeAlways,
 			}),
 		},
 		Prompts: []*domain.PromptItem{
-			domain.NewPromptItem("test-package", "test-preset", "test-prompt", "Prompt content", domain.PromptMetadata{
+			domain.NewPromptItem(domain.URI{
+				Scheme:  domain.Scheme,
+				Package: "test-package",
+				Preset:  "test-preset",
+				Type:    domain.PromptsPresetType,
+				Path:    "test-prompt",
+			}, "Prompt content", domain.PromptMetadata{
 				Description: "Test prompt",
 			}),
 		},

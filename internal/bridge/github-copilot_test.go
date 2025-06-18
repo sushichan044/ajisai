@@ -20,8 +20,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 	}{
 		{
 			name: "AttachTypeAlways",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"test-always",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "test-always",
+				},
 				"# Test Always\n\nThis rule is always applied.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
@@ -39,8 +45,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "AttachTypeGlob",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"test-glob",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "test-glob",
+				},
 				"# Test Glob\n\nThis rule applies to specific patterns.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
@@ -58,8 +70,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "AttachTypeManual",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"test-manual",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "test-manual",
+				},
 				"# Test Manual\n\nThis rule is applied manually.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
@@ -75,8 +93,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "AttachTypeAgentRequested",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"test-agent-requested",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "test-agent-requested",
+				},
 				"# Test Agent\n\nThis rule is requested by agent.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAgentRequested,
@@ -92,8 +116,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "manual attach type",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"manual",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "manual",
+				},
 				"content",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
@@ -108,8 +138,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "unsupported attach type falls back to manual",
-			ruleItem: *domain.NewRuleItem("test-package", "test-preset",
-				"unsupported",
+			ruleItem: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "unsupported",
+				},
 				"content",
 				domain.RuleMetadata{
 					Attach: "unsupported",
@@ -157,8 +193,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 					ApplyTo: bridge.GitHubCopilotApplyToAllPrimary,
 				},
 			},
-			expected: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"test-all-primary",
+			expected: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "test-all-primary",
+				},
 				"# Test All Primary\n\nThis rule applies to all files (primary).",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
@@ -176,8 +218,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 					ApplyTo: bridge.GitHubCopilotApplyToAllSecondary,
 				},
 			},
-			expected: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"test-all-secondary",
+			expected: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "test-all-secondary",
+				},
 				"# Test All Secondary\n\nThis rule applies to all files (secondary).",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
@@ -195,8 +243,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 					ApplyTo: "*.go,internal/**/*.go",
 				},
 			},
-			expected: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"test-specific-globs",
+			expected: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "test-specific-globs",
+				},
 				"# Test Specific Globs\n\nThis rule applies to specific patterns.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
@@ -214,8 +268,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentRule(t *testing.T) {
 					ApplyTo: "",
 				},
 			},
-			expected: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"test-empty-apply-to",
+			expected: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "test-empty-apply-to",
+				},
 				"# Test Empty ApplyTo\n\nThis rule has empty ApplyTo.",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
@@ -252,8 +312,14 @@ func TestVSCodeGitHubCopilotBridge_ToAgentPrompt(t *testing.T) {
 	}{
 		{
 			name: "BasicPrompt",
-			prompt: *domain.NewPromptItem("test-package", "test-preset",
-				"test-prompt",
+			prompt: *domain.NewPromptItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.PromptsPresetType,
+					Path:    "test-prompt",
+				},
 				"# Test Prompt\n\nThis is a test prompt.",
 				domain.PromptMetadata{
 					Description: "A test prompt description",
@@ -307,8 +373,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentPrompt(t *testing.T) {
 					Tools:       []string{"tool1", "tool2"},
 				},
 			},
-			expected: *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
-				"test-prompt",
+			expected: *domain.NewPromptItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.PromptsPresetType,
+					Path:    "test-prompt",
+				},
 				"# Test Prompt\n\nThis is a test prompt.",
 				domain.PromptMetadata{
 					Description: "A test prompt description",
@@ -327,8 +399,14 @@ func TestVSCodeGitHubCopilotBridge_FromAgentPrompt(t *testing.T) {
 					Tools:       []string{},
 				},
 			},
-			expected: *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
-				"test-prompt-empty",
+			expected: *domain.NewPromptItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.PromptsPresetType,
+					Path:    "test-prompt-empty",
+				},
 				"# Test Empty\n\nThis prompt has empty description.",
 				domain.PromptMetadata{
 					Description: "",

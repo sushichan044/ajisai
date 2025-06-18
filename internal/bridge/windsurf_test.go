@@ -157,8 +157,14 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 	}{
 		{
 			name: "Always Attach Type",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"always",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "always",
+				},
 				"Always",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
@@ -177,8 +183,14 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Glob Attach Type",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"go",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "go",
+				},
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
@@ -197,8 +209,14 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Agent Requested Attach Type",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"model-decision",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "model-decision",
+				},
 				"HeyHeyHey",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAgentRequested,
@@ -218,8 +236,14 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "Manual Attach Type",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"manual",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "manual",
+				},
 				"Content",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
@@ -238,8 +262,14 @@ func TestWindsurfBridge_ToAgentRule(t *testing.T) {
 		},
 		{
 			name: "unsupported attach type falls back to manual",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"unsupported",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "unsupported",
+				},
 				"content",
 				domain.RuleMetadata{
 					Attach: "unsupported",
@@ -288,8 +318,14 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Trigger: bridge.WindsurfTriggerTypeAlways,
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"always",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "always",
+				},
 				"Always",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAlways,
@@ -308,8 +344,14 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Globs:   "**/*.go,**/*.yaml",
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"go",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "go",
+				},
 				"You should print \"GOGO!\"",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeGlob,
@@ -328,8 +370,14 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Description: longModelDecisionDescription,
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"model-decision",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "model-decision",
+				},
 				"HeyHeyHey",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAgentRequested,
@@ -347,8 +395,14 @@ func TestWindsurfBridge_FromAgentRule(t *testing.T) {
 					Trigger: bridge.WindsurfTriggerTypeManual,
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"manual",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "manual",
+				},
 				"Content",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeManual,
@@ -388,8 +442,14 @@ func TestWindsurfBridge_PromptConversion(t *testing.T) {
 	bridgeInstance := bridge.NewWindsurfBridge()
 
 	// Test ToAgentPrompt
-	domainPrompt := *domain.NewPromptItem("test-package", "test-preset",
-		"test-prompt",
+	domainPrompt := *domain.NewPromptItem(
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "test-package",
+			Preset:  "test-preset",
+			Type:    domain.PromptsPresetType,
+			Path:    "test-prompt",
+		},
 		"This is a test prompt.",
 		domain.PromptMetadata{},
 	)
@@ -405,8 +465,14 @@ func TestWindsurfBridge_PromptConversion(t *testing.T) {
 		Content: "This is a Windsurf prompt.",
 	}
 
-	expectedDomainPrompt := *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
-		"windsurf-prompt",
+	expectedDomainPrompt := *domain.NewPromptItem(
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "", // bridge doesn't have package/preset context
+			Preset:  "", // bridge doesn't have package/preset context
+			Type:    domain.PromptsPresetType,
+			Path:    "windsurf-prompt",
+		},
 		"This is a Windsurf prompt.",
 		domain.PromptMetadata{},
 	)

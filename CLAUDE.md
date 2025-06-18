@@ -79,7 +79,7 @@ Each integration defines:
 
 **Generated file structure**:
 
-```
+```text
 .cursor/rules/ajisai/package-name/preset-name/rule-slug.mdc
 .cursor/prompts/ajisai/package-name/preset-name/prompt-slug.md
 ```

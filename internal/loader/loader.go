@@ -184,7 +184,14 @@ func (l *agentPresetLoader) loadPromptItems(
 			return fmt.Errorf("failed to parse prompt markdown %s: %w", fullPath, parseErr)
 		}
 
-		promptItem := domain.NewPromptItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
+		uri := domain.URI{
+			Scheme:  domain.Scheme,
+			Package: packageName,
+			Preset:  presetName,
+			Type:    domain.PromptsPresetType,
+			Path:    uriPath,
+		}
+		promptItem := domain.NewPromptItem(uri, result.Content, result.FrontMatter)
 		loadedPrompts = append(loadedPrompts, promptItem)
 		return nil
 	})
@@ -227,7 +234,14 @@ func (l *agentPresetLoader) loadRuleItems(
 			return fmt.Errorf("failed to parse rule markdown %s: %w", fullPath, parseErr)
 		}
 
-		ruleItem := domain.NewRuleItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
+		uri := domain.URI{
+			Scheme:  domain.Scheme,
+			Package: packageName,
+			Preset:  presetName,
+			Type:    domain.RulesPresetType,
+			Path:    uriPath,
+		}
+		ruleItem := domain.NewRuleItem(uri, result.Content, result.FrontMatter)
 		loadedRules = append(loadedRules, ruleItem)
 		return nil
 	})
