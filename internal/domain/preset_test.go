@@ -78,7 +78,14 @@ func TestNewRuleItem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := domain.NewRuleItem("test-package", "test-preset", tt.slug, tt.content, tt.metadata)
+			uri := domain.URI{
+				Scheme:  domain.Scheme,
+				Package: "test-package",
+				Preset:  "test-preset",
+				Type:    domain.RulesPresetType,
+				Path:    tt.slug,
+			}
+			result := domain.NewRuleItem(uri, tt.content, tt.metadata)
 
 			assert.Equal(t, tt.slug, result.URI.Path)
 			assert.Equal(t, tt.content, result.Content)
@@ -148,7 +155,14 @@ func TestNewPromptItem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := domain.NewPromptItem("test-package", "test-preset", tt.slug, tt.content, tt.metadata)
+			uri := domain.URI{
+				Scheme:  domain.Scheme,
+				Package: "test-package",
+				Preset:  "test-preset",
+				Type:    domain.PromptsPresetType,
+				Path:    tt.slug,
+			}
+			result := domain.NewPromptItem(uri, tt.content, tt.metadata)
 
 			assert.Equal(t, tt.slug, result.URI.Path)
 			assert.Equal(t, tt.content, result.Content)
@@ -179,16 +193,24 @@ func TestAgentPreset_ToXML(t *testing.T) {
 				Name: "rules-only",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
-						"test-package",
-						"rules-only",
-						"rule1",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "rules-only",
+							Type:    domain.RulesPresetType,
+							Path:    "rule1",
+						},
 						"Rule 1 content",
 						domain.RuleMetadata{Description: "Rule 1 desc", Attach: domain.AttachTypeAlways},
 					),
 					domain.NewRuleItem(
-						"test-package",
-						"rules-only",
-						"rule2",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "rules-only",
+							Type:    domain.RulesPresetType,
+							Path:    "rule2",
+						},
 						"Rule 2 content",
 						domain.RuleMetadata{
 							Description: "Rule 2 desc",
@@ -226,16 +248,24 @@ func TestAgentPreset_ToXML(t *testing.T) {
 				Rules: nil,
 				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
-						"test-package",
-						"prompts-only",
-						"prompt1",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "prompts-only",
+							Type:    domain.PromptsPresetType,
+							Path:    "prompt1",
+						},
 						"Prompt 1 content",
 						domain.PromptMetadata{Description: "Prompt 1 desc"},
 					),
 					domain.NewPromptItem(
-						"test-package",
-						"prompts-only",
-						"prompt2",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "prompts-only",
+							Type:    domain.PromptsPresetType,
+							Path:    "prompt2",
+						},
 						"Prompt 2 content",
 						domain.PromptMetadata{Description: "Prompt 2 desc"},
 					),
@@ -262,18 +292,26 @@ func TestAgentPreset_ToXML(t *testing.T) {
 				Name: "mixed-preset",
 				Rules: []*domain.RuleItem{
 					domain.NewRuleItem(
-						"test-package",
-						"mixed-preset",
-						"rule1",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "mixed-preset",
+							Type:    domain.RulesPresetType,
+							Path:    "rule1",
+						},
 						"Rule content",
 						domain.RuleMetadata{Description: "Rule desc", Attach: domain.AttachTypeManual},
 					),
 				},
 				Prompts: []*domain.PromptItem{
 					domain.NewPromptItem(
-						"test-package",
-						"mixed-preset",
-						"prompt1",
+						domain.URI{
+							Scheme:  domain.Scheme,
+							Package: "test-package",
+							Preset:  "mixed-preset",
+							Type:    domain.PromptsPresetType,
+							Path:    "prompt1",
+						},
 						"Prompt content",
 						domain.PromptMetadata{Description: "Prompt desc"},
 					),

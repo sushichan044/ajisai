@@ -23,8 +23,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 	}{
 		{
 			name: "AlwaysAttach rule",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"always-rule",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "always-rule",
+				},
 				"This is an always rule",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeAlways,
@@ -43,8 +49,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "Glob rule",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"glob-rule",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "glob-rule",
+				},
 				"This is a glob rule",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeGlob,
@@ -63,8 +75,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "manual attach type",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"manual",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "manual",
+				},
 				"content",
 				domain.RuleMetadata{
 					Attach: domain.AttachTypeManual,
@@ -82,8 +100,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 		},
 		{
 			name: "unsupported attach type falls back to manual",
-			domainRule: *domain.NewRuleItem("test-package", "test-preset",
-				"unsupported",
+			domainRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "test-package",
+					Preset:  "test-preset",
+					Type:    domain.RulesPresetType,
+					Path:    "unsupported",
+				},
 				"content",
 				domain.RuleMetadata{
 					Attach: "unsupported",
@@ -131,8 +155,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 					Globs:       "",
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"always-rule",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "always-rule",
+				},
 				"This is an always rule",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeAlways,
@@ -152,8 +182,14 @@ func TestCursorBridge_RuleConversion(t *testing.T) {
 					Globs:       "*.go,*.md",
 				},
 			},
-			expectedRule: *domain.NewRuleItem("", "", // bridge doesn't have package/preset context
-				"glob-rule",
+			expectedRule: *domain.NewRuleItem(
+				domain.URI{
+					Scheme:  domain.Scheme,
+					Package: "", // bridge doesn't have package/preset context
+					Preset:  "", // bridge doesn't have package/preset context
+					Type:    domain.RulesPresetType,
+					Path:    "glob-rule",
+				},
 				"This is a glob rule",
 				domain.RuleMetadata{
 					Attach:      domain.AttachTypeGlob,
@@ -181,8 +217,14 @@ func TestCursorBridge_PromptConversion(t *testing.T) {
 	bridgeInstance := bridge.NewCursorBridge()
 
 	// Test ToAgentPrompt
-	domainPrompt := *domain.NewPromptItem("test-package", "test-preset",
-		"test-prompt",
+	domainPrompt := *domain.NewPromptItem(
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "test-package",
+			Preset:  "test-preset",
+			Type:    domain.PromptsPresetType,
+			Path:    "test-prompt",
+		},
 		"This is a test prompt.",
 		domain.PromptMetadata{},
 	)
@@ -198,8 +240,14 @@ func TestCursorBridge_PromptConversion(t *testing.T) {
 		Content: "This is a Cursor prompt.",
 	}
 
-	expectedDomainPrompt := *domain.NewPromptItem("", "", // bridge doesn't have package/preset context
-		"cursor-prompt",
+	expectedDomainPrompt := *domain.NewPromptItem(
+		domain.URI{
+			Scheme:  domain.Scheme,
+			Package: "", // bridge doesn't have package/preset context
+			Preset:  "", // bridge doesn't have package/preset context
+			Type:    domain.PromptsPresetType,
+			Path:    "cursor-prompt",
+		},
 		"This is a Cursor prompt.",
 		domain.PromptMetadata{},
 	)

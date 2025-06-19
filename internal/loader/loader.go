@@ -184,7 +184,8 @@ func (l *agentPresetLoader) loadPromptItems(
 			return fmt.Errorf("failed to parse prompt markdown %s: %w", fullPath, parseErr)
 		}
 
-		promptItem := domain.NewPromptItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
+		uri := makeItemURI(packageName, presetName, uriPath, domain.PromptsPresetType)
+		promptItem := domain.NewPromptItem(uri, result.Content, result.FrontMatter)
 		loadedPrompts = append(loadedPrompts, promptItem)
 		return nil
 	})
@@ -193,6 +194,17 @@ func (l *agentPresetLoader) loadPromptItems(
 		return nil, err
 	}
 	return loadedPrompts, nil
+}
+
+// makeItemURI creates a URI for a rule or prompt item with the given parameters.
+func makeItemURI(packageName, presetName, uriPath string, itemType domain.PresetType) domain.URI {
+	return domain.URI{
+		Scheme:  domain.Scheme,
+		Package: packageName,
+		Preset:  presetName,
+		Type:    itemType,
+		Path:    uriPath,
+	}
 }
 
 func (l *agentPresetLoader) loadRuleItems(
@@ -227,7 +239,8 @@ func (l *agentPresetLoader) loadRuleItems(
 			return fmt.Errorf("failed to parse rule markdown %s: %w", fullPath, parseErr)
 		}
 
-		ruleItem := domain.NewRuleItem(packageName, presetName, uriPath, result.Content, result.FrontMatter)
+		uri := makeItemURI(packageName, presetName, uriPath, domain.RulesPresetType)
+		ruleItem := domain.NewRuleItem(uri, result.Content, result.FrontMatter)
 		loadedRules = append(loadedRules, ruleItem)
 		return nil
 	})

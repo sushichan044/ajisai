@@ -22,9 +22,7 @@ func TestWindsurfAdapter_SerializeRule(t *testing.T) {
 	// Setup
 	adapter := integration.NewWindsurfAdapter()
 	rule := domain.NewRuleItem(
-		"test-package",
-		"test-preset",
-		"test-rule",
+		makeTestURI("test-rule", domain.RulesPresetType),
 		"# Test Rule\nThis is a test rule.",
 		domain.RuleMetadata{
 			Description: "Test Rule Description",
@@ -47,9 +45,7 @@ func TestWindsurfAdapter_SerializePrompt(t *testing.T) {
 	// Setup
 	adapter := integration.NewWindsurfAdapter()
 	prompt := domain.NewPromptItem(
-		"test-package",
-		"test-preset",
-		"test-prompt",
+		makeTestURI("test-prompt", domain.PromptsPresetType),
 		"# Test Prompt\nThis is a test prompt.",
 		domain.PromptMetadata{
 			Description: "Test Prompt Description",

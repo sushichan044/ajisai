@@ -51,9 +51,13 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 						Name: "test-preset",
 						Rules: []*domain.RuleItem{
 							domain.NewRuleItem(
-								"test-package",
-								"test-preset",
-								"test-rule",
+								domain.URI{
+									Scheme:  domain.Scheme,
+									Package: "test-package",
+									Preset:  "test-preset",
+									Type:    domain.RulesPresetType,
+									Path:    "test-rule",
+								},
 								"# Test Rule",
 								domain.RuleMetadata{},
 							),
@@ -85,9 +89,13 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 						Rules: nil,
 						Prompts: []*domain.PromptItem{
 							domain.NewPromptItem(
-								"test-package",
-								"test-preset",
-								"test-prompt",
+								domain.URI{
+									Scheme:  domain.Scheme,
+									Package: "test-package",
+									Preset:  "test-preset",
+									Type:    domain.PromptsPresetType,
+									Path:    "test-prompt",
+								},
 								"# Test Prompt",
 								domain.PromptMetadata{},
 							),
@@ -116,7 +124,17 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 					{
 						Name: "preset1",
 						Rules: []*domain.RuleItem{
-							domain.NewRuleItem("test-package", "preset1", "rule1", "# Rule One", domain.RuleMetadata{}),
+							domain.NewRuleItem(
+								domain.URI{
+									Scheme:  domain.Scheme,
+									Package: "test-package",
+									Preset:  "preset1",
+									Type:    domain.RulesPresetType,
+									Path:    "rule1",
+								},
+								"# Rule One",
+								domain.RuleMetadata{},
+							),
 						},
 						Prompts: nil,
 					},
@@ -125,9 +143,13 @@ func TestAgentPresetPackage_MarshalToXML(t *testing.T) {
 						Rules: nil,
 						Prompts: []*domain.PromptItem{
 							domain.NewPromptItem(
-								"test-package",
-								"preset2",
-								"prompt2",
+								domain.URI{
+									Scheme:  domain.Scheme,
+									Package: "test-package",
+									Preset:  "preset2",
+									Type:    domain.PromptsPresetType,
+									Path:    "prompt2",
+								},
 								"# Prompt Two",
 								domain.PromptMetadata{},
 							),

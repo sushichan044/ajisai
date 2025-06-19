@@ -101,14 +101,15 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) (domain.RuleItem, error) {
 	emptyGlobs := make([]string, 0)
 
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(rule.Slug, domain.RulesPresetType)
+
 	globs := utils.RemoveZeroValues(strings.Split(rule.Metadata.ApplyTo, ","))
 	alwaysApplied := utils.ContainsAny(globs, GitHubCopilotInstructionApplyToAll)
 
 	if alwaysApplied {
 		return *domain.NewRuleItem(
-			"", // packageName - placeholder, bridge doesn't have this context
-			"", // presetName - placeholder, bridge doesn't have this context
-			rule.Slug,
+			uri,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach: domain.AttachTypeAlways,
@@ -119,9 +120,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 
 	if len(globs) > 0 {
 		return *domain.NewRuleItem(
-			"", // packageName - placeholder, bridge doesn't have this context
-			"", // presetName - placeholder, bridge doesn't have this context
-			rule.Slug,
+			uri,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach: domain.AttachTypeGlob,
@@ -131,9 +130,7 @@ func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) 
 	}
 
 	return *domain.NewRuleItem(
-		"", // packageName - placeholder, bridge doesn't have this context
-		"", // presetName - placeholder, bridge doesn't have this context
-		rule.Slug,
+		uri,
 		rule.Content,
 		domain.RuleMetadata{
 			Attach: domain.AttachTypeManual,
@@ -156,10 +153,11 @@ func (bridge *GitHubCopilotBridge) ToAgentPrompt(prompt domain.PromptItem) (GitH
 }
 
 func (bridge *GitHubCopilotBridge) FromAgentPrompt(prompt GitHubCopilotPrompt) (domain.PromptItem, error) {
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(prompt.Slug, domain.PromptsPresetType)
+
 	return *domain.NewPromptItem(
-		"", // packageName - placeholder, bridge doesn't have this context
-		"", // presetName - placeholder, bridge doesn't have this context
-		prompt.Slug,
+		uri,
 		prompt.Content,
 		domain.PromptMetadata{
 			Description: prompt.Metadata.Description,

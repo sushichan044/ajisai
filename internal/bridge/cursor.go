@@ -92,11 +92,12 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, error) {
 	emptyGlobs := make([]string, 0)
 
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(rule.Slug, domain.RulesPresetType)
+
 	if rule.Metadata.AlwaysApply {
 		return *domain.NewRuleItem(
-			"", // packageName - placeholder, bridge doesn't have this context
-			"", // presetName - placeholder, bridge doesn't have this context
-			rule.Slug,
+			uri,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAlways,
@@ -108,9 +109,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 	if rule.Metadata.Globs != "" {
 		return *domain.NewRuleItem(
-			"", // packageName - placeholder, bridge doesn't have this context
-			"", // presetName - placeholder, bridge doesn't have this context
-			rule.Slug,
+			uri,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeGlob,
@@ -122,9 +121,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 
 	if rule.Metadata.Description != "" {
 		return *domain.NewRuleItem(
-			"", // packageName - placeholder, bridge doesn't have this context
-			"", // presetName - placeholder, bridge doesn't have this context
-			rule.Slug,
+			uri,
 			rule.Content,
 			domain.RuleMetadata{
 				Attach:      domain.AttachTypeAgentRequested,
@@ -135,9 +132,7 @@ func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, err
 	}
 
 	return *domain.NewRuleItem(
-		"", // packageName - placeholder, bridge doesn't have this context
-		"", // presetName - placeholder, bridge doesn't have this context
-		rule.Slug,
+		uri,
 		rule.Content,
 		domain.RuleMetadata{
 			Attach:      domain.AttachTypeManual,
@@ -155,10 +150,11 @@ func (bridge *CursorBridge) ToAgentPrompt(prompt domain.PromptItem) (CursorPromp
 }
 
 func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptItem, error) {
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(prompt.Slug, domain.PromptsPresetType)
+
 	return *domain.NewPromptItem(
-		"", // packageName - placeholder, bridge doesn't have this context
-		"", // presetName - placeholder, bridge doesn't have this context
-		prompt.Slug,
+		uri,
 		prompt.Content,
 		domain.PromptMetadata{},
 	), nil

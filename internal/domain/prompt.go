@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func NewPromptItem(packageName, presetName, path, content string, metadata PromptMetadata) *PromptItem {
+func NewPromptItem(uri URI, content string, metadata PromptMetadata) *PromptItem {
 	var resolvedDescription string
 	if metadata.Description != "" {
 		resolvedDescription = metadata.Description
@@ -35,13 +35,7 @@ func NewPromptItem(packageName, presetName, path, content string, metadata Promp
 		presetItem: presetItem{
 			Type:    PromptsPresetType,
 			Content: content,
-			URI: URI{
-				Scheme:  Scheme,
-				Package: packageName,
-				Preset:  presetName,
-				Type:    PromptsPresetType,
-				Path:    path,
-			},
+			URI:     uri,
 		},
 		Metadata: resolvedMetadata,
 	}

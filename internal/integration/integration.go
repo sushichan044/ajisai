@@ -72,7 +72,7 @@ func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPre
 
 	for _, preset := range pkg.Presets {
 		eg.Go(func() error {
-			return repo.writePreset(namespace, pkg.PackageName, preset)
+			return repo.writePreset(namespace, preset)
 		})
 	}
 
@@ -80,7 +80,7 @@ func (repo *integrationImpl) WritePackage(namespace string, pkg *domain.AgentPre
 }
 
 //gocognit:ignore
-func (repo *integrationImpl) writePreset(namespace string, packageName string, preset *domain.AgentPreset) error {
+func (repo *integrationImpl) writePreset(namespace string, preset *domain.AgentPreset) error {
 	resolveRulePath := func(rule *domain.RuleItem) string {
 		rulePath := rule.URI.GetInternalPath(repo.adapter.RuleExtension())
 		return filepath.Join(repo.resolvedRulesRootDir, namespace, rulePath)
@@ -104,10 +104,9 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 
 			if dirErr := utils.EnsureDir(filepath.Dir(rulePath)); dirErr != nil {
 				return fmt.Errorf(
-					"could not ensure dir for rule %s in preset %s, package %s: %w",
+					"could not ensure dir for rule %s (URI: %s): %w",
 					rulePath,
-					preset.Name,
-					packageName,
+					rule.URI.String(),
 					dirErr,
 				)
 			}
@@ -127,10 +126,9 @@ func (repo *integrationImpl) writePreset(namespace string, packageName string, p
 
 			if dirErr := utils.EnsureDir(filepath.Dir(promptPath)); dirErr != nil {
 				return fmt.Errorf(
-					"could not ensure dir for prompt %s in preset %s, package %s: %w",
+					"could not ensure dir for prompt %s (URI: %s): %w",
 					promptPath,
-					preset.Name,
-					packageName,
+					prompt.URI.String(),
 					dirErr,
 				)
 			}
