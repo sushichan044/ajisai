@@ -65,27 +65,19 @@ func TestWritePreset(t *testing.T) {
 	preset := domain.AgentPreset{
 		Name: "test-preset",
 		Rules: []*domain.RuleItem{
-			domain.NewRuleItem(domain.URI{
-				Scheme:  domain.Scheme,
-				Package: "test-package",
-				Preset:  "test-preset",
-				Type:    domain.RulesPresetType,
-				Path:    "test-rule",
-			}, "Rule content", domain.RuleMetadata{
-				Description: "Test rule",
-				Attach:      domain.AttachTypeAlways,
-			}),
+			domain.NewRuleItem(
+				makeTestURI("test-rule", domain.RulesPresetType),
+				"Rule content", domain.RuleMetadata{
+					Description: "Test rule",
+					Attach:      domain.AttachTypeAlways,
+				}),
 		},
 		Prompts: []*domain.PromptItem{
-			domain.NewPromptItem(domain.URI{
-				Scheme:  domain.Scheme,
-				Package: "test-package",
-				Preset:  "test-preset",
-				Type:    domain.PromptsPresetType,
-				Path:    "test-prompt",
-			}, "Prompt content", domain.PromptMetadata{
-				Description: "Test prompt",
-			}),
+			domain.NewPromptItem(
+				makeTestURI("test-prompt", domain.PromptsPresetType),
+				"Prompt content", domain.PromptMetadata{
+					Description: "Test prompt",
+				}),
 		},
 	}
 
@@ -226,3 +218,8 @@ func TestEnsureGitignoreFiles(t *testing.T) {
 	_, err = os.Stat(promptsNamespaceDir)
 	require.NoError(t, err, "Prompts namespace directory should exist")
 }
+
+// Note: Directory creation failure tests would require complex mocking of the filesystem
+// which would significantly complicate the test setup. The error paths for utils.EnsureDir
+// failures are covered by the utils package tests and the error handling logic is
+// straightforward - it wraps the error with context and returns it.
