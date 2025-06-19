@@ -101,14 +101,8 @@ func (bridge *GitHubCopilotBridge) ToAgentRule(rule domain.RuleItem) (GitHubCopi
 func (bridge *GitHubCopilotBridge) FromAgentRule(rule GitHubCopilotInstruction) (domain.RuleItem, error) {
 	emptyGlobs := make([]string, 0)
 
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.RulesPresetType,
-		Path:    rule.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(rule.Slug, domain.RulesPresetType)
 
 	globs := utils.RemoveZeroValues(strings.Split(rule.Metadata.ApplyTo, ","))
 	alwaysApplied := utils.ContainsAny(globs, GitHubCopilotInstructionApplyToAll)
@@ -159,14 +153,8 @@ func (bridge *GitHubCopilotBridge) ToAgentPrompt(prompt domain.PromptItem) (GitH
 }
 
 func (bridge *GitHubCopilotBridge) FromAgentPrompt(prompt GitHubCopilotPrompt) (domain.PromptItem, error) {
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.PromptsPresetType,
-		Path:    prompt.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(prompt.Slug, domain.PromptsPresetType)
 
 	return *domain.NewPromptItem(
 		uri,

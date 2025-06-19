@@ -102,14 +102,8 @@ func (bridge *WindsurfBridge) ToAgentRule(rule domain.RuleItem) (WindsurfRule, e
 func (bridge *WindsurfBridge) FromAgentRule(rule WindsurfRule) (domain.RuleItem, error) {
 	emptyGlobs := make([]string, 0)
 
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.RulesPresetType,
-		Path:    rule.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(rule.Slug, domain.RulesPresetType)
 
 	if rule.Metadata.Trigger == WindsurfTriggerTypeAlways {
 		return *domain.NewRuleItem(
@@ -170,14 +164,8 @@ func (bridge *WindsurfBridge) ToAgentPrompt(prompt domain.PromptItem) (WindsurfP
 }
 
 func (bridge *WindsurfBridge) FromAgentPrompt(prompt WindsurfPrompt) (domain.PromptItem, error) {
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.PromptsPresetType,
-		Path:    prompt.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(prompt.Slug, domain.PromptsPresetType)
 
 	return *domain.NewPromptItem(
 		uri,

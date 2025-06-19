@@ -92,14 +92,8 @@ func (bridge *CursorBridge) ToAgentRule(rule domain.RuleItem) (CursorRule, error
 func (bridge *CursorBridge) FromAgentRule(rule CursorRule) (domain.RuleItem, error) {
 	emptyGlobs := make([]string, 0)
 
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.RulesPresetType,
-		Path:    rule.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(rule.Slug, domain.RulesPresetType)
 
 	if rule.Metadata.AlwaysApply {
 		return *domain.NewRuleItem(
@@ -156,14 +150,8 @@ func (bridge *CursorBridge) ToAgentPrompt(prompt domain.PromptItem) (CursorPromp
 }
 
 func (bridge *CursorBridge) FromAgentPrompt(prompt CursorPrompt) (domain.PromptItem, error) {
-	// Create URI with placeholder values since bridge doesn't have package/preset context
-	uri := domain.URI{
-		Scheme:  domain.Scheme,
-		Package: "", // placeholder, bridge doesn't have this context
-		Preset:  "", // placeholder, bridge doesn't have this context
-		Type:    domain.PromptsPresetType,
-		Path:    prompt.Slug,
-	}
+	// Create URI using the domain.NewPlaceholderURI helper
+	uri := domain.NewPlaceholderURI(prompt.Slug, domain.PromptsPresetType)
 
 	return *domain.NewPromptItem(
 		uri,
