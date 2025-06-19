@@ -21,6 +21,18 @@ type URI struct {
 	Path    string     // Hierarchical path within preset (e.g., "go-style/project")
 }
 
+// NewPlaceholderURI creates a placeholder URI for operations that don't have package/preset context.
+// This is commonly used in bridge operations where the package and preset information is not available.
+func NewPlaceholderURI(slug string, itemType PresetType) URI {
+	return URI{
+		Scheme:  Scheme,
+		Package: "", // placeholder, context doesn't have this information
+		Preset:  "", // placeholder, context doesn't have this information
+		Type:    itemType,
+		Path:    slug,
+	}
+}
+
 // String converts the URI structure to its string representation.
 // Example: "ajisai://local_rules/default/rules/go-style/project"
 func (u *URI) String() string {
