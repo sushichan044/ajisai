@@ -22,13 +22,7 @@ func TestCursorAdapter_SerializeRule(t *testing.T) {
 	// Setup
 	adapter := integration.NewCursorAdapter()
 	rule := domain.NewRuleItem(
-		domain.URI{
-			Scheme:  domain.Scheme,
-			Package: "test-package",
-			Preset:  "test-preset",
-			Type:    domain.RulesPresetType,
-			Path:    "test-rule",
-		},
+		makeTestURI("test-preset", "test-rule", domain.RulesPresetType),
 		"# Test Rule\nThis is a test rule.",
 		domain.RuleMetadata{
 			Description: "Test Rule Description",
@@ -51,13 +45,7 @@ func TestCursorAdapter_SerializePrompt(t *testing.T) {
 	// Setup
 	adapter := integration.NewCursorAdapter()
 	prompt := domain.NewPromptItem(
-		domain.URI{
-			Scheme:  domain.Scheme,
-			Package: "test-package",
-			Preset:  "test-preset",
-			Type:    domain.PromptsPresetType,
-			Path:    "test-prompt",
-		},
+		makeTestURI("test-preset", "test-prompt", domain.PromptsPresetType),
 		"# Test Prompt\nThis is a test prompt.",
 		domain.PromptMetadata{
 			Description: "Test Prompt Description",
