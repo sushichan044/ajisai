@@ -13,7 +13,7 @@ require (
 	github.com/urfave/cli/v3 v3.3.8
 	github.com/yuin/goldmark v1.7.13
 	go.uber.org/mock v0.5.2
-	golang.org/x/sync v0.15.0
+	golang.org/x/sync v0.16.0
 )
 
 require (
