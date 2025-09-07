@@ -1,6 +1,6 @@
 module github.com/sushichan044/ajisai
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/adrg/frontmatter v0.2.0
@@ -13,7 +13,7 @@ require (
 	github.com/urfave/cli/v3 v3.3.8
 	github.com/yuin/goldmark v1.7.13
 	go.uber.org/mock v0.5.2
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.17.0
 )
 
 require (
