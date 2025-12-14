@@ -32,7 +32,7 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - uses: Songmu/tagpr@7191605433b03e11b313dbbc0efb80185170de4b # v1.9.0
+      - uses: Songmu/tagpr@75738aa2880a03a1036bc5bd90ef49853427ec65 # v1.10.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
