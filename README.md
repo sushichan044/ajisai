@@ -4,6 +4,9 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/sushichan044/ajisai.svg)](https://pkg.go.dev/github.com/sushichan044/ajisai)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sushichan044/ajisai)
 
+> [!CAUTION]
+> This project has been archived. See [#118](https://github.com/sushichan044/ajisai/issues/118).
+
 **Ajisai** is a simple preset manager for AI Coding Agents.
 
 You can package rule and prompt configurations and reuse them across multiple projects.
